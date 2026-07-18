@@ -4,6 +4,7 @@ import { getPriceIdForPlan, isStripeConfigured } from "@/lib/stripe/config";
 import { isPaidPlanId } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/server";
 import { getSubscription } from "@/lib/stripe/subscription";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { SITE_URL } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,6 +53,16 @@ export async function POST(request: Request) {
         metadata: { user_id: user.id },
       });
       customerId = customer.id;
+      // Mémorisé immédiatement : /api/stripe/sync peut ainsi retrouver
+      // l'abonnement au retour de Checkout même si le webhook n'a pas
+      // encore été livré. Non bloquant : le webhook réécrira la ligne.
+      const { error: saveError } = await createAdminClient()
+        .from("subscriptions")
+        .update({ stripe_customer_id: customerId })
+        .eq("user_id", user.id);
+      if (saveError) {
+        logger.error("[stripe/checkout] enregistrement stripe_customer_id", saveError);
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

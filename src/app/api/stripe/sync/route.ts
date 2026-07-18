@@ -34,14 +34,34 @@ export async function POST() {
   }
 
   try {
+    const stripe = getStripe();
     const row = await getSubscription(supabase, user.id);
-    if (!row?.stripe_subscription_id) {
-      return NextResponse.json({ plan: "free", status: "none" });
+
+    // L'abonnement est retrouvé chez Stripe (source de vérité), dans l'ordre :
+    // id stocké → client Stripe stocké → recherche par metadata user_id.
+    // Indispensable quand le webhook n'a pas encore écrit la ligne (retard,
+    // secret absent en local) : sans cela le compte restait « free » à tort.
+    let subscription = null;
+    if (row?.stripe_subscription_id) {
+      subscription = await stripe.subscriptions.retrieve(row.stripe_subscription_id);
+    } else if (row?.stripe_customer_id) {
+      const list = await stripe.subscriptions.list({
+        customer: row.stripe_customer_id,
+        status: "all",
+        limit: 1,
+      });
+      subscription = list.data[0] ?? null;
+    } else {
+      const found = await stripe.subscriptions.search({
+        query: `metadata['user_id']:'${user.id}'`,
+        limit: 1,
+      });
+      subscription = found.data[0] ?? null;
     }
 
-    const subscription = await getStripe().subscriptions.retrieve(
-      row.stripe_subscription_id
-    );
+    if (!subscription) {
+      return NextResponse.json({ plan: "free", status: "none" });
+    }
     await syncSubscriptionToDatabase(createAdminClient(), user.id, subscription);
 
     const updated = await getSubscription(supabase, user.id);

@@ -50,6 +50,99 @@ async function postJson(path: string, body?: unknown): Promise<{ url?: string }>
 const priceLabel = (price: number) =>
   price.toLocaleString("fr-FR", { minimumFractionDigits: price % 1 === 0 ? 0 : 2 });
 
+/** Un seul toast de retour Checkout à la fois (sonner remplace par id). */
+const CHECKOUT_TOAST_ID = "checkout-return";
+
+/** Le retour de Checkout n'est traité qu'une fois, même si AppDataBoundary
+ * démonte puis remonte la page pendant refresh() (portée module, pas ref). */
+let checkoutSyncActive = false;
+
+const SYNC_MAX_ATTEMPTS = 5;
+const SYNC_DELAY_MS = 3000;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Après un Checkout abonnement : interroge /api/stripe/sync jusqu'à ce que le
+ * plan payant soit réellement écrit en base (webhook ou resynchronisation),
+ * avec limite de tentatives. Le succès n'est JAMAIS annoncé sur la seule foi
+ * de l'ouverture de success_url.
+ */
+async function syncAfterCheckout(refresh: () => Promise<void>): Promise<void> {
+  if (checkoutSyncActive) return;
+  checkoutSyncActive = true;
+  try {
+    for (let attempt = 1; attempt <= SYNC_MAX_ATTEMPTS; attempt++) {
+      let plan: string | null = null;
+      try {
+        const response = await fetch("/api/stripe/sync", { method: "POST" });
+        const body = (await response.json().catch(() => ({}))) as { plan?: string };
+        if (response.ok && typeof body.plan === "string") plan = body.plan;
+      } catch {
+        // Erreur réseau : on retentera.
+      }
+      if (plan && plan !== "free") {
+        toast.success(`Merci ! Votre plan ${getPlan(plan).name} est actif.`, {
+          id: CHECKOUT_TOAST_ID,
+        });
+        await refresh();
+        return;
+      }
+      if (attempt < SYNC_MAX_ATTEMPTS) await wait(SYNC_DELAY_MS);
+    }
+    toast.info(
+      "Paiement transmis. L'activation sera appliquée dès la confirmation de Stripe — actualisez la page dans quelques instants.",
+      { id: CHECKOUT_TOAST_ID, duration: 10000 }
+    );
+    await refresh();
+  } finally {
+    checkoutSyncActive = false;
+  }
+}
+
+/**
+ * Après un Checkout Fondateur : la place n'est attribuée QUE par le webhook
+ * (fonction SQL idempotente). On attend qu'elle apparaisse sur la ligne
+ * subscriptions (lecture RLS), avec la même limite de tentatives.
+ */
+async function syncFounderAfterCheckout(refresh: () => Promise<void>): Promise<void> {
+  if (checkoutSyncActive) return;
+  checkoutSyncActive = true;
+  try {
+    const supabase = createClient();
+    for (let attempt = 1; attempt <= SYNC_MAX_ATTEMPTS; attempt++) {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: row } = await supabase
+          .from("subscriptions")
+          .select("lifetime_access")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (row?.lifetime_access) {
+          toast.success("Bienvenue parmi les Fondateurs ! Votre accès à vie est actif.", {
+            id: CHECKOUT_TOAST_ID,
+          });
+          await refresh();
+          return;
+        }
+      } catch {
+        // Erreur réseau : on retentera.
+      }
+      if (attempt < SYNC_MAX_ATTEMPTS) await wait(SYNC_DELAY_MS);
+    }
+    toast.info(
+      "Paiement transmis. Votre place Fondateur sera confirmée d'ici quelques instants — actualisez la page.",
+      { id: CHECKOUT_TOAST_ID, duration: 10000 }
+    );
+    await refresh();
+  } finally {
+    checkoutSyncActive = false;
+  }
+}
+
 export function SubscriptionPageClient({ stripeEnabled }: { stripeEnabled: boolean }) {
   // useSearchParams impose une frontière Suspense pour le prérendu statique.
   return (
@@ -113,28 +206,32 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
   const checkoutState = searchParams.get("checkout");
   const founderState = searchParams.get("founder");
 
-  // Retour de Stripe Checkout : resynchronise (filet si le webhook tarde).
-  const syncedRef = React.useRef(false);
+  // Retour de Stripe Checkout. IMPORTANT : le paramètre est retiré de l'URL
+  // de façon SYNCHRONE avant tout refresh() — refresh() passe le store en
+  // loading, AppDataBoundary démonte alors la page, et un remontage avec
+  // ?checkout=success encore présent relançait indéfiniment toast + refresh.
   React.useEffect(() => {
-    if (syncedRef.current) return;
+    if (!checkoutState && !founderState) return;
+    window.history.replaceState(null, "", window.location.pathname);
+
     if (checkoutState === "success") {
-      syncedRef.current = true;
-      void fetch("/api/stripe/sync", { method: "POST" })
-        .then(() => refresh())
-        .then(() => toast.success("Merci ! Votre abonnement est actif."))
-        .catch(() => {
-          toast.info(
-            "Paiement reçu. L'activation peut prendre quelques instants — actualisez la page."
-          );
-        });
+      // Jamais « abonnement actif » sur la seule ouverture de success_url :
+      // le succès n'est annoncé qu'une fois le plan payant confirmé en base.
+      toast.info("Paiement reçu, activation en cours…", {
+        id: CHECKOUT_TOAST_ID,
+        duration: 15000,
+      });
+      void syncAfterCheckout(refresh);
+    } else if (checkoutState === "cancelled") {
+      toast.info("Paiement annulé — aucun montant n'a été débité.", {
+        id: CHECKOUT_TOAST_ID,
+      });
     } else if (founderState === "success") {
-      syncedRef.current = true;
-      // La place Fondateur n'est attribuée QUE par le webhook : on informe
-      // sans rien simuler, puis on recharge.
-      toast.info(
-        "Paiement transmis. Votre place Fondateur sera confirmée d'ici quelques instants — actualisez la page."
-      );
-      void refresh();
+      toast.info("Paiement reçu, confirmation de votre place Fondateur en cours…", {
+        id: CHECKOUT_TOAST_ID,
+        duration: 15000,
+      });
+      void syncFounderAfterCheckout(refresh);
     }
   }, [checkoutState, founderState, refresh]);
 
