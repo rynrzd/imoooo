@@ -40,6 +40,10 @@ const MESSAGES: Record<string, string> = {
   request_timeout: "Le serveur met trop de temps à répondre. Réessayez.",
 };
 
+const SMTP_FAILURE_MESSAGE =
+  "L'e-mail de confirmation n'a pas pu être envoyé (service e-mail indisponible). " +
+  "Réessayez plus tard ou contactez le support.";
+
 const FALLBACKS = {
   signin: "Connexion impossible pour le moment. Réessayez.",
   signup: "Inscription impossible pour le moment. Réessayez.",
@@ -55,10 +59,35 @@ export function authErrorMessage(
   error: AuthErrorLike,
   context: AuthErrorContext
 ): string {
+  // Diagnostic développement uniquement : code + statut + message GoTrue
+  // (jamais de token, mot de passe ou clé — GoTrue n'en renvoie pas ici).
+  // Les propriétés d'une Error sont non-énumérables : on sérialise
+  // explicitement, sinon le terminal n'affiche que « {} ».
+  if (process.env.NODE_ENV === "development") {
+    const e = error as AuthErrorLike & { name?: string; cause?: unknown };
+    console.warn(
+      `[auth:${context}]`,
+      JSON.stringify(
+        {
+          name: e.name,
+          message: e.message,
+          code: e.code,
+          status: e.status,
+          cause: e.cause instanceof Error ? e.cause.message : e.cause,
+          json: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+        },
+        null,
+        2
+      )
+    );
+  }
   if (error.code && MESSAGES[error.code]) return MESSAGES[error.code];
   if (error.status === 429) return MESSAGES.over_request_rate_limit;
-  // Anciennes versions GoTrue sans error_code : repli sur le texte connu.
   const msg = error.message.toLowerCase();
+  // GoTrue renvoie 500 unexpected_failure « Error sending … email » quand le
+  // SMTP configuré (Resend…) refuse l'envoi : message dédié, pas le repli générique.
+  if (msg.includes("error sending")) return SMTP_FAILURE_MESSAGE;
+  // Anciennes versions GoTrue sans error_code : repli sur le texte connu.
   if (msg.includes("invalid login credentials")) return MESSAGES.invalid_credentials;
   if (msg.includes("email not confirmed")) return MESSAGES.email_not_confirmed;
   if (msg.includes("rate limit")) return MESSAGES.over_email_send_rate_limit;

@@ -17,8 +17,14 @@ Idempotent, aucune donnée touchée. La vérification A doit lister 7 colonnes
 **Authentication → URL Configuration** :
 
 - **Site URL** : `http://localhost:3000` (les liens des e-mails pointent dessus)
-- **Redirect URLs** : `http://localhost:3000/auth/callback` et `http://localhost:3000/**`
-- Production, le moment venu : `https://VOTRE-DOMAINE/auth/callback` + `https://VOTRE-DOMAINE/**`
+- **Redirect URLs** — ajouter les QUATRE entrées (local + Vercel) :
+  - `http://localhost:3000/auth/callback`
+  - `http://localhost:3000/**`
+  - `https://VOTRE-URL.vercel.app/auth/callback`
+  - `https://VOTRE-URL.vercel.app/**`
+- Domaine personnalisé le moment venu : `https://VOTRE-DOMAINE/auth/callback` + `https://VOTRE-DOMAINE/**`
+- Quand la production devient prioritaire, basculer la **Site URL** sur l'URL
+  Vercel (les Redirect URLs ci-dessus continuent de couvrir le local).
 
 ## 3. Templates d'e-mails (corrige le lien de confirmation cassé)
 
@@ -36,26 +42,33 @@ Pourquoi : le template par défaut (`{{ .ConfirmationURL }}` + flux PKCE)
 de l'inscription. Les nouveaux templates utilisent `token_hash`, fiable
 partout. Ils suivent la **Site URL** du Dashboard.
 
-## 4. Clé secrète invalide (constaté : 401)
+## 4. Clé secrète — RÉSOLU (vérifié le 2026-07-18)
 
-`SUPABASE_SECRET_KEY` de `.env.local` est **rejetée par l'API** (révoquée ou
-régénérée). Conséquence : suppression de compte et webhook Stripe cassés.
-**Settings → API Keys** → copier la clé `sb_secret_…` active → remplacer la
-valeur dans `.env.local` → redémarrer le serveur.
+`SUPABASE_SECRET_KEY` de `.env.local` est désormais acceptée par l'API admin.
+Rien à faire.
 
-## 5. Limite d'envoi d'e-mails (constaté : erreur 429 aujourd'hui)
+## 5. SMTP cassé — CAUSE ACTUELLE de « Inscription impossible » (2026-07-18)
 
-Le SMTP intégré Supabase est limité à ~2 e-mails/heure — inutilisable au-delà
-des premiers tests. Pour la production : **Authentication → Emails → SMTP
-Settings** avec Resend :
+Constaté : **toute** inscription échoue en 500 `unexpected_failure`
+« Error sending confirmation email », y compris vers l'adresse du compte
+Resend. La clé Resend de `.env.local` fonctionne (envoi direct testé OK) :
+c'est donc la **configuration SMTP du Dashboard Supabase** qui est invalide
+(clé/expéditeur différents ou révoqués).
+
+Corriger dans **Authentication → Emails → SMTP Settings** :
 
 - Host `smtp.resend.com` · Port `465` · Username `resend`
-- Password : une clé API Resend (créer une clé dédiée, ne pas réutiliser celle du code)
-- Sender : une adresse d'un **domaine vérifié** chez Resend (SPF, DKIM puis
-  DMARC configurés via les DNS que Resend affiche) — `onboarding@resend.dev`
-  ne convient qu'aux tests vers votre propre boîte.
+- Password : une clé API Resend **active** (Resend → API Keys ; recréez-en une
+  au besoin et collez-la ici)
+- Sender email : `onboarding@resend.dev` · Sender name : `ImmoPilot`
 
-Non appliqué ni testé ici — à activer quand le domaine est vérifié.
+⚠️ Limite Resend en mode test : `onboarding@resend.dev` n'envoie **que vers
+gamixrs@gmail.com** (propriétaire du compte Resend). Toute inscription avec
+une autre adresse échouera encore en 500. Pour de vrais utilisateurs :
+vérifier un domaine sur <https://resend.com/domains> (DNS SPF + DKIM), puis
+mettre Sender email sur ce domaine et aligner `EMAIL_FROM_ADDRESS`.
+Après modification, testez sur `/inscription` avec `gamixrs@gmail.com` et
+consultez **Authentication → Logs** en cas d'échec.
 
 ## 6. Test depuis un téléphone
 
