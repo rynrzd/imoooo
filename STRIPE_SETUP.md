@@ -26,7 +26,7 @@
    Supabase Dashboard → Settings → API Keys → copier la clé `sb_secret_…` active.
 2. Installer le Stripe CLI, puis :
    `stripe login`
-   `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+   `stripe listen --forward-to immopilot-silk.vercel.app/api/stripe/webhook`
    → copier le `whsec_…` affiché dans `STRIPE_WEBHOOK_SECRET`, redémarrer `npm run dev`.
 3. Se connecter avec un compte de test → `/abonnement` → choisir un plan →
    payer avec la carte `4242 4242 4242 4242` (date future, CVC libre).

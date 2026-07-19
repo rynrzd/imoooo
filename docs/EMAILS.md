@@ -45,7 +45,7 @@ Supabase est limité à ~2 e-mails/h) :
 2. **Authentication → URL Configuration** :
    - Site URL = `NEXT_PUBLIC_SITE_URL` (ex. `https://votre-domaine.fr`) ;
    - Redirect URLs : ajouter `https://votre-domaine.fr/auth/callback`
-     (+ `http://localhost:3000/auth/callback` pour le dev).
+     (+ `https://immopilot-silk.vercel.app/auth/callback` pour le dev).
 3. Les gabarits (Confirm signup, Reset password, Change email) peuvent être
    personnalisés dans **Authentication → Emails → Templates** — garder les
    variables `{{ .ConfirmationURL }}` intactes.

@@ -23,7 +23,7 @@
    - **Redirect URLs** (conserver les entrées localhost pour le développement) :
      - `https://DOMAINE_PRODUCTION/auth/callback`
      - `https://DOMAINE_PRODUCTION/**`
-     - `http://localhost:3000/auth/callback` et `http://localhost:3000/**`
+     - `https://immopilot-silk.vercel.app/auth/callback` et `https://immopilot-silk.vercel.app/**`
 8. Redéployer (les variables ne s'appliquent qu'au build suivant).
 9. Tester : inscription → e-mail de confirmation → connexion → création d'un
    logement → upload d'un document → déconnexion → mot de passe oublié.

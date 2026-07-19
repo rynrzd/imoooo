@@ -24,10 +24,10 @@ Vérification : **Table Editor** doit lister `profiles`, `properties`, `tenants`
 
 **Authentication → URL Configuration** :
 
-- **Site URL** : `http://localhost:3000`
+- **Site URL** : `https://immopilot-silk.vercel.app`
 - **Redirect URLs** — ajouter :
-  - `http://localhost:3000/auth/callback`
-  - `http://localhost:3000/**`
+  - `https://immopilot-silk.vercel.app/auth/callback`
+  - `https://immopilot-silk.vercel.app/**`
   - (production, plus tard : `https://votre-domaine.fr/auth/callback` et `https://votre-domaine.fr/**`)
 
 Sans cette étape, le lien des e-mails de confirmation redirige vers une URL

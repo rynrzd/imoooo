@@ -16,10 +16,10 @@ Idempotent, aucune donnée touchée. La vérification A doit lister 7 colonnes
 
 **Authentication → URL Configuration** :
 
-- **Site URL** : `http://localhost:3000` (les liens des e-mails pointent dessus)
+- **Site URL** : `https://immopilot-silk.vercel.app` (les liens des e-mails pointent dessus)
 - **Redirect URLs** — ajouter les QUATRE entrées (local + Vercel) :
-  - `http://localhost:3000/auth/callback`
-  - `http://localhost:3000/**`
+  - `https://immopilot-silk.vercel.app/auth/callback`
+  - `https://immopilot-silk.vercel.app/**`
   - `https://VOTRE-URL.vercel.app/auth/callback`
   - `https://VOTRE-URL.vercel.app/**`
 - Domaine personnalisé le moment venu : `https://VOTRE-DOMAINE/auth/callback` + `https://VOTRE-DOMAINE/**`
@@ -72,7 +72,7 @@ consultez **Authentication → Logs** en cas d'échec.
 
 ## 6. Test depuis un téléphone
 
-Un lien `http://localhost:3000` ne fonctionne **jamais** depuis un téléphone.
+Un lien `https://immopilot-silk.vercel.app` ne fonctionne **jamais** depuis un téléphone.
 Procédure propre :
 
 1. déployer une preview Vercel du projet ;
@@ -81,8 +81,8 @@ Procédure propre :
    aux Redirect URLs, et mettre la **Site URL** du Dashboard sur la preview ;
 4. s'inscrire avec une adresse neuve → ouvrir l'e-mail sur le téléphone.
 
-Alternative ponctuelle : tunnel sécurisé (`cloudflared tunnel --url http://localhost:3000`),
-mêmes réglages avec l'URL du tunnel. Revenir à `http://localhost:3000` ensuite.
+Alternative ponctuelle : tunnel sécurisé (`cloudflared tunnel --url https://immopilot-silk.vercel.app`),
+mêmes réglages avec l'URL du tunnel. Revenir à `https://immopilot-silk.vercel.app` ensuite.
 
 ## 7. Comptes de test à nettoyer (manuellement)
 
