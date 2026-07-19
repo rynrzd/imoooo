@@ -1,4 +1,5 @@
 import { AppDataBoundary } from "@/components/layout/app-data-boundary";
+import { FounderIntentRedirect } from "@/components/layout/founder-intent-redirect";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
@@ -21,6 +22,7 @@ export default function AppLayout({
         </main>
         <OnboardingWizard />
         <ProductTour />
+        <FounderIntentRedirect />
       </div>
     </AppStoreProvider>
   );

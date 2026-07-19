@@ -37,6 +37,9 @@ function isPublicPath(pathname: string): boolean {
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
     pathname === VERIFY_EMAIL_PATH ||
+    // Tunnel Fondateur : la page d'entrée est publique (pitch + création de
+    // compte), mais PAS ses sous-pages (/fondateur/bienvenue exige une session).
+    pathname === "/fondateur" ||
     matches(PUBLIC_PATHS, pathname)
   );
 }

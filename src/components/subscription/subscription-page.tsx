@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/layout/page-header";
+import { FOUNDER_BENEFITS, FounderOffer } from "@/components/marketing/founder-offer";
 import { PlanBadge } from "@/components/subscription/plan-badge";
 import { getPlan, PLANS, type PaidPlanId, type Plan } from "@/config/plans";
 import { resolvePlan, type SubscriptionRow } from "@/lib/stripe/subscription";
@@ -182,6 +183,7 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
   const [pendingPlan, setPendingPlan] = React.useState<string | null>(null);
   const [portalPending, setPortalPending] = React.useState(false);
   const [subscription, setSubscription] = React.useState<SubscriptionRow | null>(null);
+  const [subscriptionLoaded, setSubscriptionLoaded] = React.useState(false);
 
   // Abonnement réel (RLS : sa propre ligne, lecture seule). Le plan
   // affiché retombe sur profiles.plan si la ligne manque — jamais bloquant.
@@ -196,6 +198,9 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
         .eq("user_id", user.id)
         .maybeSingle();
       if (row) setSubscription(row as SubscriptionRow);
+      // Chargé (ligne présente ou non) : l'offre Fondateur peut s'afficher
+      // sans risquer de flasher devant un Fondateur existant.
+      setSubscriptionLoaded(true);
     });
   }, []);
 
@@ -271,6 +276,48 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
         title="Abonnement"
         description="Choisissez le plan adapté à la taille de votre patrimoine"
       />
+
+      {/* Offre Fondateur EN TÊTE tant que les 100 places ne sont pas vendues
+          (la carte disparaît d'elle-même à l'épuisement). Un Fondateur voit à
+          la place la confirmation de son statut — jamais un bouton d'achat. */}
+      {isFounder ? (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-foreground to-foreground/85 p-6 text-background shadow-[0_24px_64px_-24px_rgb(0_0_0/0.5)] sm:p-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-24 -right-24 size-60 rounded-full bg-primary/25 blur-3xl"
+          />
+          <div className="relative space-y-4">
+            <p className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
+              <Check className="size-4 text-emerald-400" aria-hidden />
+              Vous êtes Fondateur
+              {subscription?.founder_purchase_number ? (
+                <Badge variant="secondary" className="gap-1">
+                  <Crown className="size-3 text-primary" />
+                  n°{subscription.founder_purchase_number}
+                </Badge>
+              ) : null}
+            </p>
+            <p className="max-w-xl text-sm opacity-80">
+              Merci de faire partie des 100 premiers utilisateurs
+              d&apos;ImmoPilot. Votre accès Business+ à vie est actif — aucun
+              abonnement, aucune facturation.
+            </p>
+            <ul className="flex flex-wrap gap-1.5">
+              {FOUNDER_BENEFITS.map((benefit) => (
+                <li
+                  key={benefit}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-background/20 bg-background/10 px-2.5 py-1 text-xs"
+                >
+                  <Check className="size-3 text-emerald-400" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : subscriptionLoaded ? (
+        <FounderOffer stripeEnabled={stripeEnabled} />
+      ) : null}
 
       {/* État de l'abonnement */}
       <Card>

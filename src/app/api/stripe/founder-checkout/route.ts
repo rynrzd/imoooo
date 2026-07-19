@@ -82,7 +82,7 @@ export async function POST() {
       customer_email: user.email ?? undefined,
       line_items: [{ price: getFounderPriceId(tierInfo.tier), quantity: 1 }],
       metadata: { immopilot_founder: "1", user_id: user.id, tier: String(tierInfo.tier) },
-      success_url: `${SITE_URL}/abonnement?founder=success`,
+      success_url: `${SITE_URL}/fondateur/bienvenue`,
       cancel_url: `${SITE_URL}/tarifs?founder=cancelled`,
     });
     if (!session.url) {

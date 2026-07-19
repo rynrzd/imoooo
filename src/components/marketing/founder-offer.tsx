@@ -26,7 +26,7 @@ import { Reveal } from "./reveal";
  */
 
 /** Avantages Fondateur — uniquement des engagements réels. */
-const FOUNDER_BENEFITS = [
+export const FOUNDER_BENEFITS = [
   "Business+ à vie",
   "Toutes les futures fonctionnalités Business+ incluses",
   "Badge Fondateur exclusif (numéroté)",
@@ -52,6 +52,18 @@ export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
       });
   }, []);
 
+  // Retour d'un Checkout Fondateur annulé (cancel_url) : information claire,
+  // paramètre retiré aussitôt (jamais de re-déclenchement au remontage).
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("founder") === "cancelled") {
+      window.history.replaceState(null, "", window.location.pathname);
+      toast.info("Paiement annulé — aucun montant n'a été débité. Votre place n'est pas réservée.", {
+        id: "founder-cancelled",
+      });
+    }
+  }, []);
+
   // Compteur indisponible (RPC absente / erreur) : l'offre est présentée au
   // palier 1 mais sans compteur — jamais de chiffre inventé.
   const soldCount = confirmed ?? 0;
@@ -66,7 +78,9 @@ export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
       const response = await fetch("/api/stripe/founder-checkout", { method: "POST" });
       const body = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
       if (response.status === 401) {
-        window.location.assign("/inscription");
+        // Visiteur : page dédiée « Créer mon compte Fondateur » — l'intention
+        // est conservée et le paiement reprend après confirmation de l'e-mail.
+        window.location.assign("/fondateur");
         return;
       }
       if (!response.ok || !body.url) {
@@ -103,12 +117,20 @@ export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
         </div>
 
         {/* Carte Premium inversée : contraste maximal, cohérente clair/sombre. */}
-        <div className="relative overflow-hidden rounded-2xl bg-foreground text-background shadow-[0_24px_64px_-24px_rgb(0_0_0/0.5)]">
-          {/* Halo décoratif discret. */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-foreground to-foreground/85 text-background shadow-[0_24px_64px_-24px_rgb(0_0_0/0.5)]">
+          {/* Halos décoratifs discrets. */}
           <div
             aria-hidden
             className="pointer-events-none absolute -top-28 -right-28 size-72 rounded-full bg-background/10 blur-3xl"
           />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-32 -left-24 size-64 rounded-full bg-primary/25 blur-3xl"
+          />
+          {/* Badge Édition limitée. */}
+          <span className="absolute top-4 right-4 rounded-full border border-background/25 bg-background/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase backdrop-blur-sm">
+            Édition limitée
+          </span>
           <div className="relative grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.2fr_1fr] lg:gap-12">
             <div className="space-y-5">
               <p className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
