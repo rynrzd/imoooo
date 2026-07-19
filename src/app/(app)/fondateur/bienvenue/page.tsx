@@ -1,10 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { Check, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAppStore } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -15,8 +13,12 @@ const BENEFITS = [
   "Toutes les futures fonctionnalités Business+ incluses",
 ];
 
-const POLL_ATTEMPTS = 10;
+/** ~45 s de filet de sécurité (15 × 3 s) avant de proposer « Actualiser ». */
+const POLL_ATTEMPTS = 15;
 const POLL_DELAY_MS = 3000;
+/** Redirection automatique vers le tableau de bord après confirmation. */
+const AUTO_REDIRECT_MS = 3000;
+const DASHBOARD_URL = "/";
 
 type State =
   | { kind: "waiting" }
@@ -29,7 +31,6 @@ type State =
  * (lecture RLS de sa propre ligne) et n'affiche jamais un succès non confirmé.
  */
 export default function FounderWelcomePage() {
-  const { refresh } = useAppStore();
   const [state, setState] = React.useState<State>({ kind: "waiting" });
   const startedRef = React.useRef(false);
 
@@ -48,18 +49,17 @@ export default function FounderWelcomePage() {
           if (!user) return;
           const { data: row } = await supabase
             .from("subscriptions")
-            .select("lifetime_access, founder_purchase_number")
+            .select("lifetime_access, status, founder_purchase_number")
             .eq("user_id", user.id)
             .maybeSingle();
           if (cancelled) return;
-          if (row?.lifetime_access) {
+          // Accès confirmé : place Fondateur (lifetime) OU abonnement actif.
+          // On s'arrête IMMÉDIATEMENT — jamais de polling au-delà.
+          if (row && (row.lifetime_access || row.status === "active")) {
             setState({
               kind: "confirmed",
               founderNumber: row.founder_purchase_number ?? null,
             });
-            // Une seule actualisation du store : le plan Business+ apparaît
-            // partout sans rechargement manuel.
-            void refresh();
             return;
           }
         } catch {
@@ -76,9 +76,20 @@ export default function FounderWelcomePage() {
     return () => {
       cancelled = true;
     };
-    // refresh est stable (useCallback du store) ; startedRef garde une seule
-    // exécution même en double-invocation StrictMode.
-  }, [refresh]);
+    // startedRef garantit une seule exécution (double-invoke StrictMode inclus).
+    // Aucun refresh() du store ici : il repasserait le store en « loading »,
+    // AppDataBoundary démonterait la page et le polling reboucquerait.
+  }, []);
+
+  // Confirmation détectée : redirection automatique vers le tableau de bord.
+  // Navigation PLEINE PAGE (le store se recharge → plan Business+ à jour).
+  React.useEffect(() => {
+    if (state.kind !== "confirmed") return;
+    const id = window.setTimeout(() => {
+      window.location.assign(DASHBOARD_URL);
+    }, AUTO_REDIRECT_MS);
+    return () => window.clearTimeout(id);
+  }, [state.kind]);
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
@@ -128,9 +139,17 @@ export default function FounderWelcomePage() {
                 </li>
               ))}
             </ul>
-            <Button size="lg" render={<Link href="/" />}>
-              Accéder à mon tableau de bord
-            </Button>
+            <div className="space-y-1.5">
+              <Button
+                size="lg"
+                onClick={() => window.location.assign(DASHBOARD_URL)}
+              >
+                Accéder à ImmoPilot
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Redirection automatique en cours…
+              </p>
+            </div>
           </>
         ) : (
           <>
@@ -148,7 +167,9 @@ export default function FounderWelcomePage() {
               <Button variant="outline" onClick={() => window.location.reload()}>
                 Actualiser
               </Button>
-              <Button render={<Link href="/abonnement" />}>Voir mon abonnement</Button>
+              <Button onClick={() => window.location.assign("/abonnement")}>
+                Voir mon abonnement
+              </Button>
             </div>
           </>
         )}

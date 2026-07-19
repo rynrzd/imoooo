@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { FormField } from "@/components/shared/form-field";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, setRememberSession } from "@/lib/supabase/client";
 import {
   authErrorMessage,
   isEmailNotConfirmed,
@@ -36,6 +36,8 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, setPending] = React.useState(false);
+  // Case cochée par défaut : session persistante sur cet appareil.
+  const [remember, setRemember] = React.useState(true);
 
   const {
     register,
@@ -53,6 +55,9 @@ function LoginForm() {
   const onSubmit = handleSubmit(async (values) => {
     if (pending) return; // double clic
     setPending(true);
+    // Préférence de persistance posée AVANT la connexion : la session est
+    // écrite d'emblée avec la bonne durée (persistante ou éphémère).
+    setRememberSession(remember);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword(values);
     setPending(false);
@@ -95,10 +100,19 @@ function LoginForm() {
           {...register("password")}
         />
       </FormField>
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground select-none">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="size-4 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
+          />
+          Garder ma session ouverte sur cet appareil
+        </label>
         <Link
           href="/mot-de-passe-oublie"
-          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          className="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:underline"
         >
           Mot de passe oublié ?
         </Link>

@@ -108,9 +108,9 @@ export const isSupabaseConfigured = CONFIG !== null;
 
 /**
  * URL du site : redirections d'e-mails, métadonnées, sitemap, Stripe.
- * - Développement : http://localhost:3000 par défaut.
+ * - Défaut : https://immopilot-silk.vercel.app (déploiement de référence).
  * - Production Vercel : NEXT_PUBLIC_SITE_URL est OBLIGATOIRE — le build
- *   échoue avec un message clair plutôt que d'envoyer des liens localhost.
+ *   échoue avec un message clair plutôt que d'envoyer des liens erronés.
  */
 function resolveSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
@@ -122,7 +122,7 @@ function resolveSiteUrl(): string {
         "Ajoutez-la dans les variables d'environnement Vercel, ex. https://votre-domaine.fr"
     );
   }
-  return "http://localhost:3000";
+  return "https://immopilot-silk.vercel.app";
 }
 
 export const SITE_URL = resolveSiteUrl();

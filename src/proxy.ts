@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/supabase/config";
+import { adjustPersistence, rememberFromCookies } from "@/lib/supabase/session-persistence";
 
 /** Pages d'authentification : un utilisateur connecté n'a rien à y faire. */
 const AUTH_PATHS = [
@@ -62,12 +63,16 @@ export async function proxy(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
+        // Même durée que le client : le proxy ne doit jamais re-persister un
+        // cookie que l'utilisateur a demandé éphémère (« rester connecté »
+        // décoché), sinon la session survivrait à la fermeture du navigateur.
+        const remember = rememberFromCookies(request.cookies.getAll());
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         );
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
+          response.cookies.set(name, value, adjustPersistence(options, remember))
         );
       },
     },
