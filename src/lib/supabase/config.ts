@@ -83,7 +83,7 @@ function resolveConfig(): { url: string; publishableKey: string } | null {
     }
     if (typeof window === "undefined") {
       console.info(
-        "[ImmoPilot] NEXT_PUBLIC_DEMO_MODE=true : démarrage en mode démo (données fictives)."
+        "[Noviqo] NEXT_PUBLIC_DEMO_MODE=true : démarrage en mode démo (données fictives)."
       );
     }
     return null;

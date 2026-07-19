@@ -32,7 +32,7 @@ export function LegalPage({
         <p className="mt-1 text-muted-foreground">
           Ce document décrit fidèlement le fonctionnement actuel du service,
           mais n&apos;a pas encore été validé par un professionnel du droit. Il
-          sera complété avant l&apos;ouverture commerciale d&apos;ImmoPilot.
+          sera complété avant l&apos;ouverture commerciale de Noviqo.
         </p>
       </div>
 

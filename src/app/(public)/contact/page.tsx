@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/marketing/contact-form";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Contactez l'équipe ImmoPilot : questions sur le produit, les tarifs ou le plan Business+.",
+    "Contactez l'équipe Noviqo : questions sur le produit, les tarifs ou le plan Business+.",
   alternates: { canonical: "/contact" },
 };
 

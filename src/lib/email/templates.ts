@@ -1,5 +1,5 @@
 /**
- * Templates d'e-mails ImmoPilot — centralisés, HTML responsive inline
+ * Templates d'e-mails Noviqo — centralisés, HTML responsive inline
  * (compatible clients mail), alignés sur l'identité sobre du produit
  * (noir profond #111827, neutres chauds, footer légal) — même design que
  * les templates Supabase Auth (supabase/email-templates/).
@@ -57,7 +57,7 @@ function layout(title: string, bodyHtml: string, cta?: { label: string; url: str
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e1e0d9;border-radius:14px;overflow:hidden">
         <tr><td style="padding:22px 28px;border-bottom:1px solid #eeede8">
           <span style="display:inline-block;vertical-align:middle;width:26px;height:26px;border-radius:8px;background:${BRAND};color:#fff;text-align:center;font:700 13px/26px Arial,sans-serif">IP</span>
-          <span style="vertical-align:middle;padding-left:9px;font:600 16px/1 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1a1a18">ImmoPilot</span>
+          <span style="vertical-align:middle;padding-left:9px;font:600 16px/1 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1a1a18">Noviqo</span>
         </td></tr>
         <tr><td style="padding:28px;font:400 14px/1.65 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3a3935">
           <h1 style="margin:0 0 14px;font-size:19px;line-height:1.35;color:#1a1a18">${esc(title)}</h1>
@@ -65,7 +65,7 @@ function layout(title: string, bodyHtml: string, cta?: { label: string; url: str
           ${button}
         </td></tr>
         <tr><td style="padding:18px 28px;border-top:1px solid #eeede8;font:400 11px/1.7 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#898781">
-          ImmoPilot — gestion locative pour propriétaires bailleurs.<br>${footerLinks}
+          Noviqo — gestion locative pour propriétaires bailleurs.<br>${footerLinks}
         </td></tr>
       </table>
     </td></tr>
@@ -81,10 +81,10 @@ const p = (text: string) => `<p style="margin:0 0 12px">${text}</p>`;
 
 export function welcomeEmail(fullName: string): EmailContent {
   return {
-    subject: "Bienvenue sur ImmoPilot",
+    subject: "Bienvenue sur Noviqo",
     html: layout(
       `Bienvenue${fullName ? ` ${fullName}` : ""} !`, // esc() appliqué par layout()
-      p("Votre compte ImmoPilot est prêt. Centralisez vos logements, locataires, loyers, documents et travaux dans un seul espace.") +
+      p("Votre compte Noviqo est prêt. Centralisez vos logements, locataires, loyers, documents et travaux dans un seul espace.") +
         p("Commencez par créer votre premier logement : tout le reste (bail, loyers, dossier) s'articule autour de lui."),
       { label: "Ouvrir mon tableau de bord", url: `${SITE_URL}/` }
     ),
@@ -96,7 +96,7 @@ export function signupConfirmationEmail(confirmUrl: string): EmailContent {
     subject: "Confirmez votre inscription",
     html: layout(
       "Confirmez votre adresse e-mail",
-      p("Merci de votre inscription sur ImmoPilot. Cliquez sur le bouton ci-dessous pour activer votre compte.") +
+      p("Merci de votre inscription sur Noviqo. Cliquez sur le bouton ci-dessous pour activer votre compte.") +
         p("Si vous n'êtes pas à l'origine de cette inscription, ignorez cet e-mail."),
       { label: "Confirmer mon inscription", url: confirmUrl }
     ),
@@ -120,7 +120,7 @@ export function passwordResetEmail(resetUrl: string): EmailContent {
     subject: "Réinitialisez votre mot de passe",
     html: layout(
       "Réinitialisation du mot de passe",
-      p("Vous avez demandé la réinitialisation de votre mot de passe ImmoPilot.") +
+      p("Vous avez demandé la réinitialisation de votre mot de passe Noviqo.") +
         p("Ce lien est à usage unique et expire rapidement. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail."),
       { label: "Choisir un nouveau mot de passe", url: resetUrl }
     ),
@@ -132,7 +132,7 @@ export function passwordChangedEmail(): EmailContent {
     subject: "Votre mot de passe a été modifié",
     html: layout(
       "Mot de passe modifié",
-      p("Le mot de passe de votre compte ImmoPilot vient d'être modifié.") +
+      p("Le mot de passe de votre compte Noviqo vient d'être modifié.") +
         p("Si vous n'êtes pas à l'origine de ce changement, réinitialisez immédiatement votre mot de passe et contactez le support."),
       { label: "Sécuriser mon compte", url: `${SITE_URL}/mot-de-passe-oublie` }
     ),
@@ -141,11 +141,11 @@ export function passwordChangedEmail(): EmailContent {
 
 export function accountDeletedEmail(): EmailContent {
   return {
-    subject: "Votre compte ImmoPilot a été supprimé",
+    subject: "Votre compte Noviqo a été supprimé",
     html: layout(
       "Compte supprimé",
-      p("Votre compte ImmoPilot et l'ensemble de vos données (logements, baux, loyers, documents, photos) ont été définitivement supprimés.") +
-        p("Merci d'avoir utilisé ImmoPilot. Vous pouvez créer un nouveau compte à tout moment.")
+      p("Votre compte Noviqo et l'ensemble de vos données (logements, baux, loyers, documents, photos) ont été définitivement supprimés.") +
+        p("Merci d'avoir utilisé Noviqo. Vous pouvez créer un nouveau compte à tout moment.")
     ),
   };
 }
@@ -186,7 +186,7 @@ export function contactConfirmationEmail(name: string, subject: string): EmailCo
     html: layout(
       "Message bien reçu",
       p(`Bonjour${name ? ` ${esc(name)}` : ""},`) +
-        p(`Votre message « ${esc(subject)} » a bien été transmis à l'équipe ImmoPilot. Nous vous répondons dans les meilleurs délais.`) +
+        p(`Votre message « ${esc(subject)} » a bien été transmis à l'équipe Noviqo. Nous vous répondons dans les meilleurs délais.`) +
         p("Ceci est un accusé de réception automatique : inutile d'y répondre.")
     ),
   };
@@ -304,7 +304,7 @@ export function monthlyReportEmail(input: MonthlyReportInput): EmailContent {
       ? `${input.latePayments} loyer${input.latePayments > 1 ? "s" : ""} en retard (${input.lateAmount}) à suivre en priorité.`
       : "Aucun loyer en retard sur le mois : patrimoine à jour.";
   return {
-    subject: `Votre rapport ImmoPilot — ${input.monthLabel}`,
+    subject: `Votre rapport Noviqo — ${input.monthLabel}`,
     html: layout(
       `Rapport mensuel — ${input.monthLabel}`,
       p(`Le résumé de votre patrimoine (${input.propertiesCount} logement${input.propertiesCount > 1 ? "s" : ""}) pour ${esc(input.monthLabel)} :`) +

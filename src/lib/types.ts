@@ -1,5 +1,5 @@
 /**
- * Modèle de données central d'ImmoPilot.
+ * Modèle de données central de Noviqo.
  * Toutes les entités sont normalisées et reliées par identifiants,
  * pour une migration simple vers une base de données (Supabase) plus tard.
  */

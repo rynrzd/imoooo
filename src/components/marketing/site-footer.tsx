@@ -79,7 +79,7 @@ export function SiteFooter() {
       <div className="border-t border-border/70">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 sm:px-6">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} ImmoPilot. Tous droits réservés.
+            © {new Date().getFullYear()} Noviqo. Tous droits réservés.
           </p>
           <p className="text-xs text-muted-foreground">Version {version}</p>
         </div>

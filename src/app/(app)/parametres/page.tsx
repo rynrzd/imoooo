@@ -124,7 +124,7 @@ const NOTIFICATION_LABELS: {
   { key: "document_expiring", label: "Document bientôt expiré", description: "Assurance, diagnostics… avant leur échéance." },
   { key: "maintenance_overdue", label: "Travaux en retard", description: "Chantier dont la date prévue est dépassée." },
   { key: "monthly_report", label: "Rapport mensuel", description: "Synthèse de vos revenus et dépenses chaque début de mois." },
-  { key: "product_updates", label: "Annonces produit", description: "Nouveautés et améliorations d'ImmoPilot." },
+  { key: "product_updates", label: "Annonces produit", description: "Nouveautés et améliorations de Noviqo." },
 ];
 
 const THEMES = [
@@ -994,7 +994,7 @@ export default function SettingsPage() {
                 Nous contacter
               </Link>
               <a
-                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("[ImmoPilot] Signalement de bug")}`}
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("[Noviqo] Signalement de bug")}`}
                 className={buttonVariants({ variant: "outline" })}
               >
                 Signaler un bug

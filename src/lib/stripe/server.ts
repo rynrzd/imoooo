@@ -15,7 +15,7 @@ export function getStripe(): Stripe {
   }
   if (!stripe) {
     stripe = new Stripe(getStripeSecretKey(), {
-      appInfo: { name: "ImmoPilot", version: "0.1.0" },
+      appInfo: { name: "Noviqo", version: "0.1.0" },
     });
   }
   return stripe;

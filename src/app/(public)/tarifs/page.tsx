@@ -7,7 +7,7 @@ import { isStripeConfigured } from "@/lib/stripe/config";
 export const metadata: Metadata = {
   title: "Tarifs",
   description:
-    "Les plans ImmoPilot : Gratuit, Starter, Pro et Business+. Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit.",
+    "Les plans Noviqo : Gratuit, Starter, Pro et Business+. Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit.",
   alternates: { canonical: "/tarifs" },
 };
 

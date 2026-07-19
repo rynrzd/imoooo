@@ -9,7 +9,7 @@ export function Brand() {
         <Building2 className="size-4.5" />
       </span>
       <span className="text-[15px] font-semibold tracking-tight text-foreground">
-        ImmoPilot
+        Noviqo
       </span>
     </Link>
   );

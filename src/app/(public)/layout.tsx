@@ -7,22 +7,22 @@ import { SITE_URL } from "@/lib/supabase/config";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ImmoPilot — Gestion locative simple pour propriétaires bailleurs",
-    template: "%s · ImmoPilot",
+    default: "Noviqo — Gestion locative simple pour propriétaires bailleurs",
+    template: "%s · Noviqo",
   },
   description:
     "Centralisez logements, locataires, loyers, documents, photos, dépenses et travaux dans un seul espace. Un logiciel de gestion locative simple, conçu pour les propriétaires bailleurs.",
   openGraph: {
     type: "website",
-    siteName: "ImmoPilot",
+    siteName: "Noviqo",
     locale: "fr_FR",
-    title: "ImmoPilot — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
+    title: "Noviqo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
     description:
       "Logements, locataires, loyers automatiques, documents, photos, dépenses et travaux : un seul espace, conçu pour les propriétaires bailleurs.",
   },
   twitter: {
     card: "summary",
-    title: "ImmoPilot — Gestion locative pour propriétaires bailleurs",
+    title: "Noviqo — Gestion locative pour propriétaires bailleurs",
     description:
       "Centralisez logements, locataires, loyers, documents et travaux dans un seul espace.",
   },

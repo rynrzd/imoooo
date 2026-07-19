@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "ImmoPilot — Pilotez votre patrimoine locatif",
-    template: "%s · ImmoPilot",
+    default: "Noviqo — Pilotez votre patrimoine locatif",
+    template: "%s · Noviqo",
   },
   description:
-    "ImmoPilot centralise la gestion de vos biens locatifs : loyers, locataires, documents, travaux et statistiques.",
+    "Noviqo centralise la gestion de vos biens locatifs : loyers, locataires, documents, travaux et statistiques.",
 };
 
 export default function RootLayout({

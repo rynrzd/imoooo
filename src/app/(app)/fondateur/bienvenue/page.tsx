@@ -118,7 +118,7 @@ export default function FounderWelcomePage() {
               </h1>
               <p className="text-sm text-muted-foreground">
                 Merci de faire partie des 100 premiers utilisateurs
-                d&apos;ImmoPilot.
+                de Noviqo.
                 {state.founderNumber ? (
                   <>
                     {" "}
@@ -144,7 +144,7 @@ export default function FounderWelcomePage() {
                 size="lg"
                 onClick={() => window.location.assign(DASHBOARD_URL)}
               >
-                Accéder à ImmoPilot
+                Accéder à Noviqo
               </Button>
               <p className="text-xs text-muted-foreground">
                 Redirection automatique en cours…

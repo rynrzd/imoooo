@@ -3,7 +3,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 
 export const metadata: Metadata = {
   title: "Conditions générales d'utilisation",
-  description: "Les règles d'utilisation du service ImmoPilot.",
+  description: "Les règles d'utilisation du service Noviqo.",
   alternates: { canonical: "/cgu" },
   robots: { index: false },
 };
@@ -13,12 +13,12 @@ export default function TermsPage() {
     <LegalPage
       title="Conditions générales d'utilisation"
       updatedAt="15 juillet 2026"
-      intro="Les présentes conditions encadrent l'utilisation d'ImmoPilot, logiciel de gestion locative destiné aux propriétaires bailleurs. En créant un compte, vous les acceptez."
+      intro="Les présentes conditions encadrent l'utilisation de Noviqo, logiciel de gestion locative destiné aux propriétaires bailleurs. En créant un compte, vous les acceptez."
       sections={[
         {
           title: "Objet du service",
           paragraphs: [
-            "ImmoPilot permet de centraliser la gestion d'un patrimoine locatif : logements, locataires, baux, loyers, dépenses, travaux, documents et photos. ImmoPilot est un outil d'organisation et de suivi : il ne fournit ni conseil juridique, ni conseil fiscal, ni service de gestion locative déléguée.",
+            "Noviqo permet de centraliser la gestion d'un patrimoine locatif : logements, locataires, baux, loyers, dépenses, travaux, documents et photos. Noviqo est un outil d'organisation et de suivi : il ne fournit ni conseil juridique, ni conseil fiscal, ni service de gestion locative déléguée.",
           ],
         },
         {

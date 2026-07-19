@@ -33,7 +33,7 @@ export const FAQ_ITEMS: { question: string; answer: string }[] = [
       "Depuis Paramètres → Compte, en confirmant avec votre mot de passe. La suppression est définitive : profil, logements, locataires, baux, loyers, documents, photos et abonnement sont intégralement effacés, conformément au RGPD.",
   },
   {
-    question: "À qui s'adresse ImmoPilot ?",
+    question: "À qui s'adresse Noviqo ?",
     answer:
       "Aux propriétaires bailleurs qui gèrent eux-mêmes leurs biens : un studio en location comme un patrimoine de plusieurs logements, en direct, en famille ou via une SCI. Aucune compétence comptable n'est requise.",
   },
@@ -80,7 +80,7 @@ export const FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "L'application fonctionne-t-elle sur mobile ?",
     answer:
-      "Oui. ImmoPilot est une application web responsive : elle s'utilise depuis un navigateur, sur ordinateur, tablette et smartphone, sans installation.",
+      "Oui. Noviqo est une application web responsive : elle s'utilise depuis un navigateur, sur ordinateur, tablette et smartphone, sans installation.",
   },
   {
     question: "Puis-je exporter mes données ?",

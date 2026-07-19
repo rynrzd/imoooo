@@ -3,7 +3,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
-  description: "Informations légales relatives au site ImmoPilot.",
+  description: "Informations légales relatives au site Noviqo.",
   alternates: { canonical: "/mentions-legales" },
   robots: { index: false },
 };
@@ -13,7 +13,7 @@ export default function LegalNoticePage() {
     <LegalPage
       title="Mentions légales"
       updatedAt="15 juillet 2026"
-      intro="Informations légales relatives au site et au service ImmoPilot, fournies conformément à la loi pour la confiance dans l'économie numérique (LCEN)."
+      intro="Informations légales relatives au site et au service Noviqo, fournies conformément à la loi pour la confiance dans l'économie numérique (LCEN)."
       sections={[
         {
           title: "Éditeur du site",
@@ -30,7 +30,7 @@ export default function LegalNoticePage() {
         {
           title: "Propriété intellectuelle",
           paragraphs: [
-            "La marque ImmoPilot, l'interface et ses contenus sont protégés. Toute reproduction non autorisée est interdite. Les données saisies par les utilisateurs restent leur propriété.",
+            "La marque Noviqo, l'interface et ses contenus sont protégés. Toute reproduction non autorisée est interdite. Les données saisies par les utilisateurs restent leur propriété.",
           ],
         },
         {

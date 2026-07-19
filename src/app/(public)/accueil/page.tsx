@@ -36,12 +36,12 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   // Servie sur « / » pour les visiteurs (réécriture du proxy).
-  title: "ImmoPilot — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
+  title: "Noviqo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
   description:
     "Le logiciel de gestion locative des propriétaires bailleurs : logements, locataires, loyers automatiques, documents, travaux et statistiques. Gratuit pour un premier logement, sans carte bancaire.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "ImmoPilot — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
+    title: "Noviqo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
     description:
       "Logements, locataires, loyers automatiques, documents, travaux et statistiques : un seul espace, conçu pour les propriétaires bailleurs.",
     url: "/",
@@ -246,7 +246,7 @@ const JSON_LD = {
   "@graph": [
     {
       "@type": "SoftwareApplication",
-      name: "ImmoPilot",
+      name: "Noviqo",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       inLanguage: "fr",
@@ -255,7 +255,7 @@ const JSON_LD = {
         "Logiciel de gestion locative pour propriétaires bailleurs : logements, locataires, loyers automatiques, documents, travaux et statistiques.",
       offers: PLANS.map((plan) => ({
         "@type": "Offer",
-        name: `ImmoPilot ${plan.name}`,
+        name: `Noviqo ${plan.name}`,
         price: plan.monthlyPrice.toFixed(2),
         priceCurrency: "EUR",
       })),
@@ -301,7 +301,7 @@ export default function LandingPage() {
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               Logements, locataires, loyers automatiques, documents, photos,
-              dépenses et travaux : ImmoPilot remplace le tableur et la
+              dépenses et travaux : Noviqo remplace le tableur et la
               paperasse par un espace clair, à jour en permanence.
             </p>
             <div className="mt-7 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
@@ -352,7 +352,7 @@ export default function LandingPage() {
       <Section
         id="demo"
         eyebrow="Démonstration"
-        title="Découvrez ImmoPilot en action"
+        title="Découvrez Noviqo en action"
         description="Des aperçus illustratifs composés avec les vrais éléments d'interface de l'application — naviguez d'un écran à l'autre."
       >
         <DemoShowcase />
@@ -435,7 +435,7 @@ export default function LandingPage() {
         </div>
       </Section>
 
-      {/* ---------------- Comparaison Excel vs ImmoPilot ---------------- */}
+      {/* ---------------- Comparaison Excel vs Noviqo ---------------- */}
       <Section
         eyebrow="Comparaison"
         title="La gestion locative mérite mieux qu'un tableur"
@@ -453,7 +453,7 @@ export default function LandingPage() {
                     Excel
                   </th>
                   <th scope="col" className="bg-primary/[0.04] p-4 text-left text-sm font-semibold text-primary">
-                    ImmoPilot
+                    Noviqo
                   </th>
                 </tr>
               </thead>

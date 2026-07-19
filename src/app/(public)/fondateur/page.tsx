@@ -5,7 +5,7 @@ import { isStripeConfigured } from "@/lib/stripe/config";
 export const metadata: Metadata = {
   title: "Devenir Fondateur",
   description:
-    "Rejoignez les 100 premiers utilisateurs d'ImmoPilot : accès Business+ à vie, paiement unique, place numérotée.",
+    "Rejoignez les 100 premiers utilisateurs de Noviqo : accès Business+ à vie, paiement unique, place numérotée.",
 };
 
 /**
