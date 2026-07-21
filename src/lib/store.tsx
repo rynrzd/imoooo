@@ -180,6 +180,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         fullName: result.profile?.fullName ?? "",
         phone: result.profile?.phone ?? "",
         plan: result.profile?.plan ?? "free",
+        isFounder: result.profile?.isFounder ?? false,
         companyName: result.profile?.companyName ?? "",
         avatarPath: result.profile?.avatarPath ?? null,
         onboardingCompleted: result.profile?.onboardingCompleted ?? true,

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ActivityItem, AppData } from "@/lib/types";
 import { formatCurrency } from "@/lib/format";
+import { resolvePlan, type SubscriptionRow } from "@/lib/stripe/subscription";
 import { ensureRentSchedule } from "./mutations";
 import { createSignedUrlMap } from "./storage";
 import {
@@ -24,7 +25,14 @@ import {
 export interface UserProfile {
   fullName: string;
   phone: string;
+  /**
+   * Plan EFFECTIF, calculé côté serveur depuis la table `subscriptions`
+   * (source de vérité unique via resolvePlan) — jamais la valeur brute
+   * de `profiles.plan`, qui n'est qu'un cache secondaire.
+   */
   plan: string;
+  /** true si accès à vie Fondateur (affichage « Offre Fondateur » cohérent). */
+  isFounder: boolean;
   companyName: string;
   /** Chemin Storage de l'avatar (bucket profile-avatars), null si absent. */
   avatarPath: string | null;
@@ -158,7 +166,7 @@ export async function fetchAppData(
 
   // Colonnes explicites (alignées sur les interfaces *Row des mappers) :
   // réduit la taille des réponses et fige le contrat avec le schéma.
-  const [properties, payments, expenses, documents, photos, works, profile] =
+  const [properties, payments, expenses, documents, photos, works, profile, subscription] =
     await Promise.all([
       supabase
         .from("properties")
@@ -196,6 +204,15 @@ export async function fetchAppData(
         .from("profiles")
         .select("id, full_name, phone, avatar_url, plan, company_name, onboarding_completed")
         .eq("id", userId)
+        .maybeSingle(),
+      // Source de vérité de l'abonnement : la table `subscriptions` (RLS :
+      // lecture de sa propre ligne). Le plan effectif en est dérivé.
+      supabase
+        .from("subscriptions")
+        .select(
+          "user_id, plan, status, provider, lifetime_access, founder_tier, founder_purchase_number, current_period_start, current_period_end, stripe_customer_id, stripe_subscription_id, stripe_price_id, cancel_at_period_end, created_at, updated_at"
+        )
+        .eq("user_id", userId)
         .maybeSingle(),
     ]);
 
@@ -239,13 +256,23 @@ export async function fetchAppData(
 
   const profileRow = profile.data as ProfileRow | null;
 
+  // Plan EFFECTIF depuis la table subscriptions (source de vérité unique) :
+  // résout Fondateur (à vie) > abonnement actif > Gratuit. `profiles.plan`
+  // n'est plus lu comme autorité — client et serveur utilisent resolvePlan.
+  const subscriptionRow = (subscription.data as SubscriptionRow | null) ?? null;
+  const effectivePlan = resolvePlan(subscriptionRow);
+  const isFounder = Boolean(
+    subscriptionRow?.lifetime_access && subscriptionRow.provider === "founder"
+  );
+
   return {
     data,
     profile: profileRow
       ? {
           fullName: profileRow.full_name,
           phone: profileRow.phone ?? "",
-          plan: profileRow.plan ?? "free",
+          plan: effectivePlan.id,
+          isFounder,
           companyName: profileRow.company_name ?? "",
           avatarPath: profileRow.avatar_url,
           onboardingCompleted: profileRow.onboarding_completed ?? true,
