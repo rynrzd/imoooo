@@ -3,7 +3,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 
 export const metadata: Metadata = {
   title: "Politique de cookies",
-  description: "Les cookies utilisés par Noviqo et leur finalité.",
+  description: "Les cookies utilisés par Nireo et leur finalité.",
   alternates: { canonical: "/cookies" },
   robots: { index: false },
 };
@@ -13,7 +13,7 @@ export default function CookiesPage() {
     <LegalPage
       title="Politique de cookies"
       updatedAt="17 juillet 2026"
-      intro="Noviqo utilise uniquement des cookies strictement nécessaires au fonctionnement du service. Aucun cookie publicitaire, statistique ou de pistage tiers n'est déposé — c'est pourquoi aucune bannière de consentement n'est requise à ce jour."
+      intro="Nireo utilise uniquement des cookies strictement nécessaires au fonctionnement du service. Aucun cookie publicitaire, statistique ou de pistage tiers n'est déposé — c'est pourquoi aucune bannière de consentement n'est requise à ce jour."
       sections={[
         {
           title: "Cookies strictement nécessaires",
@@ -36,7 +36,7 @@ export default function CookiesPage() {
         {
           title: "Gérer les cookies",
           paragraphs: [
-            "Vous pouvez supprimer les cookies depuis les réglages de votre navigateur. La suppression des cookies d'authentification vous déconnectera de Noviqo.",
+            "Vous pouvez supprimer les cookies depuis les réglages de votre navigateur. La suppression des cookies d'authentification vous déconnectera de Nireo.",
           ],
         },
       ]}

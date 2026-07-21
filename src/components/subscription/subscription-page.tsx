@@ -299,7 +299,7 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
             </p>
             <p className="max-w-xl text-sm opacity-80">
               Merci de faire partie des 100 premiers utilisateurs
-              de Noviqo. Votre accès Business+ à vie est actif — aucun
+              de Nireo. Votre accès Business+ à vie est actif — aucun
               abonnement, aucune facturation.
             </p>
             <ul className="flex flex-wrap gap-1.5">

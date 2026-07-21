@@ -83,7 +83,7 @@ function resolveConfig(): { url: string; publishableKey: string } | null {
     }
     if (typeof window === "undefined") {
       console.info(
-        "[Noviqo] NEXT_PUBLIC_DEMO_MODE=true : démarrage en mode démo (données fictives)."
+        "[Nireo] NEXT_PUBLIC_DEMO_MODE=true : démarrage en mode démo (données fictives)."
       );
     }
     return null;
@@ -108,7 +108,7 @@ export const isSupabaseConfigured = CONFIG !== null;
 
 /**
  * URL du site : redirections d'e-mails, métadonnées, sitemap, Stripe.
- * - Défaut : https://immopilot-silk.vercel.app (déploiement de référence).
+ * - Défaut : https://nireo.fr (déploiement de référence).
  * - Production Vercel : NEXT_PUBLIC_SITE_URL est OBLIGATOIRE — le build
  *   échoue avec un message clair plutôt que d'envoyer des liens erronés.
  */
@@ -122,7 +122,7 @@ function resolveSiteUrl(): string {
         "Ajoutez-la dans les variables d'environnement Vercel, ex. https://votre-domaine.fr"
     );
   }
-  return "https://immopilot-silk.vercel.app";
+  return "https://nireo.fr";
 }
 
 export const SITE_URL = resolveSiteUrl();

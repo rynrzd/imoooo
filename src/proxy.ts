@@ -84,7 +84,7 @@ export async function proxy(request: NextRequest) {
     data: { user: rawUser },
   } = await supabase.auth.getUser();
 
-  // Une session anonyme n'est JAMAIS un compte valide pour Noviqo.
+  // Une session anonyme n'est JAMAIS un compte valide pour Nireo.
   const user = rawUser && !rawUser.is_anonymous ? rawUser : null;
   // Confirmation e-mail obligatoire : une session dont l'adresse n'est pas
   // confirmée n'ouvre aucune zone privée (contrôle serveur, pas seulement UI).

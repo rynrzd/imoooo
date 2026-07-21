@@ -6,7 +6,7 @@
  * - EMAIL_PROVIDER=resend   + RESEND_API_KEY
  * - EMAIL_PROVIDER=brevo    + BREVO_API_KEY
  * - EMAIL_PROVIDER=postmark + POSTMARK_SERVER_TOKEN
- * - EMAIL_FROM_NAME + EMAIL_FROM_ADDRESS  expéditeur (ex. Noviqo + no-reply@domaine.fr)
+ * - EMAIL_FROM_NAME + EMAIL_FROM_ADDRESS  expéditeur (ex. Nireo + no-reply@domaine.fr)
  *   (EMAIL_FROM « Nom <adresse> » reste accepté pour compatibilité)
  * - SUPPORT_EMAIL           boîte de réception du support (formulaire contact)
  *

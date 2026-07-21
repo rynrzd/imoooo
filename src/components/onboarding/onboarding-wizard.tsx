@@ -76,7 +76,7 @@ export function OnboardingWizard() {
 
   const steps: { title: string; body: React.ReactNode }[] = [
     {
-      title: `Bienvenue sur Noviqo${firstName ? `, ${firstName}` : ""} !`,
+      title: `Bienvenue sur Nireo${firstName ? `, ${firstName}` : ""} !`,
       body: (
         <p className="text-sm leading-relaxed text-muted-foreground">
           Votre espace de gestion locative est prêt : logements, locataires,

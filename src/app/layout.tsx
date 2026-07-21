@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Noviqo — Pilotez votre patrimoine locatif",
-    template: "%s · Noviqo",
+    default: "Nireo — Pilotez votre patrimoine locatif",
+    template: "%s · Nireo",
   },
   description:
-    "Noviqo centralise la gestion de vos biens locatifs : loyers, locataires, documents, travaux et statistiques.",
+    "Nireo centralise la gestion de vos biens locatifs : loyers, locataires, documents, travaux et statistiques.",
 };
 
 export default function RootLayout({

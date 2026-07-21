@@ -1,5 +1,5 @@
 /**
- * Plans d'abonnement Noviqo V1 — SOURCE DE VÉRITÉ UNIQUE.
+ * Plans d'abonnement Nireo V1 — SOURCE DE VÉRITÉ UNIQUE.
  * Consommée par : landing page, page Tarifs, page Abonnement, Paramètres,
  * guards serveur, quotas, intégration Stripe.
  * Aucun prix, limite ou avantage ne doit être dupliqué ailleurs.
@@ -96,7 +96,7 @@ export const PLANS: readonly Plan[] = [
     name: "Gratuit",
     monthlyPrice: 0,
     annualPrice: null,
-    description: "Pour découvrir Noviqo avec un premier bien.",
+    description: "Pour découvrir Nireo avec un premier bien.",
     highlights: [
       "1 logement, 1 locataire actif",
       "Loyers, dépenses et travaux",
@@ -282,9 +282,9 @@ export function founderTierForPlace(place: number): FounderTier | null {
 
 /**
  * Périmètre commercial de l'offre (formulation contractuelle) :
- * accès à vie aux fonctionnalités Business+ développées par Noviqo,
+ * accès à vie aux fonctionnalités Business+ développées par Nireo,
  * hors éventuels services tiers payants faisant l'objet d'une option distincte.
  */
 export const FOUNDER_SCOPE_NOTICE =
-  "Accès à vie aux fonctionnalités Business+ développées par Noviqo, " +
+  "Accès à vie aux fonctionnalités Business+ développées par Nireo, " +
   "hors éventuels services tiers payants faisant l'objet d'une option distincte.";

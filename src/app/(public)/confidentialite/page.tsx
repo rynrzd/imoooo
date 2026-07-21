@@ -3,7 +3,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
-  description: "Comment Noviqo collecte, utilise et protège vos données.",
+  description: "Comment Nireo collecte, utilise et protège vos données.",
   alternates: { canonical: "/confidentialite" },
   robots: { index: false },
 };
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Politique de confidentialité"
       updatedAt="15 juillet 2026"
-      intro="Cette politique décrit les données traitées par Noviqo et l'usage qui en est fait. Elle repose sur un principe simple : vos données de gestion locative vous appartiennent et ne servent qu'à faire fonctionner le service."
+      intro="Cette politique décrit les données traitées par Nireo et l'usage qui en est fait. Elle repose sur un principe simple : vos données de gestion locative vous appartiennent et ne servent qu'à faire fonctionner le service."
       sections={[
         {
           title: "Données collectées",
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
         {
           title: "Cookies",
           paragraphs: [
-            "Noviqo utilise uniquement des cookies techniques nécessaires à l'authentification et au maintien de votre session. Aucun cookie publicitaire ou de pistage tiers n'est déposé.",
+            "Nireo utilise uniquement des cookies techniques nécessaires à l'authentification et au maintien de votre session. Aucun cookie publicitaire ou de pistage tiers n'est déposé.",
           ],
         },
       ]}

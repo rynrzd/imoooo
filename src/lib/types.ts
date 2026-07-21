@@ -1,5 +1,5 @@
 /**
- * Modèle de données central de Noviqo.
+ * Modèle de données central de Nireo.
  * Toutes les entités sont normalisées et reliées par identifiants,
  * pour une migration simple vers une base de données (Supabase) plus tard.
  */
