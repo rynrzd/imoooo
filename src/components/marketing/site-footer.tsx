@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Brand } from "@/components/layout/brand";
 import { version } from "../../../package.json";
 
-/** Adresse de contact — à ajuster quand le domaine définitif sera choisi. */
-export const CONTACT_EMAIL = "contact@immopilot.app";
+/** Adresse de contact publique (footer, pages légales, formulaire, bug). */
+export const CONTACT_EMAIL = "nireo.contacte@gmail.com";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {

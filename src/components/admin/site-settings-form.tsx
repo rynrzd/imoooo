@@ -105,7 +105,7 @@ export function SiteSettingsForm({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="support@nireo.fr"
+            placeholder="nireo.contacte@gmail.com"
             className="max-w-72"
           />
           <Button
