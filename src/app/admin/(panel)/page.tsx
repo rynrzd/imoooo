@@ -13,7 +13,7 @@ import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { auditActionLabel, PLAN_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/admin/labels";
 import { getDashboardStats } from "@/lib/admin/stats";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
@@ -129,7 +129,7 @@ export default async function AdminDashboardPage() {
                   <div className="flex shrink-0 items-center gap-2">
                     <Badge variant="outline">{PLAN_LABELS[account.plan] ?? account.plan}</Badge>
                     <span className="text-xs text-muted-foreground">
-                      {formatDate(account.created_at)}
+                      {formatAdminDate(account.created_at)}
                     </span>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export default async function AdminDashboardPage() {
                     </p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatDate(sub.updated_at)}
+                    {formatAdminDate(sub.updated_at)}
                   </span>
                 </div>
               ))
@@ -203,7 +203,7 @@ export default async function AdminDashboardPage() {
                       {auditActionLabel(row.action)}
                     </p>
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {formatDate(row.created_at)}
+                      {formatAdminDate(row.created_at)}
                     </span>
                   </div>
                   {row.detail ? (
@@ -242,7 +242,7 @@ export default async function AdminDashboardPage() {
                     </p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatDate(row.created_at)}
+                    {formatAdminDate(row.created_at)}
                   </span>
                 </div>
               ))

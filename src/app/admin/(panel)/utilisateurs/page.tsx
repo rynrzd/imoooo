@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PLAN_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/admin/labels";
 import { listUsers } from "@/lib/admin/users";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 
 export const metadata: Metadata = { title: "Utilisateurs" };
 export const dynamic = "force-dynamic";
@@ -143,7 +143,7 @@ export default async function AdminUsersPage({
                       : "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatDate(user.created_at)}
+                    {formatAdminDate(user.created_at)}
                   </TableCell>
                 </TableRow>
               ))

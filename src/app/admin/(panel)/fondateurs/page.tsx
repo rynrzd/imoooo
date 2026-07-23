@@ -15,7 +15,7 @@ import {
 import { setFounderConfig } from "@/lib/admin/actions/settings";
 import { getSiteSettings } from "@/lib/admin/settings";
 import { FOUNDER_TIERS, FOUNDER_TOTAL_PLACES } from "@/config/plans";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Fondateurs" };
@@ -148,7 +148,7 @@ export default async function AdminFoundersPage() {
                           : "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {member.confirmed_at ? formatDate(member.confirmed_at) : "—"}
+                        {member.confirmed_at ? formatAdminDate(member.confirmed_at) : "—"}
                       </TableCell>
                     </TableRow>
                   ))

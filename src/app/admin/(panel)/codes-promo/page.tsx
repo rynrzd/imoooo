@@ -17,7 +17,7 @@ import {
   syncPromoUsage,
 } from "@/lib/admin/actions/promos";
 import { PLAN_LABELS } from "@/lib/admin/labels";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -149,9 +149,9 @@ export default async function AdminPromoCodesPage() {
                     {row.once_per_customer ? " · 1re transaction" : ""}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {row.starts_at ? `dès ${formatDate(row.starts_at)}` : ""}
+                    {row.starts_at ? `dès ${formatAdminDate(row.starts_at)}` : ""}
                     {row.starts_at && row.expires_at ? " · " : ""}
-                    {row.expires_at ? `jusqu'au ${formatDate(row.expires_at)}` : ""}
+                    {row.expires_at ? `jusqu'au ${formatAdminDate(row.expires_at)}` : ""}
                     {!row.starts_at && !row.expires_at ? "—" : ""}
                   </TableCell>
                   <TableCell>{statusBadge(row)}</TableCell>

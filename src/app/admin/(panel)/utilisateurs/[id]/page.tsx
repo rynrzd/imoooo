@@ -22,7 +22,7 @@ import {
 import { MODERATION_LABELS } from "@/lib/admin/types";
 import { getUserDetail } from "@/lib/admin/users";
 import { getPlan } from "@/config/plans";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 
 export const metadata: Metadata = { title: "Fiche utilisateur" };
 export const dynamic = "force-dynamic";
@@ -95,10 +95,10 @@ export default async function AdminUserDetailPage({
             <Info label="E-mail" value={user.email || "—"} />
             <Info label="Nom" value={user.full_name || "—"} />
             <Info label="Téléphone" value={user.phone || "—"} />
-            <Info label="Inscription" value={formatDate(user.created_at)} />
+            <Info label="Inscription" value={formatAdminDate(user.created_at)} />
             <Info
               label="Dernière connexion"
-              value={user.last_sign_in_at ? formatDate(user.last_sign_in_at) : "Jamais"}
+              value={user.last_sign_in_at ? formatAdminDate(user.last_sign_in_at) : "Jamais"}
             />
             <Info label="E-mail confirmé" value={user.email_confirmed ? "Oui" : "Non"} />
             {user.moderation !== "active" && user.moderation_reason ? (
@@ -121,7 +121,7 @@ export default async function AdminUserDetailPage({
             <Info label="Fournisseur" value={sub?.provider ?? "—"} />
             <Info
               label="Prochaine échéance"
-              value={sub?.current_period_end ? formatDate(sub.current_period_end) : "—"}
+              value={sub?.current_period_end ? formatAdminDate(sub.current_period_end) : "—"}
             />
             <Info
               label="Annulation programmée"
@@ -245,7 +245,7 @@ export default async function AdminUserDetailPage({
                 <div key={note.id} className="py-2.5">
                   <p className="text-sm whitespace-pre-wrap">{note.note}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {note.created_by_email} · {formatDate(note.created_at)}
+                    {note.created_by_email} · {formatAdminDate(note.created_at)}
                   </p>
                 </div>
               ))
@@ -271,7 +271,7 @@ export default async function AdminUserDetailPage({
                     <p className="truncate text-xs text-muted-foreground">{entry.admin_email}</p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatDate(entry.created_at)}
+                    {formatAdminDate(entry.created_at)}
                   </span>
                 </div>
               ))

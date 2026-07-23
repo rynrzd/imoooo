@@ -18,7 +18,7 @@ import {
 } from "@/lib/admin/actions/support";
 import { TICKET_PRIORITY_LABELS, TICKET_STATUS_LABELS } from "@/lib/admin/labels";
 import { isEmailConfigured } from "@/lib/email/provider";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Support" };
@@ -121,7 +121,7 @@ export default async function AdminSupportPage({
               tickets.map((ticket) => (
                 <TableRow key={ticket.id}>
                   <TableCell className="text-muted-foreground">
-                    {formatDate(ticket.created_at)}
+                    {formatAdminDate(ticket.created_at)}
                   </TableCell>
                   <TableCell>
                     <span className="block max-w-44 truncate font-medium">{ticket.name}</span>
@@ -157,7 +157,7 @@ export default async function AdminSupportPage({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {ticket.replied_at ? formatDate(ticket.replied_at) : "—"}
+                    {ticket.replied_at ? formatAdminDate(ticket.replied_at) : "—"}
                   </TableCell>
                   <TableCell>
                     <TicketDialog

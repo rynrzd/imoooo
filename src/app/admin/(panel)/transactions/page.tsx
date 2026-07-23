@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { logger } from "@/lib/logger";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
@@ -125,7 +125,7 @@ export default async function AdminTransactionsPage() {
               rows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="text-muted-foreground">
-                    {row.date ? formatDate(row.date) : "—"}
+                    {row.date ? formatAdminDate(row.date) : "—"}
                   </TableCell>
                   <TableCell className="max-w-56 truncate">{row.email || "—"}</TableCell>
                   <TableCell className="max-w-64 truncate text-muted-foreground">

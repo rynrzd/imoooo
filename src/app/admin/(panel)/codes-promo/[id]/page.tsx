@@ -10,7 +10,7 @@ import {
   updatePromoDescription,
 } from "@/lib/admin/actions/promos";
 import { PLAN_LABELS } from "@/lib/admin/labels";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Code promo" };
@@ -114,11 +114,11 @@ export default async function AdminPromoDetailPage({
             />
             <Info
               label="Début"
-              value={promo.starts_at ? formatDate(promo.starts_at) : "Immédiat"}
+              value={promo.starts_at ? formatAdminDate(promo.starts_at) : "Immédiat"}
             />
             <Info
               label="Expiration"
-              value={promo.expires_at ? formatDate(promo.expires_at) : "Aucune"}
+              value={promo.expires_at ? formatAdminDate(promo.expires_at) : "Aucune"}
             />
             <Info
               label="Stripe"
@@ -130,7 +130,7 @@ export default async function AdminPromoDetailPage({
                 )
               }
             />
-            <Info label="Créé le" value={formatDate(promo.created_at)} />
+            <Info label="Créé le" value={formatAdminDate(promo.created_at)} />
           </div>
           <div className="mt-3 border-t border-border/60 pt-3">
             <PromoDescriptionForm
@@ -170,7 +170,7 @@ export default async function AdminPromoDetailPage({
                     ) : null}
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatDate(r.created_at)}
+                    {formatAdminDate(r.created_at)}
                   </span>
                 </div>
               ))

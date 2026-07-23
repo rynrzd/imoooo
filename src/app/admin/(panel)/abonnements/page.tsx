@@ -19,7 +19,7 @@ import {
 import { PLAN_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/admin/labels";
 import { getAdminUserIds } from "@/lib/admin/stats";
 import { getPlan } from "@/config/plans";
-import { formatDate } from "@/lib/format";
+import { formatAdminDate } from "@/lib/admin/format";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -209,11 +209,11 @@ export default async function AdminSubscriptionsPage({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {row.current_period_start
-                        ? formatDate(row.current_period_start)
-                        : formatDate(row.created_at)}
+                        ? formatAdminDate(row.current_period_start)
+                        : formatAdminDate(row.created_at)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {row.current_period_end ? formatDate(row.current_period_end) : "—"}
+                      {row.current_period_end ? formatAdminDate(row.current_period_end) : "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {row.lifetime_access
