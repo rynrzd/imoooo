@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Devenir Fondateur",
   description:
     "Rejoignez les 100 premiers utilisateurs de Nireo : accès Business+ à vie, paiement unique, place numérotée.",
+  alternates: { canonical: "/fondateur" },
 };
 
 /**

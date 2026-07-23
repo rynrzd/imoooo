@@ -135,6 +135,13 @@ export default function LoginPage() {
           <Link href="/inscription" className="font-medium text-foreground underline-offset-2 hover:underline">
             Créer un compte
           </Link>
+          <span className="mx-2 text-muted-foreground/50">·</span>
+          <Link
+            href="/admin/login"
+            className="font-medium text-foreground underline-offset-2 hover:underline"
+          >
+            Administrateur
+          </Link>
         </p>
       }
     >

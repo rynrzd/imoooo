@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isUserAdmin } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
 import { getPriceIdForPlan, isStripeConfigured } from "@/lib/stripe/config";
 import { isPaidPlanId } from "@/lib/stripe/plans";
@@ -29,6 +30,14 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Connectez-vous pour vous abonner." }, { status: 401 });
+  }
+
+  // Un administrateur n'est pas un client Nireo : aucun abonnement possible.
+  if (await isUserAdmin(user.id)) {
+    return NextResponse.json(
+      { error: "Un compte administrateur ne peut pas souscrire d'abonnement." },
+      { status: 403 }
+    );
   }
 
   let plan: unknown;

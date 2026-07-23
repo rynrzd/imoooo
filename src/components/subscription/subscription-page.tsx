@@ -387,6 +387,10 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
       </Card>
 
       {/* Tarifs */}
+      <p className="text-sm text-muted-foreground">
+        Choisissez l&apos;offre adaptée à votre patrimoine. Vous pourrez changer
+        de formule à tout moment.
+      </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((plan) => {
           const isCurrent = plan.id === currentPlan.id;
@@ -395,21 +399,38 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
             <Card
               key={plan.id}
               className={cn(
-                "relative flex flex-col",
-                plan.popular && "border-primary shadow-sm"
+                "relative flex flex-col transition-all duration-200 motion-safe:hover:-translate-y-0.5 hover:shadow-md",
+                plan.popular && "border-primary shadow-sm",
+                isCurrent && "ring-1 ring-primary/40"
               )}
             >
               {plan.popular ? (
-                <Badge className="absolute -top-2.5 left-4">Recommandé</Badge>
+                <Badge className="absolute -top-2.5 left-4">Le plus populaire</Badge>
+              ) : plan.id === "business" ? (
+                <Badge variant="secondary" className="absolute -top-2.5 left-4">
+                  Pour les grands patrimoines
+                </Badge>
               ) : null}
               <CardHeader>
-                <CardTitle className="text-sm font-medium">{plan.name}</CardTitle>
+                <CardTitle className="flex items-center justify-between gap-2 text-sm font-medium">
+                  {plan.name}
+                  {isCurrent ? (
+                    <Badge variant="secondary" className="font-normal">
+                      Votre offre actuelle
+                    </Badge>
+                  ) : null}
+                </CardTitle>
                 <p className="pt-1">
                   <span className="text-2xl font-semibold tracking-tight text-foreground">
                     {priceLabel(plan.monthlyPrice)} €
                   </span>
                   <span className="text-sm text-muted-foreground"> /mois</span>
                 </p>
+                {plan.id !== "free" ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    Sans engagement — paiement sécurisé par Stripe
+                  </p>
+                ) : null}
                 <p className="text-xs text-muted-foreground">{plan.description}</p>
               </CardHeader>
               <CardContent className="flex-1">
@@ -428,13 +449,17 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
               <CardFooter>
                 {plan.id === "free" ? (
                   <Button className="w-full" variant="outline" disabled>
-                    {isCurrent ? "Plan actuel" : "Plan de départ"}
+                    {isCurrent ? "Votre offre actuelle" : "Plan de départ"}
                   </Button>
                 ) : isFounder ? (
                   <Button className="w-full" variant="outline" disabled>
                     {plan.id === "business" ? "Inclus à vie (Fondateur)" : "Couvert par votre accès à vie"}
                   </Button>
-                ) : !stripeEnabled && !isCurrent ? (
+                ) : isCurrent ? (
+                  <Button className="w-full" variant="outline" disabled>
+                    Votre offre actuelle
+                  </Button>
+                ) : !stripeEnabled ? (
                   // Stripe non configuré : jamais de faux bouton de paiement.
                   <Button className="w-full" variant="outline" disabled>
                     Paiement en ligne bientôt disponible
@@ -443,14 +468,10 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
                   <Button
                     className="w-full"
                     variant={plan.popular ? "default" : "outline"}
-                    disabled={isCurrent || pendingPlan !== null}
+                    disabled={pendingPlan !== null}
                     onClick={() => void choosePlan(plan.id as PaidPlanId)}
                   >
-                    {isCurrent
-                      ? "Plan actuel"
-                      : isPending
-                        ? "Redirection…"
-                        : "Choisir ce plan"}
+                    {isPending ? "Redirection…" : `Passer à ${plan.name}`}
                   </Button>
                 )}
               </CardFooter>
@@ -460,10 +481,41 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Paiement sécurisé par Stripe. Les prix sont indiqués hors taxes.
-        Changement de plan et résiliation possibles à tout moment depuis
-        « Gérer mon abonnement », au prorata de la période en cours.
+        Un code promotionnel ? Vous pourrez le saisir sur la page de paiement
+        sécurisée Stripe. Paiement sans engagement, prix indiqués hors taxes.
+        Changement de plan et résiliation à tout moment depuis « Gérer mon
+        abonnement », au prorata de la période en cours.
       </p>
+
+      {/* FAQ courte */}
+      <div className="space-y-3 border-t border-border pt-6">
+        <h3 className="text-sm font-medium text-foreground">Questions fréquentes</h3>
+        <dl className="grid gap-4 sm:grid-cols-2">
+          {[
+            {
+              q: "Puis-je changer d'offre plus tard ?",
+              a: "Oui, à tout moment. Le changement est appliqué au prorata de la période en cours via Stripe.",
+            },
+            {
+              q: "Mes données sont-elles conservées si je change d'offre ?",
+              a: "Oui. Vos logements, locataires, documents et historiques restent intacts lors d'un changement de formule.",
+            },
+            {
+              q: "Où saisir mon code promotionnel ?",
+              a: "Sur la page de paiement sécurisée Stripe, un champ « Code promotionnel » est disponible avant de valider.",
+            },
+            {
+              q: "Le paiement est-il sécurisé ?",
+              a: "Oui. Les paiements sont gérés par Stripe ; Nireo ne stocke aucune donnée de carte bancaire.",
+            },
+          ].map(({ q, a }) => (
+            <div key={q} className="space-y-1">
+              <dt className="text-sm font-medium text-foreground">{q}</dt>
+              <dd className="text-xs leading-relaxed text-muted-foreground">{a}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </>
   );
 }

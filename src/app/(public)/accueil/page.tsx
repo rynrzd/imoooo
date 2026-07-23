@@ -36,15 +36,32 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   // Servie sur « / » pour les visiteurs (réécriture du proxy).
-  title: "Nireo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
+  // « absolute » : le template « %s · Nireo » du layout dupliquerait la marque.
+  title: {
+    absolute:
+      "Nireo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
+  },
   description:
     "Le logiciel de gestion locative des propriétaires bailleurs : logements, locataires, loyers automatiques, documents, travaux et statistiques. Gratuit pour un premier logement, sans carte bancaire.",
   alternates: { canonical: "/" },
+  // openGraph d'une page REMPLACE celui du layout (fusion superficielle) :
+  // type/siteName/locale doivent être répétés ici.
   openGraph: {
+    type: "website",
+    siteName: "Nireo",
+    locale: "fr_FR",
     title: "Nireo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
     description:
       "Logements, locataires, loyers automatiques, documents, travaux et statistiques : un seul espace, conçu pour les propriétaires bailleurs.",
     url: "/",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Nireo — Le logiciel de gestion locative des propriétaires bailleurs",
+      },
+    ],
   },
 };
 
@@ -244,6 +261,13 @@ const TRUST_POINTS = [
 const JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
+    {
+      // Nom du site affiché par Google dans les résultats de recherche.
+      "@type": "WebSite",
+      name: "Nireo",
+      url: SITE_URL,
+      inLanguage: "fr",
+    },
     {
       "@type": "SoftwareApplication",
       name: "Nireo",

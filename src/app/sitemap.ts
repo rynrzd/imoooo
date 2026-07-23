@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/supabase/config";
 
-/** Sitemap des pages publiques uniquement (les routes privées sont protégées). */
+/**
+ * Sitemap des pages publiques INDEXABLES uniquement : les routes privées sont
+ * protégées et les pages légales (cgu, confidentialité, cookies, mentions
+ * légales) sont volontairement en noindex — les lister ferait remonter une
+ * contradiction dans Google Search Console.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   return [
@@ -11,9 +16,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "yearly", priority: 0.5 },
     { url: `${SITE_URL}/inscription`, lastModified: now, changeFrequency: "yearly", priority: 0.6 },
     { url: `${SITE_URL}/connexion`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${SITE_URL}/confidentialite`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE_URL}/cgu`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE_URL}/mentions-legales`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE_URL}/cookies`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
   ];
 }

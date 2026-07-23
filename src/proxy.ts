@@ -37,6 +37,9 @@ function isPublicPath(pathname: string): boolean {
     pathname.startsWith("/auth") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
+    // Image sociale (og:image / twitter:image) : les robots de partage
+    // (Facebook, X, LinkedIn…) la chargent sans session.
+    pathname === "/opengraph-image" ||
     pathname === VERIFY_EMAIL_PATH ||
     // Tunnel Fondateur : la page d'entrée est publique (pitch + création de
     // compte), mais PAS ses sous-pages (/fondateur/bienvenue exige une session).
@@ -109,6 +112,22 @@ export async function proxy(request: NextRequest) {
       .forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;
   };
+
+  // ---------- Espace administrateur (/admin) ----------
+  // Le proxy ne gère ici QUE la présence d'une session : le contrôle du rôle
+  // administrateur est fait côté serveur (clé secrète, table admin_users)
+  // dans le layout /admin — jamais dans le navigateur, jamais ici.
+  if (pathname === "/admin/login") {
+    // Déjà connecté : direction /admin — le layout renvoie les non-admins
+    // vers leur dashboard client.
+    if (user && emailConfirmed) return redirectWithCookies("/admin");
+    return response;
+  }
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    if (!user) return redirectWithCookies("/admin/login");
+    if (!emailConfirmed) return redirectWithCookies(VERIFY_EMAIL_PATH);
+    return response;
+  }
 
   // Visiteur non connecté sur « / » : la landing page est servie sans
   // changer l'URL (le dashboard privé reste sur « / » pour les connectés).

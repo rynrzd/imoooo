@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { isUserAdmin } from "@/lib/admin/auth";
+import { getSiteSettings } from "@/lib/admin/settings";
 import { logger } from "@/lib/logger";
 import { FOUNDER_TOTAL_PLACES, founderTierForPlace } from "@/config/plans";
 import { getFounderPriceId, isStripeConfigured } from "@/lib/stripe/config";
@@ -40,8 +42,27 @@ export async function POST() {
     return NextResponse.json({ error: "Connectez-vous pour continuer." }, { status: 401 });
   }
 
+  // Un administrateur n'est pas un client Nireo : aucun achat possible.
+  if (await isUserAdmin(user.id)) {
+    return NextResponse.json(
+      { error: "Un compte administrateur ne peut pas souscrire d'offre." },
+      { status: 403 }
+    );
+  }
+
   try {
     const admin = createAdminClient();
+
+    // Réglages de l'offre gérés depuis /admin/fondateurs : activation et
+    // nombre de places (toujours plafonné à 100 par le serveur).
+    const settings = await getSiteSettings();
+    if (!settings.founder_enabled) {
+      return NextResponse.json(
+        { error: "L'offre Fondateur est momentanément désactivée." },
+        { status: 410 }
+      );
+    }
+    const maxPlaces = Math.min(FOUNDER_TOTAL_PLACES, settings.founder_max_places);
 
     // Déjà Fondateur confirmé, ou déjà accès à vie : rien à acheter.
     const subscription = await getUserSubscription(admin, user.id);
@@ -64,9 +85,9 @@ export async function POST() {
       .eq("status", "confirmed");
     if (countError) throw new Error(countError.message);
     const confirmed = count ?? 0;
-    if (confirmed >= FOUNDER_TOTAL_PLACES) {
+    if (confirmed >= maxPlaces) {
       return NextResponse.json(
-        { error: "L'offre Fondateur est épuisée : les 100 places ont été attribuées." },
+        { error: "L'offre Fondateur est épuisée : toutes les places ont été attribuées." },
         { status: 410 }
       );
     }
