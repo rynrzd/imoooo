@@ -105,6 +105,8 @@ async function capturePartnerReferral(
     secure: process.env.NODE_ENV === "production",
     path: "/",
   });
+  // [diag/marketing] TEMPORAIRE — cookie d'attribution posé (partenaire validé).
+  console.info(`[diag/marketing] cookie nireo_ref posé · ref=${result.slug ?? ref} fenêtre=${windowDays}j landing=${pathname}`);
 }
 
 export async function proxy(request: NextRequest) {

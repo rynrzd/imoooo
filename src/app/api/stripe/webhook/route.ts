@@ -149,6 +149,11 @@ export async function POST(request: Request) {
         const invoice = event.data.object;
         const ref = invoice.parent?.subscription_details?.subscription;
         const subscriptionId = typeof ref === "string" ? ref : ref?.id;
+        // [diag/marketing] TEMPORAIRE — trace sûre (aucune donnée sensible).
+        logger.info(
+          "diag/marketing",
+          `webhook ${event.type} reçu · invoice=${invoice.id} status=${invoice.status} amount_paid=${invoice.amount_paid}c sub=${subscriptionId ?? "aucun"}`
+        );
         if (!subscriptionId) break; // facture hors abonnement (ex. paiement unique)
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const userId = subscription.metadata.user_id;
@@ -161,6 +166,7 @@ export async function POST(request: Request) {
         // encaissé (invoice.paid, montant > 0). Idempotent (facture unique
         // en base) et jamais bloquant pour la synchronisation.
         if (event.type === "invoice.paid") {
+          logger.info("diag/marketing", `invoice.paid · user=${userId} → calcul commission`);
           await createCommissionForPaidInvoice(stripe, invoice, subscription, userId);
         }
         break;

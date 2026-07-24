@@ -18,13 +18,15 @@
 
 type Scope = string;
 
-function report(level: "error" | "warn", scope: Scope, detail: unknown): void {
+function report(level: "error" | "warn" | "info", scope: Scope, detail: unknown): void {
   // Branchement futur (Sentry, Logtail…) : ici, et uniquement ici.
   const message = detail instanceof Error ? detail.message : String(detail);
   if (level === "error") {
     console.error(`[${scope}]`, message);
-  } else {
+  } else if (level === "warn") {
     console.warn(`[${scope}]`, message);
+  } else {
+    console.info(`[${scope}]`, message);
   }
 }
 
@@ -34,5 +36,8 @@ export const logger = {
   },
   warn(scope: Scope, detail: unknown): void {
     report("warn", scope, detail);
+  },
+  info(scope: Scope, detail: unknown): void {
+    report("info", scope, detail);
   },
 };

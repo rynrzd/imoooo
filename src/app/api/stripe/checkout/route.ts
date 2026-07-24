@@ -48,7 +48,12 @@ export async function POST(request: Request) {
   // le parcours de paiement. Jamais bloquant.
   try {
     const refCookie = (await cookies()).get(REF_COOKIE_NAME)?.value;
-    if (refCookie) await attachPartnerAttribution(user.id, refCookie);
+    // [diag/marketing] TEMPORAIRE — présence du cookie d'attribution au paiement.
+    logger.info("diag/marketing", `checkout · user=${user.id} cookie nireo_ref=${refCookie ? "présent" : "absent"}`);
+    if (refCookie) {
+      const attach = await attachPartnerAttribution(user.id, refCookie);
+      logger.info("diag/marketing", `checkout · attribution attached=${attach.attached}${attach.reason ? ` reason=${attach.reason}` : ""}`);
+    }
   } catch (e) {
     logger.error("[stripe/checkout] attribution partenaire", e);
   }
@@ -104,6 +109,8 @@ export async function POST(request: Request) {
         { status: 502 }
       );
     }
+    // [diag/marketing] TEMPORAIRE — Checkout Session créée (aucun secret).
+    logger.info("diag/marketing", `checkout session créée · session=${session.id} user=${user.id} plan=${plan}`);
     return NextResponse.json({ url: session.url });
   } catch (e) {
     logger.error("[stripe/checkout]", e);

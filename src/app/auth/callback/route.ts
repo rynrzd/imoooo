@@ -81,7 +81,12 @@ async function attachReferralOnSignup(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user || user.is_anonymous) return;
-    await attachPartnerAttribution(user.id, cookieValue);
+    // [diag/marketing] TEMPORAIRE — rattachement au partenaire à la confirmation.
+    const attach = await attachPartnerAttribution(user.id, cookieValue);
+    logger.info(
+      "diag/marketing",
+      `signup · user=${user.id} attribution attached=${attach.attached}${attach.reason ? ` reason=${attach.reason}` : ""}`
+    );
   } catch (e) {
     logger.error("auth/callback attribution partenaire", e);
   }

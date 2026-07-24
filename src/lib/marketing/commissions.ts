@@ -94,16 +94,29 @@ export async function createCommissionForPaidInvoice(
 ): Promise<void> {
   try {
     // Paiement réellement encaissé uniquement.
-    if (invoice.status !== "paid") return;
+    if (invoice.status !== "paid") {
+      logger.info("diag/marketing", `commission ignorée · invoice ${invoice.id} status=${invoice.status} (≠ paid)`);
+      return;
+    }
     const grossCents = invoice.amount_paid ?? 0;
-    if (grossCents <= 0) return; // facture à 0 € : essai, période gratuite…
+    if (grossCents <= 0) {
+      logger.info("diag/marketing", `commission ignorée · invoice ${invoice.id} amount_paid=${grossCents}c (essai/0€)`);
+      return; // facture à 0 € : essai, période gratuite…
+    }
 
     const context = await getEligibilityContext(userId);
-    if (!context) return;
+    if (!context) {
+      logger.info("diag/marketing", `commission ignorée · user ${userId} : aucune attribution partenaire active`);
+      return;
+    }
     const { partner, attribution } = context;
+    logger.info("diag/marketing", `partenaire détecté · partner=${partner.id} type=${partner.commission_type} valeur=${partner.commission_value} user=${userId}`);
 
     // Aucune règle appliquée sans configuration explicite.
-    if (!(partner.commission_value > 0)) return;
+    if (!(partner.commission_value > 0)) {
+      logger.info("diag/marketing", `commission ignorée · partner ${partner.id} commission_value=0`);
+      return;
+    }
 
     // Plan couvert par l'accord (vide = tous les plans payants).
     const priceId = subscription.items.data[0]?.price.id ?? "";
@@ -146,6 +159,10 @@ export async function createCommissionForPaidInvoice(
         ? Math.round(partner.commission_value * 100)
         : Math.round((eligibleCents * partner.commission_value) / 100);
     if (commissionCents <= 0) return;
+    logger.info(
+      "diag/marketing",
+      `commission calculée · gross=${grossCents}c eligible=${eligibleCents}c taux=${partner.commission_value} → commission=${commissionCents}c (partner=${partner.id})`
+    );
 
     const paymentIntentId = await findPaymentIntentId(stripe, invoice.id!);
 
@@ -174,7 +191,14 @@ export async function createCommissionForPaidInvoice(
       )
       .select("id");
     if (insertError) throw new Error(insertError.message);
-    if (!inserted || inserted.length === 0) return; // doublon ignoré
+    if (!inserted || inserted.length === 0) {
+      logger.info("diag/marketing", `commission NON ré-enregistrée · invoice ${invoice.id} déjà commissionnée (idempotence)`);
+      return; // doublon ignoré
+    }
+    logger.info(
+      "diag/marketing",
+      `commission ENREGISTRÉE · id=${inserted[0].id} montant=${commissionCents}c invoice=${invoice.id} partner=${partner.id}`
+    );
 
     // Première conversion : l'attribution passe à « converted ».
     if (!attribution.converted_at) {
