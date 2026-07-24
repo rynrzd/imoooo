@@ -23,6 +23,17 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "support.reply": "Réponse envoyée au ticket",
   "settings.update": "Paramètre du site modifié",
   "founder.config": "Configuration Fondateur modifiée",
+  "marketing.partner_create": "Partenaire créé",
+  "marketing.partner_update": "Partenaire modifié",
+  "marketing.partner_toggle": "Partenaire activé/désactivé",
+  "marketing.partner_delete": "Partenaire supprimé",
+  "marketing.commission_approve": "Commission validée",
+  "marketing.commission_payable": "Commission rendue disponible",
+  "marketing.commission_cancel": "Commission annulée",
+  "marketing.payout_create": "Relevé de paiement créé",
+  "marketing.payout_approve": "Relevé de paiement approuvé",
+  "marketing.payout_paid": "Relevé de paiement marqué payé",
+  "marketing.payout_cancel": "Relevé de paiement annulé",
 };
 
 export function auditActionLabel(action: string): string {

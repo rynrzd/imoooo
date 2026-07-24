@@ -3,6 +3,7 @@ import type { EmailOtpType, SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
 import { isEmailProviderConfigured, sendEmail } from "@/lib/email/provider";
 import { welcomeEmail } from "@/lib/email/templates";
+import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -50,6 +51,39 @@ async function sendWelcomeOnce(supabase: SupabaseClient): Promise<void> {
     await sendEmail({ to: user.email, subject: content.subject, html: content.html });
   } catch (e) {
     logger.error("auth/callback welcome", e);
+  }
+}
+
+/** Valeur d'un cookie depuis l'en-tête brut (route handler sans NextRequest). */
+function readCookie(request: Request, name: string): string | null {
+  const header = request.headers.get("cookie") ?? "";
+  for (const part of header.split(";")) {
+    const [key, ...rest] = part.trim().split("=");
+    if (key === name) return decodeURIComponent(rest.join("="));
+  }
+  return null;
+}
+
+/**
+ * Attribution partenaire : si le navigateur porte le cookie `nireo_ref`
+ * (posé par le proxy lors d'une arrivée via lien/QR partenaire), le compte
+ * fraîchement confirmé est rattaché au partenaire — first-touch, self-
+ * referral et comptes admin refusés côté SQL. Jamais bloquant.
+ */
+async function attachReferralOnSignup(
+  supabase: SupabaseClient,
+  request: Request
+): Promise<void> {
+  try {
+    const cookieValue = readCookie(request, REF_COOKIE_NAME);
+    if (!cookieValue) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user || user.is_anonymous) return;
+    await attachPartnerAttribution(user.id, cookieValue);
+  } catch (e) {
+    logger.error("auth/callback attribution partenaire", e);
   }
 }
 
@@ -113,14 +147,21 @@ export async function GET(request: Request) {
       token_hash: tokenHash,
     });
     if (!error) {
-      // Confirmation d'inscription : e-mail de bienvenue (une seule fois).
-      if (type === "signup" || type === "email") await sendWelcomeOnce(supabase);
+      // Confirmation d'inscription : e-mail de bienvenue (une seule fois)
+      // + rattachement au partenaire si arrivée via lien/QR partenaire.
+      if (type === "signup" || type === "email") {
+        await sendWelcomeOnce(supabase);
+        await attachReferralOnSignup(supabase, request);
+      }
       return redirect(safeNext);
     }
     exchangeError = error;
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return redirect(safeNext);
+    if (!error) {
+      await attachReferralOnSignup(supabase, request);
+      return redirect(safeNext);
+    }
     exchangeError = error;
   }
 

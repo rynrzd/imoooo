@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import type Stripe from "stripe";
+import {
+  createCommissionForPaidInvoice,
+  reverseCommissionForRefund,
+} from "@/lib/marketing/commissions";
 import { getStripeWebhookSecret, isStripeConfigured } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
 import { syncSubscriptionToDatabase } from "@/lib/stripe/subscription";
@@ -59,6 +63,7 @@ async function recordPromoRedemption(
  * - customer.subscription.deleted
  * - invoice.paid
  * - invoice.payment_failed
+ * - charge.refunded          (commissions partenaires : reversal)
  */
 export async function POST(request: Request) {
   if (!isStripeConfigured) {
@@ -151,6 +156,20 @@ export async function POST(request: Request) {
           throw new Error(`Abonnement ${subscription.id} sans metadata.user_id.`);
         }
         await syncSubscriptionToDatabase(createAdminClient(), userId, subscription);
+
+        // Commission partenaire : UNIQUEMENT sur un paiement réellement
+        // encaissé (invoice.paid, montant > 0). Idempotent (facture unique
+        // en base) et jamais bloquant pour la synchronisation.
+        if (event.type === "invoice.paid") {
+          await createCommissionForPaidInvoice(stripe, invoice, subscription, userId);
+        }
+        break;
+      }
+
+      // Remboursement (total ou partiel) : la commission partenaire liée
+      // au paiement est inversée ou recalculée. Jamais bloquant.
+      case "charge.refunded": {
+        await reverseCommissionForRefund(event.data.object);
         break;
       }
 

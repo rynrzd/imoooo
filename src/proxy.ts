@@ -1,5 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import {
+  DEFAULT_ATTRIBUTION_WINDOW_DAYS,
+  parseRefCookie,
+  recordPartnerClick,
+  REF_COOKIE_NAME,
+  REF_PARAM,
+  sanitizeRef,
+  serializeRefCookie,
+} from "@/lib/marketing/referral";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/supabase/config";
 import { adjustPersistence, rememberFromCookies } from "@/lib/supabase/session-persistence";
 
@@ -49,10 +58,71 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
+ * Attribution partenaire (« Marketing & Partenaires ») : quand un visiteur
+ * arrive avec ?ref=CODE, le partenaire est validé CÔTÉ SERVEUR (existe,
+ * actif, dates), le clic est enregistré (déduplication + anti-bot), et
+ * l'attribution est posée dans un cookie HttpOnly dont la durée = fenêtre
+ * d'attribution du partenaire (30 jours par défaut).
+ *
+ * Règle unique du projet : PREMIER partenaire attribué (first-touch) —
+ * un cookie d'attribution existant n'est JAMAIS écrasé.
+ */
+async function capturePartnerReferral(
+  request: NextRequest,
+  response: NextResponse
+): Promise<void> {
+  if (request.method !== "GET") return;
+  const { pathname, searchParams } = request.nextUrl;
+  if (pathname.startsWith("/api") || pathname.startsWith("/admin") || pathname.startsWith("/auth")) {
+    return;
+  }
+  const ref = sanitizeRef(searchParams.get(REF_PARAM));
+  if (!ref) return;
+
+  // Le clic est toujours compté (trafic réel du partenaire), même si le
+  // visiteur est déjà attribué à un autre partenaire.
+  const result = await recordPartnerClick({
+    ref,
+    landingPage: pathname,
+    source: searchParams.get("utm_source") ?? "",
+    campaign: searchParams.get("utm_campaign") ?? "",
+    ip:
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip"),
+    userAgent: request.headers.get("user-agent"),
+  });
+  if (!result.valid) return;
+
+  // First-touch : une attribution existante et lisible reste en place.
+  const existing = parseRefCookie(request.cookies.get(REF_COOKIE_NAME)?.value);
+  if (existing) return;
+
+  const windowDays = result.windowDays ?? DEFAULT_ATTRIBUTION_WINDOW_DAYS;
+  response.cookies.set(REF_COOKIE_NAME, serializeRefCookie({ ref: result.slug ?? ref, ts: Date.now() }), {
+    maxAge: windowDays * 86400,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+}
+
+export async function proxy(request: NextRequest) {
+  const response = await handleRequest(request);
+  // Jamais bloquant : une erreur d'attribution n'empêche pas la navigation.
+  try {
+    await capturePartnerReferral(request, response);
+  } catch {
+    // silencieux : la page se charge normalement, sans attribution.
+  }
+  return response;
+}
+
+/**
  * Rafraîchit la session Supabase et protège les routes privées.
  * Sans configuration Supabase, l'application reste en mode démo (tout ouvert).
  */
-export async function proxy(request: NextRequest) {
+async function handleRequest(request: NextRequest) {
   if (!isSupabaseConfigured) {
     return NextResponse.next();
   }

@@ -23,6 +23,35 @@ import { MODERATION_LABELS } from "@/lib/admin/types";
 import { getUserDetail } from "@/lib/admin/users";
 import { getPlan } from "@/config/plans";
 import { formatAdminDate } from "@/lib/admin/format";
+import { PARTNER_TYPE_LABELS, type PartnerType } from "@/lib/marketing/types";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/** Attribution partenaire d'un utilisateur (module Marketing) — null si aucune. */
+async function getUserAttribution(userId: string): Promise<{
+  partnerId: string;
+  partnerName: string;
+  partnerType: PartnerType;
+  signupAt: string;
+  convertedAt: string | null;
+  status: string;
+} | null> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("partner_attributions")
+    .select("partner_id, signup_at, converted_at, status, marketing_partners(name, partner_type)")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data) return null;
+  const partner = data.marketing_partners as { name?: string; partner_type?: PartnerType } | null;
+  return {
+    partnerId: data.partner_id as string,
+    partnerName: partner?.name ?? "—",
+    partnerType: (partner?.partner_type ?? "autre") as PartnerType,
+    signupAt: data.signup_at as string,
+    convertedAt: (data.converted_at as string | null) ?? null,
+    status: data.status as string,
+  };
+}
 
 export const metadata: Metadata = { title: "Fiche utilisateur" };
 export const dynamic = "force-dynamic";
@@ -40,6 +69,15 @@ function quota(used: number, max: number | null): string {
   return max === null ? `${used} / illimité` : `${used} / ${max}`;
 }
 
+function Info2({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm">{value}</p>
+    </div>
+  );
+}
+
 /** /admin/utilisateurs/[id] — fiche complète + actions administratives. */
 export default async function AdminUserDetailPage({
   params,
@@ -52,6 +90,7 @@ export default async function AdminUserDetailPage({
 
   const plan = getPlan(user.plan);
   const sub = user.subscription;
+  const attribution = await getUserAttribution(id).catch(() => null);
 
   return (
     <div className="space-y-5">
@@ -178,6 +217,37 @@ export default async function AdminUserDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Attribution partenaire (module Marketing) */}
+      {attribution ? (
+        <div className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+          <h2 className="text-sm font-medium">Attribution partenaire</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1.5">
+            <Info2
+              label="Partenaire"
+              value={
+                <Link href={`/admin/marketing/partenaires/${attribution.partnerId}`} className="hover:underline">
+                  {attribution.partnerName}
+                </Link>
+              }
+            />
+            <Info2 label="Type" value={PARTNER_TYPE_LABELS[attribution.partnerType]} />
+            <Info2 label="Inscription attribuée" value={formatAdminDate(attribution.signupAt)} />
+            <Info2
+              label="Client payant"
+              value={
+                attribution.convertedAt ? (
+                  <span className="text-emerald-600 dark:text-emerald-400">
+                    Oui · {formatAdminDate(attribution.convertedAt)}
+                  </span>
+                ) : (
+                  "Pas encore"
+                )
+              }
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* Actions sensibles */}
       <div className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
+import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
 import { getPriceIdForPlan, isStripeConfigured } from "@/lib/stripe/config";
 import { isPaidPlanId } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/server";
@@ -38,6 +40,17 @@ export async function POST(request: Request) {
       { error: "Un compte administrateur ne peut pas souscrire d'abonnement." },
       { status: 403 }
     );
+  }
+
+  // Attribution partenaire : filet de sécurité si le rattachement n'a pas
+  // eu lieu à la confirmation d'e-mail (autre appareil, session directe…).
+  // First-touch et idempotent — l'attribution n'est jamais perdue pendant
+  // le parcours de paiement. Jamais bloquant.
+  try {
+    const refCookie = (await cookies()).get(REF_COOKIE_NAME)?.value;
+    if (refCookie) await attachPartnerAttribution(user.id, refCookie);
+  } catch (e) {
+    logger.error("[stripe/checkout] attribution partenaire", e);
   }
 
   let plan: unknown;
