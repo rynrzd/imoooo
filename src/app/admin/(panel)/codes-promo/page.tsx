@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Award, Euro, Percent, Repeat, Ticket, TrendingUp } from "lucide-react";
 import { ActionButton } from "@/components/admin/confirm-action";
 import { PromoCreateDialog } from "@/components/admin/promo-create-dialog";
+import { StatCard } from "@/components/admin/stat-card";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -16,8 +18,10 @@ import {
   setPromoCodeActive,
   syncPromoUsage,
 } from "@/lib/admin/actions/promos";
+import { getPromoStats } from "@/lib/admin/promo-stats";
 import { PLAN_LABELS } from "@/lib/admin/labels";
 import { formatAdminDate } from "@/lib/admin/format";
+import { formatCents } from "@/lib/marketing/types";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -70,13 +74,18 @@ function statusBadge(row: PromoRow) {
 /** /admin/codes-promo — création et gestion des coupons (Stripe serveur). */
 export default async function AdminPromoCodesPage() {
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("promo_codes")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [{ data, error }, stats] = await Promise.all([
+    admin
+      .from("promo_codes")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    getPromoStats(),
+  ]);
   if (error) throw new Error(`Lecture des codes promo impossible : ${error.message}`);
   const rows = (data ?? []) as PromoRow[];
+  const usagePct =
+    stats.usageRate === null ? "—" : `${Math.round(stats.usageRate * 1000) / 10} %`;
 
   return (
     <div className="space-y-5">
@@ -95,6 +104,40 @@ export default async function AdminPromoCodesPage() {
           ) : null}
           <PromoCreateDialog action={createPromoCode} />
         </div>
+      </div>
+
+      {/* Statistiques — sources réelles (compteurs + montants Stripe encaissés). */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <StatCard
+          label="Codes"
+          value={String(stats.totalCodes)}
+          hint={`${stats.activeCodes} actif${stats.activeCodes > 1 ? "s" : ""}`}
+          icon={Ticket}
+        />
+        <StatCard label="Utilisations" value={String(stats.totalRedemptions)} icon={Repeat} />
+        <StatCard
+          label="Réductions accordées"
+          value={formatCents(stats.discountCents)}
+          icon={Percent}
+        />
+        <StatCard
+          label="CA généré"
+          value={formatCents(stats.revenueCents)}
+          hint="Encaissé sur commandes avec code"
+          icon={Euro}
+        />
+        <StatCard
+          label="Code le plus utilisé"
+          value={stats.topCode?.code ?? "—"}
+          hint={stats.topCode ? `${stats.topCode.times} utilisation${stats.topCode.times > 1 ? "s" : ""}` : undefined}
+          icon={Award}
+        />
+        <StatCard
+          label="Taux d'utilisation"
+          value={usagePct}
+          hint="Codes à nombre d'usages plafonné"
+          icon={TrendingUp}
+        />
       </div>
 
       <div className="rounded-xl bg-card ring-1 ring-foreground/10">

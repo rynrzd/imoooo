@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, FileImage, Mail, MapPin, Phone, User } from "lucide-react";
+import { PartnerAccessCard } from "@/components/admin/marketing/partner-access-card";
 import { PartnerBalanceCards } from "@/components/admin/marketing/partner-balance-cards";
 import { PartnerFormDialog } from "@/components/admin/marketing/partner-form-dialog";
 import { PartnerLinkCard } from "@/components/admin/marketing/partner-link-card";
@@ -15,6 +16,7 @@ import { formatAdminDate, formatAdminDateTime } from "@/lib/admin/format";
 import { getPartner, getPartnerBalance, getPartnerFunnels } from "@/lib/marketing/partners";
 import { generateQrDataUrl } from "@/lib/marketing/qr";
 import { buildPartnerLink } from "@/lib/marketing/referral";
+import { SITE_URL } from "@/lib/supabase/config";
 import {
   COMMISSION_DURATION_LABELS,
   PARTNER_TYPE_LABELS,
@@ -90,6 +92,17 @@ export default async function PartnerDetailPage({
   const link = buildPartnerLink(partner.referral_slug);
   const canDelete = commissions.length === 0 && payouts.length === 0;
 
+  // Lien d'accès confidentiel au tableau de bord self-service du partenaire.
+  const { data: tokenRow } = await admin
+    .from("marketing_partners")
+    .select("dashboard_token")
+    .eq("id", partner.id)
+    .maybeSingle();
+  const dashboardToken = (tokenRow?.dashboard_token as string | undefined) ?? "";
+  const partnerAccessUrl = dashboardToken
+    ? `${SITE_URL}/partenaire/acces?token=${dashboardToken}`
+    : "";
+
   return (
     <div className="animate-page-in space-y-6">
       {/* En-tête */}
@@ -142,6 +155,9 @@ export default async function PartnerDetailPage({
 
       {/* Lien + QR */}
       <PartnerLinkCard partnerId={partner.id} link={link} qrDataUrl={qrDataUrl} />
+
+      {/* Accès self-service du partenaire (jeton confidentiel) */}
+      {partnerAccessUrl ? <PartnerAccessCard accessUrl={partnerAccessUrl} /> : null}
 
       {/* Entonnoir */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

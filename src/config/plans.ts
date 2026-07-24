@@ -115,18 +115,18 @@ export const PLANS: readonly Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    monthlyPrice: 14.9,
+    monthlyPrice: 9.99,
     annualPrice: null,
-    description: "Pour les propriétaires jusqu'à 10 logements.",
+    description: "Pour les propriétaires jusqu'à 5 logements.",
     highlights: [
-      "Jusqu'à 10 logements",
+      "Jusqu'à 5 logements",
       "Locataires, baux et loyers complets",
       "Relances manuelles par e-mail",
       "Exports simples (JSON, CSV)",
       "Documents et photos (2 Go)",
       "Statistiques essentielles",
     ],
-    limits: { maxProperties: 10, maxActiveTenants: null, maxDocuments: 500, maxPhotos: 500, storageMb: 2048 },
+    limits: { maxProperties: 5, maxActiveTenants: null, maxDocuments: 500, maxPhotos: 500, storageMb: 2048 },
     features: STARTER_FEATURES,
     available: true,
     stripePriceEnv: "STRIPE_PRICE_STARTER",
@@ -137,11 +137,11 @@ export const PLANS: readonly Plan[] = [
   {
     id: "pro",
     name: "Pro",
-    monthlyPrice: 29.9,
+    monthlyPrice: 14.99,
     annualPrice: null,
-    description: "Pour les patrimoines en croissance, jusqu'à 30 logements.",
+    description: "Pour les patrimoines en croissance, jusqu'à 12 logements.",
     highlights: [
-      "Jusqu'à 30 logements",
+      "Jusqu'à 12 logements",
       "Toutes les fonctions Starter",
       "Statistiques avancées",
       "Rapport mensuel par e-mail",
@@ -150,7 +150,7 @@ export const PLANS: readonly Plan[] = [
       "Historique complet",
       "Documents et photos (20 Go)",
     ],
-    limits: { maxProperties: 30, maxActiveTenants: null, maxDocuments: 2000, maxPhotos: 2000, storageMb: 20480 },
+    limits: { maxProperties: 12, maxActiveTenants: null, maxDocuments: 2000, maxPhotos: 2000, storageMb: 20480 },
     features: PRO_FEATURES,
     popular: true,
     available: true,
@@ -162,19 +162,20 @@ export const PLANS: readonly Plan[] = [
   {
     id: "business",
     name: "Business+",
-    monthlyPrice: 79.9,
+    monthlyPrice: 23.99,
     annualPrice: null,
-    description: "Pour les gros patrimoines : sans limite de logements.",
+    description: "Pour les patrimoines établis, jusqu'à 25 logements.",
     highlights: [
-      "Logements illimités",
+      "Jusqu'à 25 logements",
       "Toutes les fonctions Pro",
+      "Comptabilité avancée",
       "Carte interactive du patrimoine",
       "Centre de pilotage Premium",
       "Accès anticipé aux nouvelles fonctions",
       "Stockage 100 Go (usage raisonnable)",
       "Support prioritaire",
     ],
-    limits: { maxProperties: null, maxActiveTenants: null, maxDocuments: null, maxPhotos: null, storageMb: 102400 },
+    limits: { maxProperties: 25, maxActiveTenants: null, maxDocuments: null, maxPhotos: null, storageMb: 102400 },
     features: BUSINESS_FEATURES,
     available: true,
     stripePriceEnv: "STRIPE_PRICE_BUSINESS",
@@ -200,7 +201,8 @@ export const BUSINESS_CATEGORIES: readonly BusinessCategory[] = [
     id: "gestion",
     label: "Gestion",
     items: [
-      "Logements illimités",
+      "Jusqu'à 25 logements",
+      "Comptabilité avancée",
       "Toutes les fonctions Pro",
       "Stockage 100 Go (usage raisonnable)",
     ],
@@ -240,6 +242,24 @@ export function isPaidPlanId(value: string): value is PaidPlanId {
 }
 
 /**
+ * Prix mensuel après réduction (fonction PURE, client + serveur).
+ * AFFICHAGE uniquement : la réduction réelle est TOUJOURS appliquée par
+ * Stripe via le promotion code (le montant n'est jamais fixé côté client).
+ * `amount` est exprimé en euros (comme `discount_value` en base).
+ */
+export function applyPromoDiscount(
+  monthlyPrice: number,
+  discountType: "percent" | "amount",
+  discountValue: number
+): number {
+  const raw =
+    discountType === "percent"
+      ? monthlyPrice * (1 - discountValue / 100)
+      : monthlyPrice - discountValue;
+  return Math.max(0, Math.round(raw * 100) / 100);
+}
+
+/**
  * Plan par identifiant — retombe sur Gratuit pour toute valeur inconnue.
  * `essentiel` (ancien nom du plan Starter) est accepté pour compatibilité
  * le temps que la migration de renommage soit exécutée.
@@ -269,8 +289,8 @@ export interface FounderTier {
 }
 
 export const FOUNDER_TIERS: readonly FounderTier[] = [
-  { tier: 1, fromPlace: 1, toPlace: 50, price: 299, stripePriceEnv: "STRIPE_PRICE_FOUNDER_T1" },
-  { tier: 2, fromPlace: 51, toPlace: 100, price: 499, stripePriceEnv: "STRIPE_PRICE_FOUNDER_T2" },
+  { tier: 1, fromPlace: 1, toPlace: 50, price: 99.99, stripePriceEnv: "STRIPE_PRICE_FOUNDER_T1" },
+  { tier: 2, fromPlace: 51, toPlace: 100, price: 119.99, stripePriceEnv: "STRIPE_PRICE_FOUNDER_T2" },
 ] as const;
 
 export const FOUNDER_TOTAL_PLACES = 100;

@@ -3,7 +3,7 @@
  * visiteur crée son compte depuis la page /fondateur, consommée à la première
  * ouverture de l'application (après confirmation de l'e-mail) pour reprendre
  * automatiquement le tunnel de paiement sans re-choisir l'offre.
- * Le palier (299/499 €) n'est PAS stocké : il est toujours recalculé côté
+ * Le palier (99,99/119,99 €) n'est PAS stocké : il est toujours recalculé côté
  * serveur d'après les places réellement confirmées.
  */
 

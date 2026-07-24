@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 import { FOUNDER_TOTAL_PLACES } from "@/config/plans";
 import { logAdminAction } from "../audit";
 import { requireAdminAction } from "../auth";
-import { getSiteSettings, writeSiteSetting } from "../settings";
+import { getSiteSettings, writeSiteSetting, type MarketingPromo } from "../settings";
 import type { ActionResult } from "../types";
 
 /**
@@ -65,6 +65,48 @@ export async function setSupportEmail(email: string): Promise<ActionResult> {
     return { ok: false, error: "Adresse e-mail invalide." };
   }
   return update("support_email", trimmed);
+}
+
+/**
+ * Bloc marketing éditable (P6) : titre/sous-titre/message/code affichés sur
+ * le site (Tarifs + Abonnement). Piloté depuis l'admin, sans toucher au code.
+ */
+export async function setMarketingPromo(input: MarketingPromo): Promise<ActionResult> {
+  let ctx = null;
+  try {
+    ctx = await requireAdminAction(["admin"]);
+    const promo: MarketingPromo = {
+      enabled: Boolean(input.enabled),
+      title: input.title.trim().slice(0, 120),
+      subtitle: input.subtitle.trim().slice(0, 160),
+      message: input.message.trim().slice(0, 500),
+      code: input.code.trim().toUpperCase().slice(0, 50),
+    };
+    if (promo.enabled && !promo.title && !promo.message) {
+      return { ok: false, error: "Ajoutez au moins un titre ou un message avant d'activer." };
+    }
+    if (promo.code && !/^[A-Z0-9_-]{2,50}$/.test(promo.code)) {
+      return { ok: false, error: "Code invalide : 2 à 50 caractères (lettres, chiffres, tirets)." };
+    }
+    const before = await getSiteSettings();
+    await writeSiteSetting("marketing_promo", promo, ctx.admin.id);
+    await logAdminAction(ctx, {
+      action: "marketing.promo",
+      targetLabel: "marketing_promo",
+      oldValue: { marketing_promo: before.marketing_promo },
+      newValue: { marketing_promo: promo },
+    });
+    revalidatePath("/", "layout");
+    return { ok: true, message: "Bloc marketing enregistré." };
+  } catch (e) {
+    logger.error("admin/settings", e);
+    await logAdminAction(ctx, {
+      action: "marketing.promo",
+      result: "error",
+      detail: e instanceof Error ? e.message : "Erreur inconnue",
+    });
+    return { ok: false, error: e instanceof Error ? e.message : "Enregistrement impossible." };
+  }
 }
 
 /**

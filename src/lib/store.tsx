@@ -248,8 +248,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     let property: Property;
     if (isLive) {
       // Limite du plan (le trigger en base applique la même règle côté serveur).
-      const entitlement = canAddProperty(profile?.plan, data.properties.length);
-      if (!entitlement.allowed) throw new Error(entitlement.reason ?? "Limite atteinte.");
+      // Un Fondateur (accès à vie) a des logements illimités : profile.plan
+      // vaut « business » (plafonné à 25) mais la limite ne s'applique pas.
+      if (!profile?.isFounder) {
+        const entitlement = canAddProperty(profile?.plan, data.properties.length);
+        if (!entitlement.allowed) throw new Error(entitlement.reason ?? "Limite atteinte.");
+      }
       const { supabase, userId } = liveContext();
       property = await insertProperty(supabase, userId, input);
     } else {

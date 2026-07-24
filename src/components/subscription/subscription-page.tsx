@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, CreditCard, Crown } from "lucide-react";
+import { Check, CreditCard, Crown, Tag, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/layout/page-header";
 import { FOUNDER_BENEFITS, FounderOffer } from "@/components/marketing/founder-offer";
+import { PromoBanner, type PromoBannerData } from "@/components/marketing/promo-banner";
 import { PlanBadge } from "@/components/subscription/plan-badge";
 import { getPlan, PLANS, type PaidPlanId, type Plan } from "@/config/plans";
 import { resolvePlan, type SubscriptionRow } from "@/lib/stripe/subscription";
@@ -50,6 +52,16 @@ async function postJson(path: string, body?: unknown): Promise<{ url?: string }>
 
 const priceLabel = (price: number) =>
   price.toLocaleString("fr-FR", { minimumFractionDigits: price % 1 === 0 ? 0 : 2 });
+
+/** Réduction validée par le serveur (affichage — Stripe applique le montant). */
+interface AppliedPromo {
+  code: string;
+  description: string;
+  discountType: "percent" | "amount";
+  discountValue: number;
+  eligiblePlans: string[];
+  prices: { planId: string; original: number; discounted: number }[];
+}
 
 /** Un seul toast de retour Checkout à la fois (sonner remplace par id). */
 const CHECKOUT_TOAST_ID = "checkout-return";
@@ -144,11 +156,17 @@ async function syncFounderAfterCheckout(refresh: () => Promise<void>): Promise<v
   }
 }
 
-export function SubscriptionPageClient({ stripeEnabled }: { stripeEnabled: boolean }) {
+export function SubscriptionPageClient({
+  stripeEnabled,
+  promo,
+}: {
+  stripeEnabled: boolean;
+  promo?: PromoBannerData | null;
+}) {
   // useSearchParams impose une frontière Suspense pour le prérendu statique.
   return (
     <React.Suspense fallback={null}>
-      <SubscriptionContent stripeEnabled={stripeEnabled} />
+      <SubscriptionContent stripeEnabled={stripeEnabled} promo={promo} />
     </React.Suspense>
   );
 }
@@ -177,13 +195,23 @@ function QuotaLine({
   );
 }
 
-function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
+function SubscriptionContent({
+  stripeEnabled,
+  promo,
+}: {
+  stripeEnabled: boolean;
+  promo?: PromoBannerData | null;
+}) {
   const { profile, data, refresh } = useAppStore();
   const searchParams = useSearchParams();
   const [pendingPlan, setPendingPlan] = React.useState<string | null>(null);
   const [portalPending, setPortalPending] = React.useState(false);
   const [subscription, setSubscription] = React.useState<SubscriptionRow | null>(null);
   const [subscriptionLoaded, setSubscriptionLoaded] = React.useState(false);
+  const [promoInput, setPromoInput] = React.useState("");
+  const [promoPending, setPromoPending] = React.useState(false);
+  const [promoError, setPromoError] = React.useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = React.useState<AppliedPromo | null>(null);
 
   // Abonnement réel (RLS : sa propre ligne, lecture seule). Le plan
   // affiché retombe sur profiles.plan si la ligne manque — jamais bloquant.
@@ -240,15 +268,58 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
     }
   }, [checkoutState, founderState, refresh]);
 
+  const promoFor = (planId: string): { original: number; discounted: number } | null =>
+    appliedPromo?.prices.find((p) => p.planId === planId) ?? null;
+
   const choosePlan = async (planId: PaidPlanId) => {
     setPendingPlan(planId);
     try {
-      const { url } = await postJson("/api/stripe/checkout", { plan: planId });
+      // Le code n'est transmis que s'il est éligible à CE plan ; le serveur
+      // le revalide de toute façon avant de créer la session Checkout.
+      const promoCode =
+        appliedPromo && appliedPromo.eligiblePlans.includes(planId)
+          ? appliedPromo.code
+          : undefined;
+      const { url } = await postJson("/api/stripe/checkout", { plan: planId, promoCode });
       if (url) window.location.assign(url);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Paiement indisponible.");
       setPendingPlan(null);
     }
+  };
+
+  const applyPromo = async () => {
+    const code = promoInput.trim();
+    if (!code || promoPending) return;
+    setPromoPending(true);
+    setPromoError(null);
+    try {
+      const response = await fetch("/api/stripe/promo-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await response.json().catch(() => ({}))) as AppliedPromo & { error?: string };
+      if (!response.ok) {
+        setAppliedPromo(null);
+        setPromoError(data.error ?? "Code promo invalide.");
+        return;
+      }
+      setAppliedPromo(data);
+      setPromoInput(data.code);
+      toast.success("Code promo appliqué.");
+    } catch {
+      setAppliedPromo(null);
+      setPromoError("Vérification impossible. Réessayez.");
+    } finally {
+      setPromoPending(false);
+    }
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError(null);
   };
 
   const openPortal = async () => {
@@ -276,6 +347,9 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
         title="Abonnement"
         description="Choisissez le plan adapté à la taille de votre patrimoine"
       />
+
+      {/* Bloc marketing piloté depuis l'admin (masqué si non activé). */}
+      <PromoBanner promo={promo} />
 
       {/* Offre Fondateur EN TÊTE tant que les 100 places ne sont pas vendues
           (la carte disparaît d'elle-même à l'épuisement). Un Fondateur voit à
@@ -391,6 +465,70 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
         Choisissez l&apos;offre adaptée à votre patrimoine. Vous pourrez changer
         de formule à tout moment.
       </p>
+
+      {/* Code promo — validation serveur, aperçu du prix remisé. Masqué pour
+          les Fondateurs (accès à vie) et sans Stripe (aucun paiement). */}
+      {stripeEnabled && !isFounder ? (
+        <div className="rounded-xl border border-border bg-muted/30 p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 space-y-1.5">
+              <label
+                htmlFor="promo-code"
+                className="flex items-center gap-1.5 text-sm font-medium text-foreground"
+              >
+                <Tag className="size-3.5 text-primary" aria-hidden />
+                Code promotionnel
+              </label>
+              <Input
+                id="promo-code"
+                value={promoInput}
+                disabled={promoPending || appliedPromo !== null}
+                placeholder="Ex. BUSINESS20"
+                autoCapitalize="characters"
+                onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void applyPromo();
+                  }
+                }}
+                className="max-w-xs uppercase"
+              />
+            </div>
+            {appliedPromo ? (
+              <Button variant="outline" onClick={removePromo}>
+                <X data-icon="inline-start" />
+                Retirer
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => void applyPromo()}
+                disabled={promoPending || promoInput.trim().length === 0}
+              >
+                {promoPending ? "Vérification…" : "Appliquer"}
+              </Button>
+            )}
+          </div>
+          {promoError ? (
+            <p className="mt-2 text-xs text-destructive">{promoError}</p>
+          ) : appliedPromo ? (
+            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+              <Check className="size-3.5" aria-hidden />
+              Code <span className="font-semibold">{appliedPromo.code}</span> appliqué —{" "}
+              {appliedPromo.discountType === "percent"
+                ? `−${appliedPromo.discountValue} %`
+                : `−${priceLabel(appliedPromo.discountValue)} €`}{" "}
+              sur les plans éligibles. Le montant remisé est appliqué au paiement Stripe.
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Saisissez un code pour voir immédiatement le prix remisé.
+            </p>
+          )}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((plan) => {
           const isCurrent = plan.id === currentPlan.id;
@@ -420,12 +558,27 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
                     </Badge>
                   ) : null}
                 </CardTitle>
-                <p className="pt-1">
-                  <span className="text-2xl font-semibold tracking-tight text-foreground">
-                    {priceLabel(plan.monthlyPrice)} €
-                  </span>
-                  <span className="text-sm text-muted-foreground"> /mois</span>
-                </p>
+                {(() => {
+                  const promo = plan.id !== "free" ? promoFor(plan.id) : null;
+                  return (
+                    <p className="flex flex-wrap items-baseline gap-x-2 pt-1">
+                      {promo ? (
+                        <span className="text-sm text-muted-foreground line-through">
+                          {priceLabel(promo.original)} €
+                        </span>
+                      ) : null}
+                      <span className="text-2xl font-semibold tracking-tight text-foreground">
+                        {priceLabel(promo ? promo.discounted : plan.monthlyPrice)} €
+                      </span>
+                      <span className="text-sm text-muted-foreground">/mois</span>
+                      {promo ? (
+                        <Badge variant="secondary" className="text-[10px]">
+                          Code {appliedPromo?.code}
+                        </Badge>
+                      ) : null}
+                    </p>
+                  );
+                })()}
                 {plan.id !== "free" ? (
                   <p className="text-[11px] text-muted-foreground">
                     Sans engagement — paiement sécurisé par Stripe
@@ -481,9 +634,9 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Un code promotionnel ? Vous pourrez le saisir sur la page de paiement
-        sécurisée Stripe. Paiement sans engagement, prix indiqués hors taxes.
-        Changement de plan et résiliation à tout moment depuis « Gérer mon
+        Un code promotionnel ? Saisissez-le ci-dessus pour voir le prix remisé,
+        puis choisissez votre plan. Paiement sans engagement, prix indiqués hors
+        taxes. Changement de plan et résiliation à tout moment depuis « Gérer mon
         abonnement », au prorata de la période en cours.
       </p>
 
@@ -502,7 +655,7 @@ function SubscriptionContent({ stripeEnabled }: { stripeEnabled: boolean }) {
             },
             {
               q: "Où saisir mon code promotionnel ?",
-              a: "Sur la page de paiement sécurisée Stripe, un champ « Code promotionnel » est disponible avant de valider.",
+              a: "Dans le champ « Code promotionnel » ci-dessus : le prix remisé s'affiche immédiatement, puis le montant est appliqué au paiement Stripe.",
             },
             {
               q: "Le paiement est-il sécurisé ?",

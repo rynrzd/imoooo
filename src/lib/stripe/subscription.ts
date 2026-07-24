@@ -68,7 +68,12 @@ export function getPlanDefinition(planId: string | null | undefined): Plan {
  */
 export function resolvePlan(subscription: SubscriptionRow | null): Plan {
   if (!subscription) return getPlan(DEFAULT_PLAN_ID);
-  if (subscription.lifetime_access) return getPlan(subscription.plan);
+  if (subscription.lifetime_access) {
+    // Accès à vie Fondateur : logements et locataires ILLIMITÉS, quel que
+    // soit le plafond du plan support (Business+ est plafonné à 25).
+    const base = getPlan(subscription.plan);
+    return { ...base, limits: { ...base.limits, maxProperties: null, maxActiveTenants: null } };
+  }
   if (!ACTIVE_STATUSES.has(subscription.status)) return getPlan(DEFAULT_PLAN_ID);
   return getPlan(subscription.plan);
 }

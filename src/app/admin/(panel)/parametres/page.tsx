@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarketingPromoForm } from "@/components/admin/marketing-promo-form";
 import { SiteSettingsForm } from "@/components/admin/site-settings-form";
 import {
   setMaintenanceMode,
+  setMarketingPromo,
   setSupportEmail,
   updateAnnouncement,
 } from "@/lib/admin/actions/settings";
@@ -34,6 +36,10 @@ export default async function AdminSettingsPage() {
           onMaintenance={setMaintenanceMode}
           onSupportEmail={setSupportEmail}
         />
+      </div>
+
+      <div className="max-w-2xl rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+        <MarketingPromoForm initial={settings.marketing_promo} action={setMarketingPromo} />
       </div>
 
       <div className="max-w-2xl rounded-xl bg-card p-4 ring-1 ring-foreground/10">

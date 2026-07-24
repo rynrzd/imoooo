@@ -38,6 +38,8 @@ async function recordPromoRedemption(
         user_id: userId,
         user_email: session.customer_details?.email ?? "",
         amount_total_cents: session.amount_total,
+        // Réduction EXACTE appliquée par Stripe (statistiques fiables).
+        discount_cents: session.total_details?.amount_discount ?? null,
         stripe_checkout_session_id: session.id,
       },
       { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true }

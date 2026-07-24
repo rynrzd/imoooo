@@ -53,6 +53,9 @@ function isPublicPath(pathname: string): boolean {
     // Tunnel Fondateur : la page d'entrée est publique (pitch + création de
     // compte), mais PAS ses sous-pages (/fondateur/bienvenue exige une session).
     pathname === "/fondateur" ||
+    // Espace partenaire self-service : accès par jeton (pas de compte Nireo).
+    pathname === "/partenaire" ||
+    pathname.startsWith("/partenaire/") ||
     matches(PUBLIC_PATHS, pathname)
   );
 }

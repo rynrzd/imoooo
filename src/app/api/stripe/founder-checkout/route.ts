@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/stripe/founder-checkout — Checkout Stripe en paiement UNIQUE
- * pour l'offre Fondateur. Le palier (1 : 299 €, 2 : 499 €) est déterminé
+ * pour l'offre Fondateur. Le palier (1 : 99,99 €, 2 : 119,99 €) est déterminé
  * CÔTÉ SERVEUR d'après les places déjà confirmées — jamais par le client.
  * Aucune place n'est réservée ici : la place n'est attribuée (atomiquement)
  * que par le webhook après paiement réellement confirmé.

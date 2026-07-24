@@ -34,11 +34,16 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
+/** Prix Fondateur formaté (source unique : FOUNDER_TIERS). */
+const founderPrice = (n: number) =>
+  n.toLocaleString("fr-FR", { minimumFractionDigits: n % 1 === 0 ? 0 : 2 });
+
 /** Ce que le compte Fondateur débloque — engagements réels uniquement. */
 const PITCH = [
   "Accès Business+ à vie — un seul paiement, aucun abonnement",
   `Place Fondateur numérotée, limitée à ${FOUNDER_TOTAL_PLACES} comptes`,
-  "299 € pour les 50 premières places, 499 € pour les 50 suivantes",
+  `${founderPrice(FOUNDER_TIERS[0].price)} € pour les ${FOUNDER_TIERS[0].toPlace} premières places, ` +
+    `${founderPrice(FOUNDER_TIERS[1].price)} € pour les suivantes`,
   "Accès immédiat dès la confirmation du paiement",
 ];
 

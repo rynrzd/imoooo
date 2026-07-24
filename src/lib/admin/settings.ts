@@ -15,12 +15,34 @@ import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/supabase/config";
  * JAMAIS de secret dans cette table (clés Stripe/Supabase : .env uniquement).
  */
 
+/**
+ * Bloc marketing éditable affiché sur le site (page Tarifs + Abonnement).
+ * Piloté à 100 % depuis l'admin, sans toucher au code (P6).
+ */
+export interface MarketingPromo {
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  message: string;
+  /** Code promo à mettre en avant (facultatif). */
+  code: string;
+}
+
+export const EMPTY_MARKETING_PROMO: MarketingPromo = {
+  enabled: false,
+  title: "",
+  subtitle: "",
+  message: "",
+  code: "",
+};
+
 export interface SiteSettings {
   announcement_message: string;
   maintenance_mode: boolean;
   support_email: string;
   founder_enabled: boolean;
   founder_max_places: number;
+  marketing_promo: MarketingPromo;
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -29,7 +51,20 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   support_email: "",
   founder_enabled: true,
   founder_max_places: 100,
+  marketing_promo: EMPTY_MARKETING_PROMO,
 };
+
+function coercePromo(v: unknown): MarketingPromo {
+  const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+  const s = (x: unknown) => (typeof x === "string" ? x : "");
+  return {
+    enabled: typeof o.enabled === "boolean" ? o.enabled : false,
+    title: s(o.title),
+    subtitle: s(o.subtitle),
+    message: s(o.message),
+    code: s(o.code).toUpperCase(),
+  };
+}
 
 function coerce(raw: Record<string, unknown>): SiteSettings {
   const str = (v: unknown, d: string) => (typeof v === "string" ? v : d);
@@ -43,6 +78,7 @@ function coerce(raw: Record<string, unknown>): SiteSettings {
     founder_enabled: bool(raw.founder_enabled, true),
     // Jamais plus de 100 places, quelle que soit la valeur stockée.
     founder_max_places: Math.min(100, Math.max(0, int(raw.founder_max_places, 100))),
+    marketing_promo: coercePromo(raw.marketing_promo),
   };
 }
 
@@ -68,7 +104,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
  * revalidées quand un réglage change). Jamais bloquant (repli défauts).
  */
 export async function getPublicSiteSettings(): Promise<
-  Pick<SiteSettings, "announcement_message" | "maintenance_mode" | "support_email">
+  Pick<
+    SiteSettings,
+    "announcement_message" | "maintenance_mode" | "support_email" | "marketing_promo"
+  >
 > {
   if (!isSupabaseConfigured) return DEFAULT_SETTINGS;
   try {
@@ -88,7 +127,7 @@ export async function getPublicSiteSettings(): Promise<
 /** Écrit une clé (appelé uniquement depuis les Server Actions admin). */
 export async function writeSiteSetting(
   key: keyof SiteSettings,
-  value: string | number | boolean,
+  value: string | number | boolean | MarketingPromo,
   adminId: string
 ): Promise<void> {
   const { error } = await createAdminClient()

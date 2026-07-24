@@ -17,9 +17,10 @@ const OK: EntitlementCheck = { allowed: true, reason: null };
 
 function upgradeHint(planId: string | null | undefined): string {
   const plan = getPlan(planId);
-  if (plan.id === "free") return "Passez au plan Starter pour gérer jusqu'à 10 logements.";
-  if (plan.id === "starter") return "Passez au plan Pro pour gérer jusqu'à 30 logements.";
-  return "Passez au plan Business+ pour lever cette limite.";
+  if (plan.id === "free") return "Passez au plan Starter pour gérer jusqu'à 5 logements.";
+  if (plan.id === "starter") return "Passez au plan Pro pour gérer jusqu'à 12 logements.";
+  if (plan.id === "pro") return "Passez au plan Business+ pour gérer jusqu'à 25 logements.";
+  return "Vous avez atteint la limite de Business+ ; contactez-nous pour un accès étendu.";
 }
 
 function limitCheck(

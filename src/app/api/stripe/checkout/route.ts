@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
 import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
+import { validatePromoCode } from "@/lib/promo/preview";
 import { getPriceIdForPlan, isStripeConfigured } from "@/lib/stripe/config";
 import { isPaidPlanId } from "@/lib/stripe/plans";
 import { getStripe } from "@/lib/stripe/server";
@@ -59,13 +60,32 @@ export async function POST(request: Request) {
   }
 
   let plan: unknown;
+  let promoCode: unknown;
   try {
-    ({ plan } = await request.json());
+    ({ plan, promoCode } = await request.json());
   } catch {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
   if (typeof plan !== "string" || !isPaidPlanId(plan)) {
     return NextResponse.json({ error: "Plan inconnu." }, { status: 400 });
+  }
+
+  // Code promo : revalidé CÔTÉ SERVEUR pour ce plan précis (le navigateur ne
+  // fixe jamais la réduction). Un code invalide/inéligible bloque le paiement
+  // avec un message clair — jamais de réduction non prévue ni de contournement.
+  let stripePromotionCodeId: string | null = null;
+  if (typeof promoCode === "string" && promoCode.trim().length > 0) {
+    const result = await validatePromoCode(createAdminClient(), promoCode, plan);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 422 });
+    }
+    stripePromotionCodeId = result.value.promo.stripe_promotion_code_id;
+    if (!stripePromotionCodeId) {
+      return NextResponse.json(
+        { error: "Ce code n'est pas applicable au paiement en ligne." },
+        { status: 422 }
+      );
+    }
   }
 
   try {
@@ -92,13 +112,18 @@ export async function POST(request: Request) {
       }
     }
 
+    // `discounts` et `allow_promotion_codes` sont exclusifs chez Stripe :
+    // code appliqué en amont → on le transmet ; sinon → champ code sur la
+    // page Stripe (l'utilisateur peut toujours en saisir un là-bas).
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       client_reference_id: user.id,
       line_items: [{ price: getPriceIdForPlan(plan), quantity: 1 }],
       subscription_data: { metadata: { user_id: user.id } },
-      allow_promotion_codes: true,
+      ...(stripePromotionCodeId
+        ? { discounts: [{ promotion_code: stripePromotionCodeId }] }
+        : { allow_promotion_codes: true }),
       success_url: `${SITE_URL}/abonnement?checkout=success`,
       cancel_url: `${SITE_URL}/abonnement?checkout=cancelled`,
     });

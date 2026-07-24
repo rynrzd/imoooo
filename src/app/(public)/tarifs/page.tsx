@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { FounderOffer } from "@/components/marketing/founder-offer";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { PromoBanner } from "@/components/marketing/promo-banner";
 import { isUserAdmin } from "@/lib/admin/auth";
+import { getPublicSiteSettings } from "@/lib/admin/settings";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { isAdminConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -27,6 +29,8 @@ export default async function PricingPage() {
     if (user && (await isUserAdmin(user.id))) redirect("/admin");
   }
 
+  const { marketing_promo } = await getPublicSiteSettings();
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-2xl text-center">
@@ -38,6 +42,11 @@ export default async function PricingPage() {
           Démarrez gratuitement, sans carte bancaire. Changez de plan quand
           votre patrimoine grandit — sans engagement.
         </p>
+      </div>
+
+      {/* Bloc marketing piloté depuis l'admin (masqué si non activé). */}
+      <div className="mx-auto mt-10 max-w-3xl">
+        <PromoBanner promo={marketing_promo} />
       </div>
 
       <div className="mt-12">

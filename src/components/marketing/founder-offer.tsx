@@ -165,8 +165,10 @@ export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
                       )}
                     >
                       <p className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                        {tier.price} €
-                        <span className="text-xs font-normal opacity-70"> à vie</span>
+                        {tier.price.toLocaleString("fr-FR", {
+                          minimumFractionDigits: tier.price % 1 === 0 ? 0 : 2,
+                        })}{" "}
+                        €<span className="text-xs font-normal opacity-70"> à vie</span>
                       </p>
                       <p className="mt-1 text-xs opacity-80">
                         {isSoldOut
