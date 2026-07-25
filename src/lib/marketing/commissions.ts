@@ -64,27 +64,70 @@ function exclusiveTaxCents(invoice: Stripe.Invoice): number {
     .reduce((sum, tax) => sum + (tax.amount ?? 0), 0);
 }
 
-/** PaymentIntent réellement associé au paiement de la facture (best-effort). */
-async function findPaymentIntentId(stripe: Stripe, invoiceId: string): Promise<string> {
+/** true si l'identifiant est un payment_intent Stripe bien formé (« pi_… »). */
+export function isValidPaymentIntentId(id: string | null | undefined): boolean {
+  return typeof id === "string" && /^pi_[A-Za-z0-9]+$/.test(id);
+}
+
+/** Normalise une référence Stripe (string | objet | null) en identifiant. */
+function refId(ref: unknown): string {
+  if (typeof ref === "string") return ref;
+  if (ref && typeof ref === "object" && "id" in ref && typeof (ref as { id: unknown }).id === "string") {
+    return (ref as { id: string }).id;
+  }
+  return "";
+}
+
+/**
+ * PaymentIntent réellement associé au paiement de la facture. Résolu depuis
+ * PLUSIEURS sources (l'API récente ne pose pas toujours invoice.payment_intent
+ * sur les factures d'abonnement) :
+ *   1. paiements de la facture (invoicePayments) — source fiable des abonnements ;
+ *   2. champ direct invoice.payment_intent (API plus anciennes) ;
+ *   3. charge liée (invoice.charge → charge.payment_intent).
+ * Retourne "" si aucune source ne fournit un payment_intent : l'appelant REFUSE
+ * alors de créer la commission (règle d'intégrité).
+ */
+async function resolvePaymentIntentId(stripe: Stripe, invoice: Stripe.Invoice): Promise<string> {
+  // 1. Paiements de la facture.
   try {
-    const payments = await stripe.invoicePayments.list({ invoice: invoiceId, limit: 3 });
+    const payments = await stripe.invoicePayments.list({ invoice: invoice.id, limit: 3 });
     for (const payment of payments.data) {
       if (payment.status !== "paid") continue;
-      const pi = payment.payment.payment_intent;
-      if (typeof pi === "string") return pi;
-      if (pi?.id) return pi.id;
+      const pi = refId(payment.payment?.payment_intent);
+      if (isValidPaymentIntentId(pi)) return pi;
     }
   } catch (e) {
-    logger.error("[marketing/commissions] lecture payment_intent", e);
+    logger.error("[marketing/commissions] lecture invoicePayments", e);
+  }
+  // 2. Champ direct (compat API).
+  const direct = refId((invoice as unknown as { payment_intent?: unknown }).payment_intent);
+  if (isValidPaymentIntentId(direct)) return direct;
+  // 3. Charge liée.
+  try {
+    const chargeId = refId((invoice as unknown as { charge?: unknown }).charge);
+    if (chargeId) {
+      const charge = await stripe.charges.retrieve(chargeId);
+      const pi = refId(charge.payment_intent);
+      if (isValidPaymentIntentId(pi)) return pi;
+    }
+  } catch (e) {
+    logger.error("[marketing/commissions] lecture charge", e);
   }
   return "";
 }
 
 /**
  * Crée la commission d'une facture PAYÉE si toutes les règles l'autorisent.
- * Appelée par le webhook après `invoice.paid`. Ne lève jamais : un échec
- * de commission ne doit pas faire échouer la synchronisation d'abonnement
- * (Stripe rejouerait l'événement complet).
+ * Appelée par le webhook après `invoice.paid`.
+ *
+ * Intégrité financière : une commission n'est JAMAIS créée sans un
+ * `payment_intent` Stripe valide (sinon un remboursement ne pourrait pas la
+ * retirer). Les cas « aucune commission due » sont des retours silencieux ;
+ * une vraie erreur (payment_intent introuvable, erreur base) est RELAYÉE :
+ * le webhook relâche alors l'idempotence et Stripe rejoue l'événement (tout
+ * le traitement est idempotent, la synchronisation d'abonnement a déjà eu
+ * lieu en amont et se rejoue sans effet de bord).
  */
 export async function createCommissionForPaidInvoice(
   stripe: Stripe,
@@ -155,13 +198,17 @@ export async function createCommissionForPaidInvoice(
         : Math.round((eligibleCents * partner.commission_value) / 100);
     if (commissionCents <= 0) return;
 
-    const paymentIntentId = await findPaymentIntentId(stripe, invoice.id!);
-    if (!paymentIntentId) {
-      // Sans payment_intent, un futur charge.refunded ne pourra pas rattacher
-      // cette commission au remboursement (matching par payment_intent).
+    // payment_intent OBLIGATOIRE : sans lui, un futur charge.refunded ne
+    // pourrait pas retirer cette commission (matching par payment_intent).
+    // On lève pour que Stripe rejoue — le PI est en général disponible au retry.
+    const paymentIntentId = await resolvePaymentIntentId(stripe, invoice);
+    if (!isValidPaymentIntentId(paymentIntentId)) {
       logger.warn(
         "affiliation",
-        `commission sans payment_intent · invoice=${invoice.id} partner=${partner.id} — remboursement non rattachable automatiquement`
+        `commission différée · invoice=${invoice.id} partner=${partner.id} — payment_intent introuvable, retry Stripe attendu`
+      );
+      throw new Error(
+        `payment_intent introuvable (facture ${invoice.id}) — commission non créée, retry Stripe attendu.`
       );
     }
 
@@ -209,7 +256,11 @@ export async function createCommissionForPaidInvoice(
       if (convertError) throw new Error(convertError.message);
     }
   } catch (e) {
+    // Erreur RÉELLE (jamais un simple « pas de commission due », qui est un
+    // retour silencieux) : on journalise puis on RELAIE. Le webhook relâche
+    // l'idempotence → Stripe rejoue → traitement idempotent au prochain essai.
     logger.error("[marketing/commissions] création de commission", e);
+    throw e instanceof Error ? e : new Error(String(e));
   }
 }
 
@@ -225,7 +276,15 @@ export async function reverseCommissionForRefund(charge: Stripe.Charge): Promise
       typeof charge.payment_intent === "string"
         ? charge.payment_intent
         : (charge.payment_intent?.id ?? "");
-    if (!paymentIntentId) return;
+    if (!isValidPaymentIntentId(paymentIntentId)) {
+      // Un remboursement sans payment_intent ne peut être rattaché à aucune
+      // commission. Ne devrait pas arriver (toute commission a un PI valide).
+      logger.warn(
+        "affiliation",
+        `remboursement sans payment_intent · charge=${charge.id} — aucune commission rattachable`
+      );
+      return;
+    }
 
     const admin = createAdminClient();
     const { data, error } = await admin

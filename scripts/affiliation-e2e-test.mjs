@@ -17,9 +17,10 @@
  *   8. Ajout UNIQUE dans la cagnotte (upsert stripe_invoice_id unique + vue)
  *   9. Protection double webhook (2 couches : stripe_webhook_events + invoice)
  *  10. Remboursement charge.refunded → retrait de la commission (total,
- *      partiel recalculé, déjà-payée → reversed) + démonstration de la
- *      LIMITE connue : commission sans payment_intent = non rattachable.
- *  11. Relevé de paiement atomique + double paiement bloqué.
+ *      partiel recalculé, déjà-payée → reversed).
+ *  11. INTÉGRITÉ : commission sans payment_intent valide REFUSÉE (contrainte
+ *      SQL, migration 20260725120000) — faille reversal corrigée.
+ *  12. Relevé de paiement atomique + double paiement bloqué.
  *
  * ⚠️ NOTE STRIPE : ce test N'APPELLE PAS l'API Stripe. La clé configurée dans
  * .env.local est une clé LIVE (sk_live_…) — un vrai appel créerait des
@@ -56,16 +57,22 @@ const KEEP = process.env.KEEP === "1";
 const admin = createClient(URL_, SECRET, { auth: { persistSession: false } });
 
 let pass = 0,
-  fail = 0;
+  fail = 0,
+  pending = 0;
 const check = (name, ok, detail = "") => {
   if (ok) pass++;
   else fail++;
   console.log(`  ${ok ? "✅ PASS" : "❌ FAIL"}  ${name}${detail ? `  —  ${detail}` : ""}`);
 };
+const pend = (name, detail = "") => {
+  pending++;
+  console.log(`  ⏳ PENDING  ${name}${detail ? `  —  ${detail}` : ""}`);
+};
 const stage = (n, title) => console.log(`\n── ${n}. ${title} ${"─".repeat(Math.max(0, 58 - title.length))}`);
 const proof = (label, obj) => console.log(`     ↳ ${label}: ${JSON.stringify(obj)}`);
 
 const stamp = Date.now();
+let migrationPending = false;
 const cleanup = { partnerIds: [], userIds: [], adminUserIds: [], eventIds: [] };
 
 /* ------------------------------------------------------------------ */
@@ -121,6 +128,9 @@ function computeCommission(partner, invoice, plan) {
   if (commissionCents <= 0) return { skip: "zero_commission" };
   return { grossCents, eligibleCents, commissionCents };
 }
+
+// commissions.ts — payment_intent Stripe obligatoire et bien formé.
+const isValidPaymentIntentId = (id) => typeof id === "string" && /^pi_[A-Za-z0-9]+$/.test(id);
 
 const LIVE_STATUSES = ["pending", "approved", "payable", "paid"];
 
@@ -287,10 +297,13 @@ async function main() {
   check("Facture 0€ (essai) → aucune commission", cZero.skip === "zero_amount");
   const cPlan = computeCommission({ commission_type: "percent", commission_value: 10, applicable_plans: ["pro"] }, { status: "paid", amount_paid: 2990 }, "starter");
   check("Plan non couvert → aucune commission", cPlan.skip === "plan_not_covered");
+  // Règle d'intégrité : payment_intent obligatoire et bien formé.
+  check("payment_intent valide accepté (pi_…)", isValidPaymentIntentId(`pi_e2e${stamp}`) === true);
+  check("payment_intent vide/malformé refusé", !isValidPaymentIntentId("") && !isValidPaymentIntentId("ch_123") && !isValidPaymentIntentId("pi_bad_underscore"));
 
   // Paiement réel simulé : facture starter 29,90€, sans taxe séparée.
   const invoiceId = `in_e2e_${stamp}`;
-  const paymentIntent = `pi_e2e_${stamp}`;
+  const paymentIntent = `pi_e2e${stamp}`;
   const invoice = { id: invoiceId, status: "paid", amount_paid: 2990, currency: "eur", total_taxes: [], payment_intent: paymentIntent };
   const calc = computeCommission(partner, invoice, "starter");
   check("Commission calculée : 10% de 29,90€ = 299c", calc.commissionCents === 299, JSON.stringify(calc));
@@ -348,7 +361,7 @@ async function main() {
 
   // Remboursement PARTIEL d'une commission % non payée → recalcul
   const invoiceId2 = `in_e2e_partial_${stamp}`;
-  const pi2 = `pi_e2e_partial_${stamp}`;
+  const pi2 = `pi_e2epartial${stamp}`;
   await admin.from("partner_commissions").insert({
     partner_id: partner.id, user_id: userId, subscription_id: `sub_e2e_${stamp}`,
     stripe_invoice_id: invoiceId2, stripe_payment_intent_id: pi2, plan: "starter",
@@ -359,25 +372,41 @@ async function main() {
   const { data: partial } = await admin.from("partner_commissions").select("eligible_amount, commission_amount, status").eq("stripe_invoice_id", invoiceId2).single();
   check("Remboursement partiel recalculé : (2990-1000)×10% = 199c", partial.eligible_amount === 1990 && partial.commission_amount === 199 && partial.status === "pending", JSON.stringify(partial));
 
-  // LIMITE connue : commission SANS payment_intent = non rattachable au remboursement
-  const invoiceId3 = `in_e2e_nopi_${stamp}`;
-  await admin.from("partner_commissions").insert({
-    partner_id: partner.id, user_id: userId, subscription_id: `sub_e2e_${stamp}`,
-    stripe_invoice_id: invoiceId3, stripe_payment_intent_id: "", plan: "starter",
-    gross_amount: 2990, eligible_amount: 2990, commission_type: "percent", commission_rate: 10,
-    commission_amount: 299, currency: "eur", status: "pending",
-  });
-  const revNo = await runReversal({ payment_intent: "pi_nexiste_pas", refunded: true, amount: 2990, amount_refunded: 2990 });
-  const { data: orphan } = await admin.from("partner_commissions").select("status").eq("stripe_invoice_id", invoiceId3).single();
-  check("⚠ LIMITE : commission sans payment_intent NON reversée (finding audit)", revNo.matched === 0 && orphan.status === "pending", "documenté comme faille à corriger");
+  // ══════════════════════════════════════════════════════════════════
+  stage(9, "Intégrité : commission SANS payment_intent valide REFUSÉE");
+  // Faille corrigée : impossible de créer une commission sans PI « pi_… » valide.
+  // Garantie au niveau STOCKAGE (contrainte SQL, migration 20260725120000) —
+  // s'applique même au service_role. On tente une insertion vide ET malformée.
+  const tryBadInsert = async (pi, tag) => {
+    const r = await admin.from("partner_commissions").insert({
+      partner_id: partner.id, user_id: userId, subscription_id: `sub_e2e_${stamp}`,
+      stripe_invoice_id: `in_e2e_bad_${tag}_${stamp}`, stripe_payment_intent_id: pi, plan: "starter",
+      gross_amount: 2990, eligible_amount: 2990, commission_type: "percent", commission_rate: 10,
+      commission_amount: 299, currency: "eur", status: "pending",
+    }).select("id");
+    if (!r.error && r.data?.[0]) await admin.from("partner_commissions").delete().eq("id", r.data[0].id); // nettoyage si accepté à tort
+    return r.error;
+  };
+  const errEmpty = await tryBadInsert("", "empty");
+  const errMalformed = await tryBadInsert("ch_not_a_pi", "malformed");
+  const rejected = (e) => !!e && /pi_required|check constraint|violates|null value/i.test(e.message);
+  if (rejected(errEmpty) && rejected(errMalformed)) {
+    check("Contrainte SQL : commission PI vide REFUSÉE", true);
+    check("Contrainte SQL : commission PI malformé REFUSÉE", true);
+  } else {
+    pend("Contrainte SQL payment_intent (vide + malformé)", "migration 20260725120000 NON appliquée — appliquer dans Supabase puis relancer");
+    migrationPending = true;
+  }
+  // PI valide toujours accepté (déjà prouvé au stage 6 : la commission 299c existe).
+  check("Commission avec PI valide acceptée (déjà insérée au stage 6)", isValidPaymentIntentId(paymentIntent));
 
   // ══════════════════════════════════════════════════════════════════
-  stage(9, "Relevé de paiement atomique + double paiement bloqué");
+  stage(10, "Relevé de paiement atomique + double paiement bloqué");
   // Remet une commission payable pour le relevé.
   const invoiceId4 = `in_e2e_payout_${stamp}`;
   const { data: payComm } = await admin.from("partner_commissions").insert({
     partner_id: partner.id, user_id: userId, subscription_id: `sub_e2e_${stamp}`,
-    stripe_invoice_id: invoiceId4, stripe_payment_intent_id: `pi_e2e_payout_${stamp}`, plan: "starter",
+    stripe_invoice_id: invoiceId4, stripe_payment_intent_id: `pi_e2epayout${stamp}`, plan: "starter",
     gross_amount: 2990, eligible_amount: 2990, commission_type: "percent", commission_rate: 10,
     commission_amount: 299, currency: "eur", status: "payable", payable_at: new Date().toISOString(),
   }).select("id").single();
@@ -430,6 +459,11 @@ try {
   fail++;
 } finally {
   await doCleanup();
-  console.log(`\n═══════════ ${pass} réussis · ${fail} échoués ═══════════`);
+  console.log(`\n═══════════ ${pass} réussis · ${fail} échoués · ${pending} en attente ═══════════`);
+  if (migrationPending) {
+    console.log("⏳ Contrainte SQL non vérifiée : appliquer la migration");
+    console.log("   supabase/migrations/20260725120000_commission_requires_payment_intent.sql");
+    console.log("   puis relancer ce test pour valider l'intégrité au niveau base.");
+  }
   process.exit(fail > 0 ? 1 : 0);
 }

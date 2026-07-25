@@ -223,7 +223,10 @@ export async function POST(request: Request) {
 
         // Commission partenaire : UNIQUEMENT sur un paiement réellement
         // encaissé (invoice.paid, montant > 0). Idempotent (facture unique
-        // en base) et jamais bloquant pour la synchronisation.
+        // en base). La synchronisation d'abonnement ci-dessus est déjà
+        // persistée ; si la commission ne peut être créée proprement (ex.
+        // payment_intent introuvable), la fonction LÈVE → l'événement est
+        // rejoué par Stripe (règle d'intégrité : jamais de commission sans PI).
         if (event.type === "invoice.paid") {
           await createCommissionForPaidInvoice(stripe, invoice, subscription, userId);
         }
