@@ -114,6 +114,9 @@ export interface ProfileRow {
   plan: string | null;
   company_name: string | null;
   onboarding_completed: boolean | null;
+  onboarding_skipped: boolean | null;
+  onboarding_current_step: number | null;
+  onboarding_version: number | null;
 }
 
 function toNumber(value: number | string): number {

@@ -95,26 +95,21 @@ export async function createCommissionForPaidInvoice(
   try {
     // Paiement réellement encaissé uniquement.
     if (invoice.status !== "paid") {
-      logger.info("diag/marketing", `commission ignorée · invoice ${invoice.id} status=${invoice.status} (≠ paid)`);
       return;
     }
     const grossCents = invoice.amount_paid ?? 0;
     if (grossCents <= 0) {
-      logger.info("diag/marketing", `commission ignorée · invoice ${invoice.id} amount_paid=${grossCents}c (essai/0€)`);
       return; // facture à 0 € : essai, période gratuite…
     }
 
     const context = await getEligibilityContext(userId);
     if (!context) {
-      logger.info("diag/marketing", `commission ignorée · user ${userId} : aucune attribution partenaire active`);
       return;
     }
     const { partner, attribution } = context;
-    logger.info("diag/marketing", `partenaire détecté · partner=${partner.id} type=${partner.commission_type} valeur=${partner.commission_value} user=${userId}`);
 
     // Aucune règle appliquée sans configuration explicite.
     if (!(partner.commission_value > 0)) {
-      logger.info("diag/marketing", `commission ignorée · partner ${partner.id} commission_value=0`);
       return;
     }
 
@@ -159,12 +154,16 @@ export async function createCommissionForPaidInvoice(
         ? Math.round(partner.commission_value * 100)
         : Math.round((eligibleCents * partner.commission_value) / 100);
     if (commissionCents <= 0) return;
-    logger.info(
-      "diag/marketing",
-      `commission calculée · gross=${grossCents}c eligible=${eligibleCents}c taux=${partner.commission_value} → commission=${commissionCents}c (partner=${partner.id})`
-    );
 
     const paymentIntentId = await findPaymentIntentId(stripe, invoice.id!);
+    if (!paymentIntentId) {
+      // Sans payment_intent, un futur charge.refunded ne pourra pas rattacher
+      // cette commission au remboursement (matching par payment_intent).
+      logger.warn(
+        "affiliation",
+        `commission sans payment_intent · invoice=${invoice.id} partner=${partner.id} — remboursement non rattachable automatiquement`
+      );
+    }
 
     // Insertion idempotente : stripe_invoice_id unique. Un doublon
     // (webhook rejoué) est ignoré sans erreur ni effet de bord.
@@ -192,12 +191,12 @@ export async function createCommissionForPaidInvoice(
       .select("id");
     if (insertError) throw new Error(insertError.message);
     if (!inserted || inserted.length === 0) {
-      logger.info("diag/marketing", `commission NON ré-enregistrée · invoice ${invoice.id} déjà commissionnée (idempotence)`);
       return; // doublon ignoré
     }
+    // Trace d'audit permanente : une commission a réellement été enregistrée.
     logger.info(
-      "diag/marketing",
-      `commission ENREGISTRÉE · id=${inserted[0].id} montant=${commissionCents}c invoice=${invoice.id} partner=${partner.id}`
+      "affiliation",
+      `commission créée · partner=${partner.id} invoice=${invoice.id} ${commissionCents}c (${partner.commission_type} ${partner.commission_value}) plan=${plan || "?"}`
     );
 
     // Première conversion : l'attribution passe à « converted ».
@@ -239,6 +238,11 @@ export async function reverseCommissionForRefund(charge: Stripe.Charge): Promise
     if (commissions.length === 0) return;
 
     const fullyRefunded = charge.refunded || charge.amount_refunded >= charge.amount;
+    // Trace d'audit permanente : un remboursement impacte des commissions réelles.
+    logger.info(
+      "affiliation",
+      `remboursement reçu · pi=${paymentIntentId} commissions=${commissions.length} type=${fullyRefunded ? "total" : "partiel"}`
+    );
 
     for (const commission of commissions) {
       if (fullyRefunded || commission.status === "paid" || commission.commission_type === "fixed") {

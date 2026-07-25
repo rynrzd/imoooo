@@ -38,6 +38,12 @@ export interface UserProfile {
   avatarPath: string | null;
   /** false tant que l'assistant de bienvenue n'a pas été terminé. */
   onboardingCompleted: boolean;
+  /** true si l'assistant a été explicitement ignoré (distinct de terminé). */
+  onboardingSkipped: boolean;
+  /** Dernière étape atteinte (reprise à la reconnexion). */
+  onboardingCurrentStep: number;
+  /** Version du guide vue par l'utilisateur (0 si jamais renseignée). */
+  onboardingVersion: number;
 }
 
 export interface FetchResult {
@@ -202,7 +208,9 @@ export async function fetchAppData(
         .order("date", { ascending: false }),
       supabase
         .from("profiles")
-        .select("id, full_name, phone, avatar_url, plan, company_name, onboarding_completed")
+        .select(
+          "id, full_name, phone, avatar_url, plan, company_name, onboarding_completed, onboarding_skipped, onboarding_current_step, onboarding_version"
+        )
         .eq("id", userId)
         .maybeSingle(),
       // Source de vérité de l'abonnement : la table `subscriptions` (RLS :
@@ -276,6 +284,9 @@ export async function fetchAppData(
           companyName: profileRow.company_name ?? "",
           avatarPath: profileRow.avatar_url,
           onboardingCompleted: profileRow.onboarding_completed ?? true,
+          onboardingSkipped: profileRow.onboarding_skipped ?? false,
+          onboardingCurrentStep: profileRow.onboarding_current_step ?? 0,
+          onboardingVersion: profileRow.onboarding_version ?? 0,
         }
       : null,
   };

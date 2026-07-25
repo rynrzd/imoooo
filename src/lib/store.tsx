@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import { seedData } from "./data";
 import { todayISO } from "./dates";
+import { ONBOARDING_TOTAL_STEPS, type OnboardingAction } from "./onboarding";
 import { tenantFullName } from "./finance";
 import { DEFAULT_PROPERTY_PHOTO } from "./constants";
 import { createClient } from "./supabase/client";
@@ -93,8 +94,12 @@ interface AppStore {
   updateProfile: (input: ProfileInput) => Promise<void>;
   /** Synchronise localement le chemin d'avatar après une mutation réelle. */
   setAvatarPath: (path: string | null) => void;
-  /** Marque l'assistant de bienvenue comme terminé (persisté). */
+  /** Marque l'assistant de bienvenue comme terminé (persisté côté serveur). */
   completeOnboarding: () => Promise<void>;
+  /** Enregistre que l'assistant a été ignoré (persisté côté serveur). */
+  skipOnboarding: (step?: number) => Promise<void>;
+  /** Enregistre l'étape courante de l'assistant (reprise à la reconnexion). */
+  saveOnboardingStep: (step: number) => Promise<void>;
   /** Retourne le logement créé (permet d'enchaîner photos, documents, bail). */
   addProperty: (input: PropertyInput) => Promise<Property>;
   updateProperty: (propertyId: string, input: PropertyInput) => Promise<void>;
@@ -155,6 +160,23 @@ function activityItem(
   return { id: nextId("a"), type, message, date: todayISO(), propertyId };
 }
 
+/**
+ * Persiste la progression de l'onboarding via la route serveur sécurisée
+ * (clé secrète, écriture scellée sur l'utilisateur authentifié). Lève une
+ * erreur claire si l'enregistrement échoue — jamais de faux succès.
+ */
+async function persistOnboarding(action: OnboardingAction, step: number): Promise<void> {
+  const response = await fetch("/api/onboarding", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, step }),
+  });
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? "Enregistrement impossible. Réessayez.");
+  }
+}
+
 export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const isLive = isSupabaseConfigured;
   const [data, setData] = React.useState<AppData>(isLive ? EMPTY_DATA : seedData);
@@ -184,6 +206,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         companyName: result.profile?.companyName ?? "",
         avatarPath: result.profile?.avatarPath ?? null,
         onboardingCompleted: result.profile?.onboardingCompleted ?? true,
+        onboardingSkipped: result.profile?.onboardingSkipped ?? false,
+        onboardingCurrentStep: result.profile?.onboardingCurrentStep ?? 0,
+        onboardingVersion: result.profile?.onboardingVersion ?? 0,
         email: user.email ?? "",
       });
     } catch (e) {
@@ -228,20 +253,28 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     setProfile((prev) => (prev ? { ...prev, avatarPath: path } : prev));
   };
 
-  /** Marque l'assistant de bienvenue comme terminé (persisté en base). */
+  /** Marque l'assistant de bienvenue comme terminé (persisté côté serveur). */
   const completeOnboarding: AppStore["completeOnboarding"] = async () => {
-    if (isLive) {
-      const { supabase, userId } = liveContext();
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          onboarding_completed: true,
-          onboarding_completed_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-      if (error) throw new Error(error.message);
-    }
-    setProfile((prev) => (prev ? { ...prev, onboardingCompleted: true } : prev));
+    if (isLive) await persistOnboarding("complete", ONBOARDING_TOTAL_STEPS);
+    setProfile((prev) =>
+      prev
+        ? { ...prev, onboardingCompleted: true, onboardingCurrentStep: ONBOARDING_TOTAL_STEPS }
+        : prev
+    );
+  };
+
+  /** Enregistre que l'assistant a été ignoré (persisté côté serveur). */
+  const skipOnboarding: AppStore["skipOnboarding"] = async (step = 0) => {
+    if (isLive) await persistOnboarding("skip", step);
+    setProfile((prev) =>
+      prev ? { ...prev, onboardingSkipped: true, onboardingCurrentStep: step } : prev
+    );
+  };
+
+  /** Enregistre l'étape courante (reprise à la reconnexion). */
+  const saveOnboardingStep: AppStore["saveOnboardingStep"] = async (step) => {
+    if (isLive) await persistOnboarding("step", step);
+    setProfile((prev) => (prev ? { ...prev, onboardingCurrentStep: step } : prev));
   };
 
   const addProperty: AppStore["addProperty"] = async (input) => {
@@ -912,6 +945,8 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
     setAvatarPath,
     completeOnboarding,
+    skipOnboarding,
+    saveOnboardingStep,
     addProperty,
     updateProperty,
     deleteProperty,
