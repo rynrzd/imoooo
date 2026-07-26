@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { recordAnalyticsEvent } from "@/lib/analytics/server";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
 import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
@@ -131,6 +132,8 @@ export async function POST(request: Request) {
         { status: 502 }
       );
     }
+    // Analytics : démarrage d'un paiement (best-effort, jamais bloquant).
+    await recordAnalyticsEvent("payment_started", { userId: user.id, plan });
     return NextResponse.json({ url: session.url });
   } catch (e) {
     logger.error("[stripe/checkout]", e);

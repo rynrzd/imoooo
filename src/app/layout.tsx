@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AnalyticsBeacon } from "@/components/analytics/beacon";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -25,6 +26,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <Toaster position="bottom-right" richColors />
+          <AnalyticsBeacon />
         </ThemeProvider>
       </body>
     </html>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BadgePercent,
+  ChartColumn,
   Crown,
   CreditCard,
   LayoutDashboard,
@@ -26,6 +27,7 @@ interface AdminNavItem {
 /** Navigation de l'espace d'administration — totalement distincte de l'app. */
 export const ADMIN_NAV: AdminNavItem[] = [
   { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
+  { title: "Analytics", href: "/admin/analytics", icon: ChartColumn },
   { title: "Utilisateurs", href: "/admin/utilisateurs", icon: Users },
   { title: "Abonnements", href: "/admin/abonnements", icon: CreditCard },
   { title: "Codes promo", href: "/admin/codes-promo", icon: BadgePercent },

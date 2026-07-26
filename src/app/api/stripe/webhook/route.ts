@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import type Stripe from "stripe";
+import { recordAnalyticsEvent } from "@/lib/analytics/server";
 import {
   createCommissionForPaidInvoice,
   reverseCommissionForRefund,
 } from "@/lib/marketing/commissions";
-import { getStripeWebhookSecret, isStripeConfigured } from "@/lib/stripe/config";
+import { getStripeWebhookSecret, isStripeConfigured, planFromPriceId } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
 import { syncSubscriptionToDatabase } from "@/lib/stripe/subscription";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -191,6 +192,12 @@ export async function POST(request: Request) {
         }
         await syncSubscriptionToDatabase(createAdminClient(), userId, subscription);
         await recordPromoRedemption(session, userId);
+        // Analytics : nouvel abonnement + revenu associé (best-effort).
+        await recordAnalyticsEvent("subscription_success", {
+          userId,
+          plan: planFromPriceId(subscription.items.data[0]?.price.id ?? "") ?? null,
+          amountCents: session.amount_total ?? null,
+        });
         break;
       }
 
@@ -229,6 +236,13 @@ export async function POST(request: Request) {
         // rejoué par Stripe (règle d'intégrité : jamais de commission sans PI).
         if (event.type === "invoice.paid") {
           await createCommissionForPaidInvoice(stripe, invoice, subscription, userId);
+        } else {
+          // Analytics : échec de paiement (best-effort, jamais bloquant).
+          await recordAnalyticsEvent("payment_failed", {
+            userId,
+            plan: planFromPriceId(subscription.items.data[0]?.price.id ?? "") ?? null,
+            amountCents: invoice.amount_due ?? null,
+          });
         }
         break;
       }
