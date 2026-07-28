@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ExternalLink, Eye, Monitor, Plus, Smartphone, Tablet, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AboutContent } from "@/components/marketing/about-content";
+import { CompanyVideoManager } from "@/components/admin/company-video";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -387,9 +388,7 @@ export function CompanyEditor({ initial, action }: { initial: CompanyProfile; ac
               { key: "url", label: "Lien (URL)", placeholder: "https://…", span2: true },
             ]}
           />
-          <SectionCard title="Vidéo de présentation" description="Lien d’intégration (YouTube/Vimeo « embed ») ou URL directe .mp4.">
-            <TextField label="Vidéo (URL)" value={profile.videoUrl} onChange={(v) => set("videoUrl", v)} placeholder="https://www.youtube.com/embed/…" />
-          </SectionCard>
+          <CompanyVideoManager value={profile.video} onChange={(v) => set("video", v)} />
           <ListEditor
             title="Galerie / Bureaux"
             description="Photos des bureaux ou visuels de marque (URL)."

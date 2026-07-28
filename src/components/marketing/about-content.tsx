@@ -68,7 +68,16 @@ function initials(name: string): string {
 }
 
 function isVideoFile(url: string): boolean {
-  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
+  return /\.(mp4|mov|webm|ogg)(\?.*)?$/i.test(url);
+}
+
+/** Type MIME déduit de l'extension (pour la balise <source>). */
+function videoMime(url: string): string {
+  const u = url.toLowerCase();
+  if (u.includes(".webm")) return "video/webm";
+  if (u.includes(".mov")) return "video/quicktime";
+  if (u.includes(".ogg")) return "video/ogg";
+  return "video/mp4";
 }
 
 function Band({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
@@ -256,23 +265,33 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
         </Band>
       ) : null}
 
-      {/* Vidéo */}
-      {p.videoUrl ? (
-        <Band>
-          <Head eyebrow="En vidéo" title="Nireo, en" keyword="images." />
-          <Reveal className="mx-auto mt-10 max-w-4xl">
-            <div className="nireo-glass overflow-hidden rounded-3xl p-2">
-              <div className="relative aspect-video overflow-hidden rounded-2xl bg-muted">
-                {isVideoFile(p.videoUrl) ? (
-                  <video src={p.videoUrl} controls className="h-full w-full object-cover" />
-                ) : (
-                  <iframe src={p.videoUrl} title="Vidéo de présentation" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full" />
-                )}
+      {/* Vidéo — lecteur HTML5 natif, source = fichier téléversé (Supabase
+          Storage). Aucun lien externe / iframe : jamais de page tierce. */}
+      {(() => {
+        const videoSrc = p.video?.url || (isVideoFile(p.videoUrl) ? p.videoUrl : "");
+        if (!videoSrc) return null;
+        return (
+          <Band>
+            <Head eyebrow="En vidéo" title="Nireo, en" keyword="images." />
+            <Reveal className="mx-auto mt-10 max-w-4xl">
+              <div className="nireo-glass overflow-hidden rounded-3xl p-2">
+                <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
+                  <video
+                    controls
+                    playsInline
+                    preload="metadata"
+                    poster={p.video?.thumbnail || undefined}
+                    className="h-full w-full object-contain"
+                  >
+                    <source src={videoSrc} type={videoMime(videoSrc)} />
+                    Votre navigateur ne prend pas en charge la lecture de cette vidéo.
+                  </video>
+                </div>
               </div>
-            </div>
-          </Reveal>
-        </Band>
-      ) : null}
+            </Reveal>
+          </Band>
+        );
+      })()}
 
       {/* Galerie */}
       {p.gallery.length > 0 ? (

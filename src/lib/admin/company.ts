@@ -85,6 +85,19 @@ export interface Recruitment {
   ctaEmail: string;
 }
 
+/** Vidéo de présentation, téléversée dans Supabase Storage (bucket public). */
+export interface CompanyVideo {
+  /** Chemin dans le bucket `site-media` (ex. landing/demo-video/…​.mp4). */
+  path: string;
+  /** URL publique servie sur la vitrine. */
+  url: string;
+  fileName: string;
+  size: number;
+  updatedAt: string;
+  /** Miniature (poster) optionnelle — réservé pour évolutions. */
+  thumbnail?: string;
+}
+
 export interface CompanyProfile {
   published: boolean;
   name: string;
@@ -105,7 +118,10 @@ export interface CompanyProfile {
   team: TeamMember[];
   timeline: TimelineItem[];
   gallery: GalleryItem[];
+  /** Ancien champ (lien externe) — conservé pour compat ; plus édité. */
   videoUrl: string;
+  /** Vidéo téléversée (source de vérité de la section « Nireo, en images »). */
+  video: CompanyVideo | null;
   partners: Partner[];
   certifications: Certification[];
   awards: Award[];
@@ -166,6 +182,7 @@ export const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
   ],
   gallery: [],
   videoUrl: "",
+  video: null,
   partners: [],
   certifications: [
     { name: "Hébergement en Union européenne (RGPD)", issuer: "Infrastructure européenne" },
@@ -208,6 +225,24 @@ const obj = (v: unknown): Record<string, unknown> =>
 function mapItems<T>(v: unknown, fallback: T[], map: (o: Record<string, unknown>) => T): T[] {
   if (!Array.isArray(v)) return fallback;
   return v.map((x) => map(obj(x)));
+}
+
+function coerceVideo(v: unknown): CompanyVideo | null {
+  if (!v || typeof v !== "object") return null;
+  const o = obj(v);
+  const url = str(o.url);
+  const path = str(o.path);
+  if (!url && !path) return null; // objet vide → pas de vidéo
+  const size = typeof o.size === "number" && Number.isFinite(o.size) ? o.size : 0;
+  const thumbnail = str(o.thumbnail);
+  return {
+    path,
+    url,
+    fileName: str(o.fileName),
+    size,
+    updatedAt: str(o.updatedAt),
+    ...(thumbnail ? { thumbnail } : {}),
+  };
 }
 
 function coerceRecruitment(v: unknown, d: Recruitment): Recruitment {
@@ -274,6 +309,7 @@ export function coerceCompany(raw: unknown): CompanyProfile {
       ? mapItems(r.gallery, d.gallery, (o) => ({ url: str(o.url), caption: str(o.caption) }))
       : d.gallery,
     videoUrl: str(r.videoUrl, d.videoUrl),
+    video: coerceVideo(r.video),
     partners: has("partners")
       ? mapItems(r.partners, d.partners, (o) => ({ name: str(o.name), url: str(o.url) }))
       : d.partners,
