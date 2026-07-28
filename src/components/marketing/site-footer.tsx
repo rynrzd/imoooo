@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brand } from "@/components/layout/brand";
+import { NireoLogo } from "@/components/marketing/nireo-logo";
 import { version } from "../../../package.json";
 
 /** Adresse de contact publique (footer, pages légales, formulaire, bug). */
@@ -13,6 +13,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Comment ça marche", href: "/#comment-ca-marche" },
       { label: "Tarifs", href: "/tarifs" },
       { label: "FAQ", href: "/#faq" },
+      { label: "L’entreprise", href: "/entreprise" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -36,10 +37,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-muted/30">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="nireo-hairline relative border-t border-white/8 bg-white/[0.015]">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="space-y-3">
-          <Brand />
+          <NireoLogo />
           <p className="max-w-xs text-sm text-muted-foreground">
             Le logiciel de gestion locative qui centralise logements,
             locataires, loyers, documents et travaux pour les propriétaires

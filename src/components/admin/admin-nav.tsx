@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BadgePercent,
+  Building2,
   ChartColumn,
   Crown,
   CreditCard,
@@ -32,6 +33,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { title: "Abonnements", href: "/admin/abonnements", icon: CreditCard },
   { title: "Codes promo", href: "/admin/codes-promo", icon: BadgePercent },
   { title: "Marketing", href: "/admin/marketing", icon: Megaphone },
+  { title: "Entreprise", href: "/admin/entreprise", icon: Building2 },
   { title: "Fondateurs", href: "/admin/fondateurs", icon: Crown },
   { title: "Transactions", href: "/admin/transactions", icon: Receipt },
   { title: "Support", href: "/admin/support", icon: LifeBuoy },

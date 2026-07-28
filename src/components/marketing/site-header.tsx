@@ -4,8 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Menu, X } from "lucide-react";
-import { Brand } from "@/components/layout/brand";
+import { NireoLogo } from "@/components/marketing/nireo-logo";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { track } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -44,16 +45,19 @@ export function SiteHeader() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Brand />
+    <header className="sticky top-0 z-40 border-b border-white/8 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
+      <div className="mx-auto flex h-15 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <NireoLogo />
 
-        <nav aria-label="Navigation principale" className="hidden items-center gap-1 md:flex">
+        <nav
+          aria-label="Navigation principale"
+          className="nireo-glass-soft hidden items-center gap-0.5 rounded-full px-1.5 py-1 md:flex"
+        >
           {NAV_LINKS.map((link) => (
             <a
               key={link.hash}
               href={anchor(link.hash)}
-              className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-full px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
             >
               {link.label}
             </a>
@@ -78,7 +82,7 @@ export function SiteHeader() {
               <Link
                 href="/inscription"
                 onClick={() => track("cta_essai_gratuit", { source: "header" })}
-                className={buttonVariants({})}
+                className={cn(buttonVariants({}), "nireo-glow")}
               >
                 Essayer gratuitement
               </Link>
@@ -88,7 +92,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="flex size-9 items-center justify-center rounded-lg border border-border text-foreground md:hidden"
+          className="nireo-glass-soft flex size-9 items-center justify-center rounded-xl text-foreground md:hidden"
           aria-expanded={open}
           aria-controls="menu-mobile"
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
@@ -100,7 +104,7 @@ export function SiteHeader() {
 
       {/* Menu mobile */}
       {open ? (
-        <div id="menu-mobile" className="border-t border-border bg-background md:hidden">
+        <div id="menu-mobile" className="border-t border-white/8 bg-background/90 backdrop-blur-xl md:hidden">
           <nav aria-label="Navigation mobile" className="flex flex-col gap-1 px-4 py-3">
             {NAV_LINKS.map((link) => (
               <a

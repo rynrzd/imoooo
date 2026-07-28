@@ -205,3 +205,297 @@
     line-height: 1.2;
   }
 }
+
+/* ================================================================== */
+/*  NIREO — Identité premium des pages publiques (scope « .nireo »)    */
+/*                                                                    */
+/*  Univers sombre « obsidienne » réservé à la vitrine (landing,      */
+/*  connexion, tarifs…). Déclaré APRÈS « .dark » pour gagner la       */
+/*  cascade quand les deux classes cohabitent sur le même élément.    */
+/*  Tous les composants réutilisés (tarifs, FAQ, offre Fondateur)     */
+/*  héritent automatiquement de cette palette via les tokens.         */
+/* ================================================================== */
+
+.nireo {
+  color-scheme: dark;
+
+  /* Fond obsidienne profond, léger sous-ton bleu nuit. */
+  --background: oklch(0.155 0.016 265);
+  --foreground: oklch(0.97 0.006 262);
+
+  /* Surfaces légèrement soulevées (verre, cartes). */
+  --card: oklch(0.198 0.017 264);
+  --card-foreground: oklch(0.97 0.006 262);
+  --popover: oklch(0.205 0.018 264);
+  --popover-foreground: oklch(0.97 0.006 262);
+
+  /* Accent signature : bleu-ardoise lumineux, faible chroma → premium,
+     jamais saturé. Sert de guide lumineux dans toute la vitrine. */
+  --primary: oklch(0.76 0.078 259);
+  --primary-foreground: oklch(0.17 0.02 265);
+
+  --secondary: oklch(0.245 0.018 264);
+  --secondary-foreground: oklch(0.965 0.006 262);
+  --muted: oklch(0.245 0.018 264);
+  --muted-foreground: oklch(0.73 0.016 264);
+  --accent: oklch(0.275 0.021 264);
+  --accent-foreground: oklch(0.97 0.006 262);
+  --destructive: oklch(0.7 0.19 22);
+
+  /* Traits d'un cheveu, très discrets sur fond sombre. */
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.76 0.078 259);
+
+  --chart-1: oklch(0.76 0.078 259);
+  --chart-2: oklch(0.74 0.08 300);
+  --chart-3: oklch(0.76 0.09 210);
+  --chart-4: oklch(0.82 0.09 160);
+  --chart-5: oklch(0.8 0.09 60);
+
+  /* Rayons plus généreux : douceur haut de gamme. */
+  --radius: 1rem;
+
+  /* Halos de l'aurore (deux teintes basse-chroma : ardoise + violet doux). */
+  --nireo-glow-a: oklch(0.72 0.12 262);
+  --nireo-glow-b: oklch(0.7 0.12 300);
+  --nireo-glow-c: oklch(0.78 0.11 205);
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Fond ambiant — aurore + grille + grain (couche décorative fixe).   */
+/* ------------------------------------------------------------------ */
+
+.nireo-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 42% at 18% 0%, oklch(0.72 0.12 262 / 0.16), transparent 70%),
+    radial-gradient(52% 40% at 88% 6%, oklch(0.7 0.12 300 / 0.13), transparent 68%),
+    radial-gradient(70% 55% at 50% 108%, oklch(0.78 0.11 205 / 0.1), transparent 72%),
+    var(--background);
+}
+
+/* Grille fine en perspective, s'estompe vers le haut. */
+.nireo-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 78%);
+}
+
+/* Grain photographique très fin — casse les aplats, effet « print ». */
+.nireo-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ */
+/*  Surfaces « verre » — translucidité, flou, liseré lumineux interne. */
+/* ------------------------------------------------------------------ */
+
+@utility nireo-glass {
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--card), transparent 22%),
+      color-mix(in oklch, var(--card), transparent 42%)
+    );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 0.09);
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+    0 40px 80px -40px oklch(0 0 0 / 0.7);
+}
+
+@utility nireo-glass-soft {
+  background: color-mix(in oklch, var(--card), transparent 30%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+/* Texte à dégradé « aurore » — réservé aux mots-clés des titres. */
+@utility nireo-shine {
+  background: linear-gradient(
+    100deg,
+    oklch(0.9 0.03 262) 0%,
+    oklch(0.84 0.1 262) 26%,
+    oklch(0.82 0.11 300) 52%,
+    oklch(0.86 0.09 205) 78%,
+    oklch(0.92 0.03 262) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nireo-shine-pan 9s ease-in-out infinite;
+  }
+}
+
+/* Halo lumineux au survol des CTA / cartes clés. */
+@utility nireo-glow {
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.06) inset,
+    0 10px 30px -12px oklch(0.76 0.12 262 / 0.55),
+    0 0 60px -18px oklch(0.72 0.12 300 / 0.35);
+}
+
+/* Liseré supérieur façon métal poli. */
+@utility nireo-hairline {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 12%;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.5), transparent);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animations premium — lentes, organiques, jamais gadget.           */
+/* ------------------------------------------------------------------ */
+
+@keyframes nireo-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(var(--r, 0deg));
+  }
+}
+
+@keyframes nireo-shine-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes nireo-aurora {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes nireo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes nireo-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.76 0.12 262 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 9px oklch(0.76 0.12 262 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.76 0.12 262 / 0);
+  }
+}
+
+@keyframes nireo-grow {
+  from {
+    transform: scaleY(0.05);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@utility nireo-float {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nireo-float var(--float-dur, 7s) ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+  }
+}
+
+@utility nireo-aurora {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nireo-aurora var(--aurora-dur, 18s) ease-in-out infinite;
+  }
+}
+
+@utility animate-nireo-rise {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nireo-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@utility nireo-pulse {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nireo-pulse-ring 2.4s ease-out infinite;
+  }
+}
+
+/* Titres de la vitrine : encore plus resserrés, présence maximale. */
+.nireo h1,
+.nireo h2 {
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Authentification premium — contrôles plus généreux dans la carte.  */
+/*  Scopé à « .nireo-auth » : n'affecte que les écrans de connexion.   */
+/* ------------------------------------------------------------------ */
+
+.nireo-auth input:not([type="checkbox"]) {
+  height: 2.75rem;
+  border-radius: 0.7rem;
+  padding-inline: 0.9rem;
+  font-size: 0.92rem;
+  background: color-mix(in oklch, var(--card), transparent 45%);
+}
+
+.nireo-auth input:not([type="checkbox"]):focus-visible {
+  background: color-mix(in oklch, var(--card), transparent 25%);
+}
+
+.nireo-auth button[type="submit"] {
+  height: 2.75rem;
+  border-radius: 0.7rem;
+  font-size: 0.92rem;
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.06) inset,
+    0 10px 30px -12px oklch(0.76 0.12 262 / 0.6);
+}

@@ -5,19 +5,20 @@ import {
   Bell,
   Building2,
   Check,
-  CloudUpload,
+  Clock,
   CreditCard,
-  Database,
   FileText,
-  Globe,
+  FileWarning,
+  Gauge,
   Hammer,
-  HeartHandshake,
-  Home,
-  Landmark,
+  ImageOff,
+  Layers,
   LineChart,
   Lock,
+  Receipt,
   ShieldCheck,
-  TrendingUp,
+  Sparkles,
+  StickyNote,
   Users,
   Wallet,
   X,
@@ -25,9 +26,11 @@ import {
 import { DemoShowcase } from "@/components/marketing/demo-showcase";
 import { FAQ_ITEMS, FaqSection } from "@/components/marketing/faq-section";
 import { FounderOffer } from "@/components/marketing/founder-offer";
+import { HeroScene } from "@/components/marketing/hero-scene";
+import { CountUp } from "@/components/marketing/count-up";
 import { PricingSection } from "@/components/marketing/pricing-section";
-import { DashboardPreview } from "@/components/marketing/product-previews";
 import { Reveal } from "@/components/marketing/reveal";
+import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { buttonVariants } from "@/components/ui/button";
 import { PLANS } from "@/lib/stripe/plans";
 import { isStripeConfigured } from "@/lib/stripe/config";
@@ -35,8 +38,6 @@ import { SITE_URL } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  // Servie sur « / » pour les visiteurs (réécriture du proxy).
-  // « absolute » : le template « %s · Nireo » du layout dupliquerait la marque.
   title: {
     absolute:
       "Nireo — Gérez tout votre patrimoine immobilier depuis une seule plateforme",
@@ -44,8 +45,6 @@ export const metadata: Metadata = {
   description:
     "Le logiciel de gestion locative des propriétaires bailleurs : logements, locataires, loyers automatiques, documents, travaux et statistiques. Gratuit pour un premier logement, sans carte bancaire.",
   alternates: { canonical: "/" },
-  // openGraph d'une page REMPLACE celui du layout (fusion superficielle) :
-  // type/siteName/locale doivent être répétés ici.
   openGraph: {
     type: "website",
     siteName: "Nireo",
@@ -65,209 +64,213 @@ export const metadata: Metadata = {
   },
 };
 
-/* ------------------------------------------------------------------ */
-/* Blocs de section                                                    */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Blocs réutilisables                                                */
+/* ================================================================== */
 
-function Section({
-  id,
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
+      {children}
+    </span>
+  );
+}
+
+function SectionHead({
   eyebrow,
   title,
   description,
-  children,
-  className,
+  keyword,
 }: {
-  id?: string;
-  eyebrow?: string;
+  eyebrow: string;
   title: string;
   description?: string;
-  children: React.ReactNode;
-  className?: string;
+  keyword?: string;
 }) {
   return (
-    <section id={id} className={cn("scroll-mt-20 py-16 sm:py-20", className)}>
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          {eyebrow ? (
-            <p className="text-xs font-medium tracking-widest text-primary uppercase">
-              {eyebrow}
-            </p>
-          ) : null}
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {title}
-          </h2>
-          {description ? (
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {description}
-            </p>
-          ) : null}
-        </Reveal>
-        <div className="mt-10">{children}</div>
-      </div>
+    <Reveal className="mx-auto max-w-2xl text-center">
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.6rem]">
+        {title}{" "}
+        {keyword ? <span className="nireo-shine">{keyword}</span> : null}
+      </h2>
+      {description ? (
+        <p className="mt-4 text-base leading-relaxed text-balance text-muted-foreground">
+          {description}
+        </p>
+      ) : null}
+    </Reveal>
+  );
+}
+
+function Section({
+  id,
+  className,
+  children,
+}: {
+  id?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className={cn("scroll-mt-24 py-20 sm:py-28", className)}>
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">{children}</div>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Contenus                                                            */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Contenus                                                           */
+/* ================================================================== */
 
 const TRUST_BAR = [
-  { icon: ShieldCheck, label: "Données sécurisées" },
-  { icon: Globe, label: "Hébergé en Europe" },
-  { icon: CloudUpload, label: "Sauvegarde automatique" },
-  { icon: Lock, label: "Authentification sécurisée" },
-  { icon: Database, label: "Propulsé par Supabase" },
+  { icon: ShieldCheck, label: "Données isolées par compte" },
+  { icon: Lock, label: "Stockage privé chiffré" },
+  { icon: Layers, label: "Hébergé en Europe" },
+  { icon: Clock, label: "Sauvegarde automatique" },
 ];
 
-const MODULES = [
+const PAINS = [
+  { icon: FileWarning, text: "Baux, diagnostics et factures éparpillés entre disque dur, e-mails et papier." },
+  { icon: Wallet, text: "Loyers en retard repérés trop tard, relances oubliées." },
+  { icon: ImageOff, text: "Photos d’état des lieux noyées dans la galerie du téléphone." },
+  { icon: Gauge, text: "Rentabilité réelle impossible à suivre dans un tableur." },
+];
+
+const CHAOS = [
+  { label: "loyers_2026_v3.xlsx", icon: Receipt, top: "6%", left: "4%", rot: "-8deg" },
+  { label: "IMG_2381.jpg", icon: ImageOff, top: "2%", left: "58%", rot: "6deg" },
+  { label: "Relancer M. Durand", icon: StickyNote, top: "44%", left: "0%", rot: "-4deg" },
+  { label: "bail_signé(final).pdf", icon: FileText, top: "40%", left: "52%", rot: "5deg" },
+  { label: "Assurance PNO ?", icon: FileWarning, top: "72%", left: "22%", rot: "-6deg" },
+];
+
+const PILLARS = [
+  { icon: Building2, label: "Logements" },
+  { icon: Users, label: "Locataires" },
+  { icon: Wallet, label: "Loyers" },
+  { icon: FileText, label: "Documents" },
+  { icon: Hammer, label: "Travaux" },
+  { icon: LineChart, label: "Statistiques" },
+];
+
+type Module = {
+  icon: typeof Building2;
+  title: string;
+  text: string;
+  glow: string;
+  tint: string;
+  featured?: boolean;
+  kind?: "rents" | "stats";
+};
+
+const MODULES: Module[] = [
+  {
+    icon: Wallet,
+    title: "Loyers automatiques",
+    text: "Les échéances se génèrent chaque mois. Encaissé, en attente, en retard ou partiel : tout est suivi, rien n’est oublié.",
+    glow: "var(--nireo-glow-a)",
+    tint: "text-primary",
+    featured: true,
+    kind: "rents",
+  },
+  {
+    icon: LineChart,
+    title: "Statistiques réelles",
+    text: "Revenus, dépenses, résultat net, taux d’occupation et rendement — calculés en continu sur vos vraies données.",
+    glow: "var(--nireo-glow-c)",
+    tint: "text-sky-300",
+    featured: true,
+    kind: "stats",
+  },
   {
     icon: Building2,
     title: "Logements",
-    text: "Chaque bien avec ses caractéristiques, son prix d'achat, son loyer et son statut — loué, vacant ou en travaux.",
+    text: "Chaque bien avec son prix, son loyer et son statut — loué, vacant ou en travaux.",
+    glow: "var(--nireo-glow-a)",
+    tint: "text-primary",
   },
   {
     icon: Users,
     title: "Locataires",
-    text: "Locataire, bail, dates d'entrée et de sortie, loyer, charges et dépôt de garantie : tout est carré et retrouvable.",
-  },
-  {
-    icon: Wallet,
-    title: "Loyers",
-    text: "Les échéances se génèrent automatiquement chaque mois : encaissé, en attente, en retard ou partiel.",
+    text: "Bail, dates d’entrée et de sortie, charges et dépôt de garantie : carré et retrouvable.",
+    glow: "var(--nireo-glow-b)",
+    tint: "text-violet-300",
   },
   {
     icon: FileText,
     title: "Documents",
-    text: "Baux, diagnostics, assurances, factures et photos datées, classés par logement dans un stockage privé.",
+    text: "Baux, diagnostics, assurances et factures classés par logement dans un espace privé.",
+    glow: "var(--nireo-glow-c)",
+    tint: "text-sky-300",
   },
   {
     icon: Hammer,
     title: "Travaux",
-    text: "Chaque chantier suivi avec budget, avancement et coût réel, relié automatiquement à vos dépenses.",
-  },
-  {
-    icon: LineChart,
-    title: "Statistiques",
-    text: "Revenus, dépenses, résultat net, taux d'occupation et rendement — calculés sur vos vraies données.",
+    text: "Chaque chantier suivi avec budget, avancement et coût réel, relié à vos dépenses.",
+    glow: "oklch(0.82 0.09 60)",
+    tint: "text-amber-300",
   },
   {
     icon: Bell,
     title: "Notifications",
-    text: "Loyers en retard, documents qui expirent, chantiers dépassés : l'application vous prévient au bon moment.",
+    text: "Loyers en retard, documents qui expirent, chantiers dépassés : prévenu au bon moment.",
+    glow: "oklch(0.82 0.09 60)",
+    tint: "text-amber-300",
   },
   {
     icon: CreditCard,
     title: "Abonnements",
-    text: "Démarrez gratuitement, montez en gamme quand votre patrimoine grandit — sans engagement, sans migration.",
+    text: "Démarrez gratuitement, montez en gamme quand le patrimoine grandit — sans engagement.",
+    glow: "var(--nireo-glow-b)",
+    tint: "text-violet-300",
   },
 ];
 
 const STEPS = [
-  { step: "1", title: "Créez votre compte", text: "Gratuit, sans carte bancaire : votre espace est prêt en une minute." },
-  { step: "2", title: "Ajoutez votre premier logement", text: "Adresse, surface, loyer, statut : le bien est prêt en deux minutes." },
-  { step: "3", title: "Ajoutez un locataire", text: "Le bail, le dépôt de garantie et les dates rejoignent le dossier du bien." },
-  { step: "4", title: "Suivez vos loyers automatiquement", text: "Les échéances se créent toutes seules ; le tableau de bord fait les comptes." },
+  { step: "01", title: "Créez votre compte", text: "Gratuit, sans carte bancaire. Votre espace est prêt en une minute." },
+  { step: "02", title: "Ajoutez un logement", text: "Adresse, surface, loyer, statut : le bien est prêt en deux minutes." },
+  { step: "03", title: "Ajoutez un locataire", text: "Le bail, le dépôt et les dates rejoignent le dossier du bien." },
+  { step: "04", title: "Pilotez, sereinement", text: "Les échéances se créent seules ; le tableau de bord fait les comptes." },
 ];
 
-const PROFILES = [
-  {
-    icon: Home,
-    title: "Petit propriétaire",
-    text: "Un ou deux biens en location : suivez loyers, documents et travaux sans tableur ni paperasse.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Investisseur",
-    text: "Pilotez la rentabilité réelle de chaque bien : rendement, résultat net, dépenses et travaux.",
-  },
-  {
-    icon: Landmark,
-    title: "SCI",
-    text: "Centralisez les biens de la société : historique complet, documents classés et exports pour la comptabilité.",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Gestion familiale",
-    text: "Gérez le patrimoine familial avec un dossier clair par bien, lisible et transmissible.",
-  },
+const DIFFERENTIATORS = [
+  { icon: Sparkles, title: "Simplicité", text: "Une interface épurée, pensée pour aller à l’essentiel. Aucune formation nécessaire.", glow: "var(--nireo-glow-b)" },
+  { icon: Clock, title: "Temps gagné", text: "Les loyers, calculs et rappels se font tout seuls. Vous récupérez vos week-ends.", glow: "var(--nireo-glow-a)" },
+  { icon: ShieldCheck, title: "Sécurité", text: "Données isolées par compte, stockage privé, liens signés à durée limitée.", glow: "var(--nireo-glow-c)" },
+  { icon: Gauge, title: "Maîtrise", text: "Une vision claire et à jour de chaque bien. Vous décidez, chiffres en main.", glow: "oklch(0.82 0.09 60)" },
 ];
 
-const COMPARISON: { label: string; excel: string; immopilot: string }[] = [
-  {
-    label: "Suivi des loyers",
-    excel: "Formules manuelles, oublis fréquents",
-    immopilot: "Échéances générées automatiquement chaque mois",
-  },
-  {
-    label: "Impayés",
-    excel: "À repérer soi-même dans le tableau",
-    immopilot: "Retards détectés et signalés automatiquement",
-  },
-  {
-    label: "Documents",
-    excel: "Dispersés entre disque dur et e-mails",
-    immopilot: "Classés par logement dans un stockage privé",
-  },
-  {
-    label: "Photos d'états des lieux",
-    excel: "Mélangées dans la galerie du téléphone",
-    immopilot: "Datées, classées, comparables avant / après",
-  },
-  {
-    label: "Travaux et dépenses",
-    excel: "Onglets qui se désynchronisent",
-    immopilot: "Chantiers reliés automatiquement à la comptabilité",
-  },
-  {
-    label: "Rentabilité",
-    excel: "Calculs approximatifs, rarement à jour",
-    immopilot: "Résultat net et rendement calculés en continu",
-  },
-  {
-    label: "Accès",
-    excel: "Un fichier, un seul ordinateur",
-    immopilot: "Disponible partout : ordinateur, tablette, mobile",
-  },
-  {
-    label: "Sauvegarde",
-    excel: "Fichier corruptible, versions multiples",
-    immopilot: "Sauvegarde automatique, données isolées par compte",
-  },
+const COMPARISON = [
+  { label: "Suivi des loyers", excel: "Formules manuelles, oublis fréquents", nireo: "Échéances générées automatiquement" },
+  { label: "Impayés", excel: "À repérer soi-même dans le tableau", nireo: "Retards détectés et signalés" },
+  { label: "Documents", excel: "Dispersés entre disque dur et e-mails", nireo: "Classés par logement, stockage privé" },
+  { label: "États des lieux", excel: "Photos mélangées dans la galerie", nireo: "Datées, classées, comparables" },
+  { label: "Rentabilité", excel: "Calculs approximatifs, rarement à jour", nireo: "Résultat net et rendement en continu" },
+  { label: "Accès", excel: "Un fichier, un seul ordinateur", nireo: "Partout : ordinateur, tablette, mobile" },
 ];
 
-const TRUST_POINTS = [
-  {
-    icon: Lock,
-    title: "Comptes sécurisés",
-    text: "Connexion par e-mail avec confirmation, session protégée, routes privées inaccessibles sans authentification.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Données isolées par utilisateur",
-    text: "Chaque ligne de données vous appartient explicitement : un compte ne peut jamais lire les données d'un autre.",
-  },
-  {
-    icon: FileText,
-    title: "Stockage privé des fichiers",
-    text: "Documents et photos sont conservés dans un espace privé et servis par des liens signés à durée limitée.",
-  },
+const STATS = [
+  { value: 8, suffix: "", label: "modules réunis dans un seul espace" },
+  { value: 2, suffix: " min", label: "pour ajouter votre premier logement" },
+  { value: 100, suffix: " %", label: "de vos données isolées de tout autre compte" },
+  { value: 1, suffix: "", label: "logement suivi gratuitement, à vie" },
 ];
 
-/* ------------------------------------------------------------------ */
-/* Données structurées (Schema.org)                                    */
-/* ------------------------------------------------------------------ */
+const SECURITY = [
+  { icon: Lock, title: "Comptes protégés", text: "Connexion par e-mail confirmée, sessions sécurisées, routes privées inaccessibles sans authentification." },
+  { icon: ShieldCheck, title: "Données cloisonnées", text: "Chaque ligne vous appartient explicitement : un compte ne peut jamais lire les données d’un autre." },
+  { icon: FileText, title: "Fichiers privés", text: "Documents et photos conservés dans un espace privé, servis par des liens signés à durée limitée." },
+];
+
+/* ================================================================== */
+/*  Données structurées (Schema.org)                                   */
+/* ================================================================== */
 
 const JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      // Nom du site affiché par Google dans les résultats de recherche.
-      "@type": "WebSite",
-      name: "Nireo",
-      url: SITE_URL,
-      inLanguage: "fr",
-    },
+    { "@type": "WebSite", name: "Nireo", url: SITE_URL, inLanguage: "fr" },
     {
       "@type": "SoftwareApplication",
       name: "Nireo",
@@ -295,9 +298,9 @@ const JSON_LD = {
   ],
 };
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Page                                                               */
+/* ================================================================== */
 
 export default function LandingPage() {
   return (
@@ -308,58 +311,11 @@ export default function LandingPage() {
       />
 
       {/* ---------------- Hero ---------------- */}
-      <section className="relative overflow-hidden border-b border-border/60 bg-muted/20">
-        {/* Halo décoratif léger (aucune image, aucun coût réseau). */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-radial-[60%_100%_at_50%_0%] from-primary/10 to-transparent"
-        />
-        <div className="relative mx-auto w-full max-w-6xl px-4 pt-16 pb-14 sm:px-6 sm:pt-24 sm:pb-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
-              Conçu pour les propriétaires bailleurs
-            </p>
-            <h1 className="mt-5 text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-              Gérez tout votre patrimoine immobilier depuis une seule plateforme.
-            </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Logements, locataires, loyers automatiques, documents, photos,
-              dépenses et travaux : Nireo remplace le tableur et la
-              paperasse par un espace clair, à jour en permanence.
-            </p>
-            <div className="mt-7 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
-              <Link
-                href="/inscription"
-                className={buttonVariants({ size: "lg", className: "w-full px-5 sm:w-auto" })}
-              >
-                Commencer gratuitement
-              </Link>
-              <a
-                href="#demo"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "lg",
-                  className: "w-full px-5 sm:w-auto",
-                })}
-              >
-                Découvrir la démo
-              </a>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Gratuit pour un premier logement · sans carte bancaire
-            </p>
-          </div>
-
-          <Reveal className="mx-auto mt-12 max-w-4xl" delay={100}>
-            <DashboardPreview />
-          </Reveal>
-        </div>
-      </section>
+      <HeroScene />
 
       {/* ---------------- Barre de confiance ---------------- */}
-      <section aria-label="Garanties" className="border-b border-border/60 bg-background">
-        <ul className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-4 py-5 sm:px-6">
+      <div className="relative border-y border-white/5">
+        <ul className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-center gap-x-10 gap-y-3 px-4 py-6 sm:px-6">
           {TRUST_BAR.map((item) => (
             <li
               key={item.label}
@@ -370,159 +326,296 @@ export default function LandingPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </div>
 
-      {/* ---------------- Démonstration ---------------- */}
-      <Section
-        id="demo"
-        eyebrow="Démonstration"
-        title="Découvrez Nireo en action"
-        description="Des aperçus illustratifs composés avec les vrais éléments d'interface de l'application — naviguez d'un écran à l'autre."
-      >
-        <DemoShowcase />
+      {/* ---------------- Le problème ---------------- */}
+      <Section>
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <Reveal>
+            <Eyebrow>Le problème</Eyebrow>
+            <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.5rem]">
+              Un patrimoine dispersé coûte du temps, de l’argent et du calme.
+            </h2>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+              Tableur qui se désynchronise, dossiers éparpillés, rappels de tête.
+              Plus le patrimoine grandit, plus chaque oubli se paie.
+            </p>
+            <ul className="mt-8 space-y-3">
+              {PAINS.map((pain) => (
+                <li key={pain.text} className="flex items-start gap-3">
+                  <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg border border-white/8 bg-white/[0.03] text-muted-foreground">
+                    <pain.icon className="size-3.5" />
+                  </span>
+                  <span className="text-sm leading-relaxed text-muted-foreground">
+                    {pain.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          {/* Nuage de chaos — chips ternes, désordonnées, penchées. */}
+          <Reveal delay={120}>
+            <div className="relative h-80 select-none sm:h-96" aria-hidden>
+              <div className="absolute inset-0 rounded-3xl border border-white/5 bg-white/[0.015]" />
+              {CHAOS.map((c) => (
+                <div
+                  key={c.label}
+                  className="absolute flex items-center gap-2 rounded-xl border border-white/8 bg-[oklch(0.22_0.01_264)] px-3 py-2 opacity-70 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)] grayscale"
+                  style={{ top: c.top, left: c.left, rotate: c.rot }}
+                >
+                  <c.icon className="size-4 text-muted-foreground/70" />
+                  <span className="text-xs text-muted-foreground/80">{c.label}</span>
+                </div>
+              ))}
+              <div className="absolute right-4 bottom-4 flex items-center gap-1.5 rounded-full bg-destructive/15 px-3 py-1 text-[11px] font-medium text-destructive">
+                <X className="size-3.5" /> 3 loyers non pointés
+              </div>
+            </div>
+          </Reveal>
+        </div>
       </Section>
 
-      {/* ---------------- Fonctionnalités ---------------- */}
-      <Section
-        id="fonctionnalites"
-        eyebrow="Fonctionnalités"
-        title="Huit modules, un seul espace"
-        description="Des fonctions concrètes, présentes dans l'application — pas de promesses en l'air."
-        className="border-t border-border/60 bg-muted/20"
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {MODULES.map((feature, i) => (
-            <Reveal key={feature.title} delay={(i % 4) * 60}>
-              <div className="group h-full rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform group-hover:scale-105 motion-reduce:transition-none">
-                  <feature.icon className="size-4" />
+      {/* ---------------- La solution ---------------- */}
+      <Section className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(50%_100%_at_50%_0%,var(--nireo-glow-a),transparent_70%)] opacity-20 blur-xl"
+        />
+        <SectionHead
+          eyebrow="La solution"
+          title="Nireo réunit tout. À jour,"
+          keyword="en permanence."
+          description="Un seul espace, vivant, où chaque bien devient un dossier clair. Fini les tableurs qui se contredisent."
+        />
+        <Reveal className="mt-14" delay={80}>
+          <div className="nireo-glass nireo-hairline mx-auto max-w-3xl rounded-3xl p-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {PILLARS.map((p) => (
+                <div
+                  key={p.label}
+                  className="flex items-center gap-3 rounded-2xl border border-white/6 bg-white/[0.02] p-4"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
+                    <p.icon className="size-5" />
+                  </span>
+                  <span className="text-sm font-medium text-foreground">{p.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      </Section>
+
+      {/* ---------------- Démonstration ---------------- */}
+      <Section id="demo" className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Démonstration"
+          title="Nireo"
+          keyword="en mouvement."
+          description="Des aperçus composés avec les vrais éléments d’interface de l’application — passez d’un écran à l’autre."
+        />
+        <Reveal className="mt-14">
+          <DemoShowcase />
+        </Reveal>
+      </Section>
+
+      {/* ---------------- Fonctionnalités (bento) ---------------- */}
+      <Section id="fonctionnalites" className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Fonctionnalités"
+          title="Huit modules,"
+          keyword="un seul espace."
+          description="Chacun avec sa propre identité — mais tous parfaitement coordonnés."
+        />
+        <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {MODULES.map((m, i) => (
+            <Reveal
+              key={m.title}
+              delay={(i % 3) * 70}
+              className={cn(
+                m.featured ? "sm:col-span-2 lg:col-span-3" : "lg:col-span-2"
+              )}
+            >
+              <SpotlightCard glow={m.glow} className="h-full p-6">
+                <span
+                  className={cn(
+                    "grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04]",
+                    m.tint
+                  )}
+                >
+                  <m.icon className="size-5" />
                 </span>
-                <h3 className="mt-3 text-sm font-medium text-foreground">{feature.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {feature.text}
-                </p>
-              </div>
+                <h3 className="mt-4 text-base font-semibold text-foreground">{m.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{m.text}</p>
+
+                {m.kind === "rents" ? (
+                  <div className="mt-5 space-y-2">
+                    {[
+                      { name: "T3 Tête d’Or", amount: "980 €", state: "Encaissé", color: "text-emerald-300", dot: "bg-emerald-400" },
+                      { name: "Studio Croix-Rousse", amount: "560 €", state: "En attente", color: "text-amber-300", dot: "bg-amber-400" },
+                      { name: "T2 Part-Dieu", amount: "840 €", state: "En retard", color: "text-rose-300", dot: "bg-rose-400" },
+                    ].map((r) => (
+                      <div
+                        key={r.name}
+                        className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-3 py-2"
+                      >
+                        <span className={cn("size-1.5 rounded-full", r.dot)} />
+                        <span className="min-w-0 flex-1 truncate text-xs text-foreground">{r.name}</span>
+                        <span className="text-xs font-medium text-foreground">{r.amount}</span>
+                        <span className={cn("text-[11px]", r.color)}>{r.state}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {m.kind === "stats" ? (
+                  <div className="mt-5 flex h-24 items-end gap-1.5" aria-hidden>
+                    {[46, 60, 54, 68, 63, 76, 71, 84, 80, 92].map((h, j) => (
+                      <span
+                        key={j}
+                        className={cn(
+                          "flex-1 rounded-t-[3px]",
+                          j === 9 ? "bg-gradient-to-t from-sky-400/50 to-sky-300" : "bg-white/10"
+                        )}
+                        style={{ height: `${h}%` }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </SpotlightCard>
             </Reveal>
           ))}
         </div>
       </Section>
 
       {/* ---------------- Comment ça marche ---------------- */}
-      <Section
-        id="comment-ca-marche"
-        eyebrow="Comment ça marche"
-        title="Opérationnel en quatre étapes"
-      >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, i) => (
-            <Reveal key={step.step} delay={i * 80}>
-              <div className="relative h-full rounded-xl border border-border bg-card p-5">
-                <div className="flex items-center justify-between">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
-                    {step.step}
+      <Section id="comment-ca-marche" className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Comment ça marche"
+          title="Opérationnel en"
+          keyword="quatre étapes."
+        />
+        <div className="relative mt-14">
+          {/* Connecteur */}
+          <div
+            aria-hidden
+            className="absolute top-9 right-[12%] left-[12%] hidden h-px bg-gradient-to-r from-transparent via-white/15 to-transparent lg:block"
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.step} delay={i * 90}>
+                <div className="relative h-full rounded-2xl border border-white/8 bg-white/[0.02] p-6 text-center">
+                  <span className="relative mx-auto grid size-12 place-items-center rounded-full bg-gradient-to-br from-primary/30 to-primary/5 text-base font-semibold text-foreground ring-1 ring-white/10">
+                    {s.step}
                   </span>
-                  {i < STEPS.length - 1 ? (
-                    <ArrowRight className="size-4 text-muted-foreground/50 max-lg:hidden" aria-hidden />
-                  ) : null}
+                  <h3 className="mt-4 text-sm font-semibold text-foreground">{s.title}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
                 </div>
-                <h3 className="mt-3 text-sm font-medium text-foreground">{step.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {step.text}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            ))}
+          </div>
         </div>
       </Section>
 
-      {/* ---------------- Pour qui ---------------- */}
-      <Section
-        eyebrow="Pour qui ?"
-        title="Pensé pour tous les bailleurs"
-        description="Du premier studio mis en location au patrimoine d'une SCI : la même rigueur, sans la complexité."
-        className="border-t border-border/60 bg-muted/20"
-      >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {PROFILES.map((profile, i) => (
-            <Reveal key={profile.title} delay={(i % 4) * 60}>
-              <div className="h-full rounded-xl border border-border bg-card p-5 text-center">
-                <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <profile.icon className="size-5" />
+      {/* ---------------- Pourquoi Nireo est différent ---------------- */}
+      <Section className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Pourquoi Nireo"
+          title="Le tableur a fait son temps."
+          keyword="Place à la maîtrise."
+          description="Ce qui distingue Nireo : moins d’efforts, plus de clarté, une vraie tranquillité."
+        />
+        <div className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {DIFFERENTIATORS.map((d, i) => (
+            <Reveal key={d.title} delay={(i % 4) * 70}>
+              <SpotlightCard glow={d.glow} className="h-full p-6">
+                <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-primary">
+                  <d.icon className="size-5" />
                 </span>
-                <h3 className="mt-3 text-sm font-medium text-foreground">{profile.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {profile.text}
-                </p>
-              </div>
+                <h3 className="mt-4 text-base font-semibold text-foreground">{d.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.text}</p>
+              </SpotlightCard>
             </Reveal>
           ))}
         </div>
+
+        {/* Comparaison Excel vs Nireo */}
+        <Reveal className="mt-8">
+          <div className="nireo-glass overflow-hidden rounded-3xl">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-white/8">
+                    <th className="p-4 text-left text-[11px] font-medium tracking-wider text-muted-foreground uppercase">&nbsp;</th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">Le tableur</th>
+                    <th className="bg-primary/[0.06] p-4 text-left text-sm font-semibold text-primary">
+                      Nireo
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON.map((row) => (
+                    <tr key={row.label} className="border-b border-white/6 last:border-0">
+                      <th scope="row" className="p-4 text-left text-sm font-medium text-foreground">
+                        {row.label}
+                      </th>
+                      <td className="p-4 text-muted-foreground">
+                        <span className="flex items-start gap-2">
+                          <X className="mt-0.5 size-4 shrink-0 text-muted-foreground/50" />
+                          {row.excel}
+                        </span>
+                      </td>
+                      <td className="bg-primary/[0.04] p-4 text-foreground">
+                        <span className="flex items-start gap-2">
+                          <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                          {row.nireo}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Reveal>
       </Section>
 
-      {/* ---------------- Comparaison Excel vs Nireo ---------------- */}
-      <Section
-        eyebrow="Comparaison"
-        title="La gestion locative mérite mieux qu'un tableur"
-        description="Excel a rendu service. Mais quand un patrimoine grandit, chaque oubli coûte de l'argent."
-      >
+      {/* ---------------- Chiffres ---------------- */}
+      <Section className="border-t border-white/5">
         <Reveal>
-          <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-            <table className="w-full min-w-[560px] border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th scope="col" className="p-4 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                    &nbsp;
-                  </th>
-                  <th scope="col" className="p-4 text-left text-sm font-semibold text-muted-foreground">
-                    Excel
-                  </th>
-                  <th scope="col" className="bg-primary/[0.04] p-4 text-left text-sm font-semibold text-primary">
-                    Nireo
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARISON.map((row) => (
-                  <tr key={row.label} className="border-b border-border/60 last:border-b-0">
-                    <th scope="row" className="p-4 text-left text-sm font-medium text-foreground">
-                      {row.label}
-                    </th>
-                    <td className="p-4 text-muted-foreground">
-                      <span className="flex items-start gap-2">
-                        <X className="mt-0.5 size-4 shrink-0 text-muted-foreground/60" aria-hidden />
-                        {row.excel}
-                      </span>
-                    </td>
-                    <td className="bg-primary/[0.04] p-4 text-foreground">
-                      <span className="flex items-start gap-2">
-                        <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-                        {row.immopilot}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+            {STATS.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                  <span className="nireo-shine">
+                    <CountUp value={s.value} suffix={s.suffix} />
+                  </span>
+                </p>
+                <p className="mx-auto mt-3 max-w-[16ch] text-sm text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
           </div>
         </Reveal>
       </Section>
 
       {/* ---------------- Sécurité ---------------- */}
-      <Section
-        eyebrow="Sécurité"
-        title="Vos données restent les vôtres"
-        description="Pas de grandes promesses : uniquement ce que l'application fait réellement, dès aujourd'hui."
-        className="border-t border-border/60 bg-muted/20"
-      >
-        <div className="grid gap-3 md:grid-cols-3">
-          {TRUST_POINTS.map((point, i) => (
-            <Reveal key={point.title} delay={i * 80}>
-              <div className="h-full rounded-xl border border-border bg-card p-5">
-                <point.icon className="size-5 text-primary" />
-                <h3 className="mt-3 text-sm font-medium text-foreground">{point.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {point.text}
-                </p>
+      <Section className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Sécurité"
+          title="Vos données"
+          keyword="restent les vôtres."
+          description="Pas de grandes promesses : uniquement ce que l’application fait réellement, dès aujourd’hui."
+        />
+        <div className="mt-14 grid gap-4 md:grid-cols-3">
+          {SECURITY.map((point, i) => (
+            <Reveal key={point.title} delay={i * 90}>
+              <div className="h-full rounded-2xl border border-white/8 bg-white/[0.02] p-6">
+                <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-primary">
+                  <point.icon className="size-5" />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-foreground">{point.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{point.text}</p>
               </div>
             </Reveal>
           ))}
@@ -530,56 +623,69 @@ export default function LandingPage() {
       </Section>
 
       {/* ---------------- Tarifs ---------------- */}
-      <Section
-        id="tarifs"
-        eyebrow="Tarifs"
-        title="Un plan pour chaque taille de patrimoine"
-        description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit."
-      >
-        <div className="space-y-10">
-          {/* L'offre Fondateur précède TOUJOURS les abonnements.
-              isStripeConfigured est lu côté serveur (jamais de clé exposée). */}
+      <Section id="tarifs" className="border-t border-white/5">
+        <SectionHead
+          eyebrow="Tarifs"
+          title="Un plan pour chaque"
+          keyword="taille de patrimoine."
+          description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit."
+        />
+        <div className="mt-14 space-y-10">
           <FounderOffer stripeEnabled={isStripeConfigured} />
           <PricingSection />
         </div>
       </Section>
 
       {/* ---------------- FAQ ---------------- */}
-      <Section
-        id="faq"
-        eyebrow="FAQ"
-        title="Questions fréquentes"
-        description="Les réponses correspondent aux fonctions réellement disponibles dans l'application."
-        className="border-t border-border/60 bg-muted/20"
-      >
-        <FaqSection />
+      <Section id="faq" className="border-t border-white/5">
+        <SectionHead
+          eyebrow="FAQ"
+          title="Questions"
+          keyword="fréquentes."
+          description="Les réponses correspondent aux fonctions réellement disponibles dans l’application."
+        />
+        <div className="mt-14">
+          <FaqSection />
+        </div>
       </Section>
 
       {/* ---------------- CTA final ---------------- */}
-      <section className="border-t border-border/60">
-        <div className="mx-auto w-full max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-20">
+      <section className="relative overflow-hidden border-t border-white/5">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_120%_at_50%_100%,var(--nireo-glow-a),transparent_65%)] opacity-25"
+        />
+        <div className="mx-auto w-full max-w-4xl px-4 py-24 text-center sm:px-6 sm:py-32">
           <Reveal>
-            <h2 className="text-2xl font-semibold tracking-tight text-balance text-foreground sm:text-3xl">
-              Reprenez le contrôle de votre patrimoine dès aujourd&apos;hui.
+            <div className="nireo-glass-soft mx-auto inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium text-foreground/80">
+              <Sparkles className="size-3.5 text-primary" />
+              Prêt en une minute
+            </div>
+            <h2 className="mx-auto mt-6 max-w-2xl text-4xl font-semibold text-balance text-foreground sm:text-5xl">
+              Reprenez le contrôle de votre patrimoine{" "}
+              <span className="nireo-shine">dès aujourd’hui.</span>
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">
               Créez votre compte gratuitement, ajoutez votre premier logement et
               retrouvez enfin tout au même endroit.
             </p>
-            <div className="mt-7 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/inscription"
-                className={buttonVariants({ size: "lg", className: "w-full px-5 sm:w-auto" })}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "nireo-glow h-11 w-full px-6 text-[0.95rem] sm:w-auto"
+                )}
               >
                 Créer mon compte gratuitement
+                <ArrowRight className="size-4" />
               </Link>
               <Link
                 href="/connexion"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "lg",
-                  className: "w-full px-5 sm:w-auto",
-                })}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "nireo-glass-soft h-11 w-full px-6 text-[0.95rem] text-foreground sm:w-auto"
+                )}
               >
                 Se connecter
               </Link>

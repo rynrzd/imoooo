@@ -57,14 +57,23 @@ export default async function PublicLayout({ children }: { children: React.React
   const { announcement_message } = await getPublicSiteSettings();
 
   return (
-    <div className="flex min-h-dvh flex-col scroll-smooth">
+    // Univers Nireo : thème sombre premium FORCÉ sur toute la vitrine
+    // (indépendant de la préférence système). « dark » active les variantes
+    // dark:* des composants réutilisés ; « nireo » applique la palette obsidienne.
+    <div className="dark nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background text-foreground">
+      {/* Décor ambiant fixe : aurore + grille en perspective + grain fin. */}
+      <div aria-hidden className="nireo-ambient">
+        <div className="nireo-grid" />
+        <div className="nireo-noise" />
+      </div>
+
       {announcement_message ? (
-        <div className="bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground">
+        <div className="relative z-10 border-b border-white/10 bg-primary/15 px-4 py-2 text-center text-sm font-medium text-foreground backdrop-blur">
           {announcement_message}
         </div>
       ) : null}
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <main className="relative z-10 flex-1">{children}</main>
       <SiteFooter />
     </div>
   );
