@@ -20,17 +20,23 @@ export default async function AppLayout({
   let settings = { announcement_message: "", maintenance_mode: false };
 
   if (isSupabaseConfigured) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Visiteur NON connecté : on ne montre jamais l'espace client. Direction la
+    // vitrine publique — ainsi le lien racine « / » est partageable sans compte
+    // (landing, /a-propos, /tarifs… sont ouverts à tous, aucune connexion requise).
+    if (!user) {
+      redirect("/accueil");
+    }
+
     // Un administrateur n'est pas un client Nireo : jamais de dashboard
     // propriétaire, jamais d'onboarding, jamais de quotas — direction /admin.
     // Contrôle serveur (table admin_users lue avec la clé secrète).
-    if (isAdminConfigured) {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user && (await isUserAdmin(user.id))) {
-        redirect("/admin");
-      }
+    if (isAdminConfigured && (await isUserAdmin(user.id))) {
+      redirect("/admin");
     }
     settings = await getPublicSiteSettings();
   }
