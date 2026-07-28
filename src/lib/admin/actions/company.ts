@@ -6,6 +6,7 @@ import { logAdminAction } from "../audit";
 import { requireAdminAction } from "../auth";
 import {
   coerceCompany,
+  getCompanyProfile,
   writeCompanyProfile,
   type CompanyProfile,
 } from "../company";
@@ -87,16 +88,48 @@ export async function saveCompanyProfile(input: CompanyProfile): Promise<ActionR
     }
 
     await writeCompanyProfile(profile, ctx.admin.id);
+
+    // VÉRIFICATION RÉELLE post-écriture : on relit la base et on compare aux
+    // valeurs envoyées. Un simple changement de state React ne suffit JAMAIS à
+    // afficher un succès — on ne le renvoie qu'après confirmation en base.
+    const persisted = await getCompanyProfile();
+    if (JSON.stringify(persisted) !== JSON.stringify(profile)) {
+      logger.error(
+        "admin/company",
+        "Vérification post-écriture : les valeurs relues ne correspondent pas à celles envoyées."
+      );
+      await logAdminAction(ctx, {
+        action: "company.profile",
+        targetLabel: "company_profile",
+        result: "error",
+        detail: "verification_mismatch",
+      });
+      return {
+        ok: false,
+        error:
+          "Enregistrement non confirmé : la base n'a pas renvoyé les nouvelles valeurs. Réessayez, ou vérifiez la configuration Supabase.",
+      };
+    }
+
     await logAdminAction(ctx, {
       action: "company.profile",
       targetLabel: "company_profile",
       newValue: { published: profile.published, name: profile.name },
     });
 
-    // La vitrine publique et la page admin sont rafraîchies.
-    revalidatePath("/entreprise");
+    // Invalidation du cache de la VITRINE : la page de contenu est /a-propos
+    // (/entreprise n'est qu'une redirection). /a-propos est déjà `force-dynamic`
+    // (relecture à chaque requête) ; ces revalidations couvrent la home et la
+    // page admin, et restent correctes si /a-propos redevenait cache-able.
+    revalidatePath("/a-propos");
+    revalidatePath("/");
     revalidatePath("/admin/entreprise");
-    return { ok: true, message: "Présentation enregistrée." };
+    return {
+      ok: true,
+      message: profile.published
+        ? "Enregistré et publié sur la vitrine."
+        : "Brouillon enregistré — la vitrine reste masquée (active « Vitrine publiée » pour l'afficher).",
+    };
   } catch (e) {
     logger.error("admin/company", e);
     await logAdminAction(ctx, {

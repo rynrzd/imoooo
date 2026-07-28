@@ -11,6 +11,15 @@ export const metadata: Metadata = {
 };
 
 /**
+ * Rendu DYNAMIQUE obligatoire : la vitrine doit refléter en direct le contenu
+ * édité dans /admin/entreprise. Sans ceci, Next fige la page au build (elle
+ * apparaissait dans prerender-manifest.json) et aucune modification admin ne
+ * s'affiche sans redéploiement. Page marketing à faible trafic → coût négligeable.
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/**
  * /a-propos — vitrine officielle de Nireo, alimentée par le contenu éditable
  * depuis /admin/entreprise. Sections vides masquées automatiquement.
  */

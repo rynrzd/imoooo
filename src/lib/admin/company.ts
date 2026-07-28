@@ -324,21 +324,56 @@ export async function getCompanyProfile(): Promise<CompanyProfile> {
   }
 }
 
-/** Lecture publique via RPC (aucun secret). Jamais bloquant. */
+/**
+ * Lecture publique de la vitrine (server-only, appelée par /a-propos).
+ *
+ * SOURCE DE VÉRITÉ UNIQUE : la ligne `company_profile` de site_settings —
+ * exactement celle qu'écrit l'admin. Trois niveaux, du plus fiable au repli :
+ *
+ *  1. Lecture DIRECTE via la clé service (contourne la RLS, serveur uniquement,
+ *     jamais exposée au navigateur) → garantit que le public lit la MÊME ligne
+ *     que l'admin, SANS dépendre d'aucune migration/RPC.
+ *  2. RPC publique `public_company_profile` (si la migration 20260728090000 est
+ *     appliquée) — repli si la clé service venait à manquer.
+ *  3. Défauts riches — uniquement si tout le reste échoue (la page ne casse jamais).
+ *
+ * Un profil vide (`{}`) → coerce vers les défauts : c'est le comportement voulu
+ * au tout premier chargement, avant la première sauvegarde admin.
+ */
 export async function getPublicCompanyProfile(): Promise<CompanyProfile> {
-  if (!isSupabaseConfigured) return DEFAULT_COMPANY_PROFILE;
-  try {
-    const { url, publishableKey } = getSupabaseEnv();
-    const supabase = createBareClient(url, publishableKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data, error } = await supabase.rpc("public_company_profile");
-    if (error) throw new Error(error.message);
-    return coerceCompany(data ?? {});
-  } catch (e) {
-    logger.error("admin/company", e);
-    return DEFAULT_COMPANY_PROFILE;
+  // 1) Lecture directe (service-role) : chemin principal, indépendant de la migration.
+  if (isAdminConfigured) {
+    try {
+      const { data, error } = await createAdminClient()
+        .from("site_settings")
+        .select("value")
+        .eq("key", "company_profile")
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return coerceCompany(data?.value ?? {});
+    } catch (e) {
+      logger.error("public/company (lecture directe)", e);
+      // On tente le repli RPC ci-dessous plutôt que d'abandonner sur les défauts.
+    }
   }
+
+  // 2) Repli : RPC publique (nécessite la migration 20260728090000).
+  if (isSupabaseConfigured) {
+    try {
+      const { url, publishableKey } = getSupabaseEnv();
+      const supabase = createBareClient(url, publishableKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data, error } = await supabase.rpc("public_company_profile");
+      if (error) throw new Error(error.message);
+      return coerceCompany(data ?? {});
+    } catch (e) {
+      logger.error("public/company (repli RPC)", e);
+    }
+  }
+
+  // 3) Dernier recours : défauts riches (la vitrine ne casse jamais).
+  return DEFAULT_COMPANY_PROFILE;
 }
 
 /** Écriture (appelée uniquement depuis la Server Action admin). */
