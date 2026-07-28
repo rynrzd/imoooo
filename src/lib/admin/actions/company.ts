@@ -190,6 +190,7 @@ export async function commitCompanyVideo(input: {
     });
 
     revalidatePath("/a-propos");
+    revalidatePath("/entreprise");
     revalidatePath("/");
     revalidatePath("/admin/entreprise");
     return { ok: true, video: profile.video as CompanyVideo, message: "Vidéo publiée sur la vitrine." };
@@ -223,6 +224,7 @@ export async function deleteCompanyVideo(): Promise<ActionResult> {
     });
 
     revalidatePath("/a-propos");
+    revalidatePath("/entreprise");
     revalidatePath("/");
     revalidatePath("/admin/entreprise");
     return { ok: true, message: "Vidéo supprimée." };
@@ -352,6 +354,7 @@ export async function saveCompanyProfile(input: CompanyProfile): Promise<ActionR
     // (relecture à chaque requête) ; ces revalidations couvrent la home et la
     // page admin, et restent correctes si /a-propos redevenait cache-able.
     revalidatePath("/a-propos");
+    revalidatePath("/entreprise");
     revalidatePath("/");
     revalidatePath("/admin/entreprise");
     return {
