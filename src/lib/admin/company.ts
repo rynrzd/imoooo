@@ -71,12 +71,31 @@ export interface SocialLink {
   platform: string;
   url: string;
 }
+export interface RecruitmentReason {
+  title: string;
+  text: string;
+}
+export interface RecruitmentProfile {
+  label: string;
+}
+export interface Recruitment {
+  intro: string;
+  reasons: RecruitmentReason[];
+  lookingFor: RecruitmentProfile[];
+  ctaEmail: string;
+}
 
 export interface CompanyProfile {
   published: boolean;
   name: string;
+  shortPitch: string;
   slogan: string;
   logoUrl: string;
+  logoDarkUrl: string;
+  foundedYear: string;
+  city: string;
+  country: string;
+  website: string;
   story: string;
   vision: string;
   mission: string;
@@ -93,6 +112,7 @@ export interface CompanyProfile {
   press: PressItem[];
   faq: CompanyFaqItem[];
   social: SocialLink[];
+  recruitment: Recruitment;
   contactEmail: string;
   contactPhone: string;
   address: string;
@@ -104,8 +124,14 @@ export interface CompanyProfile {
 export const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
   published: true,
   name: "Nireo",
+  shortPitch: "Le centre de contrôle du patrimoine des propriétaires bailleurs.",
   slogan: "Le poste de pilotage de votre patrimoine immobilier.",
   logoUrl: "",
+  logoDarkUrl: "",
+  foundedYear: "2026",
+  city: "Lyon",
+  country: "France",
+  website: "",
   story:
     "Nireo est né d’un constat simple : gérer un patrimoine locatif ne devrait pas rimer avec tableurs, paperasse et stress. Nous construisons l’outil que nous aurions voulu avoir — clair, rigoureux et élégant — pour que chaque propriétaire garde le contrôle, quel que soit le nombre de biens.",
   vision:
@@ -151,6 +177,21 @@ export const DEFAULT_COMPANY_PROFILE: CompanyProfile = {
     { question: "Nireo est-il adapté à une SCI ?", answer: "Oui : centralisez tous les biens de la société, avec documents classés et exports." },
   ],
   social: [],
+  recruitment: {
+    intro:
+      "Nireo est une jeune entreprise technologique en pleine construction. Nous cherchons des personnes ambitieuses qui veulent avoir un impact réel sur un produit exigeant.",
+    reasons: [
+      { title: "Un produit ambitieux", text: "Participez à la construction d’un logiciel pensé pour devenir une référence." },
+      { title: "Un impact réel", text: "Vos décisions comptent : chaque contribution se voit directement dans le produit." },
+      { title: "Une évolution rapide", text: "Rejoignez un projet jeune et grandissez avec lui." },
+    ],
+    lookingFor: [
+      { label: "Développeurs produit" },
+      { label: "Designers" },
+      { label: "Partenaires & apporteurs d’affaires" },
+    ],
+    ctaEmail: "nireo.contacte@gmail.com",
+  },
   contactEmail: "nireo.contacte@gmail.com",
   contactPhone: "",
   address: "",
@@ -169,6 +210,22 @@ function mapItems<T>(v: unknown, fallback: T[], map: (o: Record<string, unknown>
   return v.map((x) => map(obj(x)));
 }
 
+function coerceRecruitment(v: unknown, d: Recruitment): Recruitment {
+  if (!v || typeof v !== "object") return d;
+  const o = obj(v);
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(o, k);
+  return {
+    intro: str(o.intro, d.intro),
+    reasons: has("reasons")
+      ? mapItems(o.reasons, d.reasons, (x) => ({ title: str(x.title), text: str(x.text) }))
+      : d.reasons,
+    lookingFor: has("lookingFor")
+      ? mapItems(o.lookingFor, d.lookingFor, (x) => ({ label: str(x.label) }))
+      : d.lookingFor,
+    ctaEmail: str(o.ctaEmail, d.ctaEmail),
+  };
+}
+
 /**
  * Fusionne la valeur stockée sur les défauts riches : les champs absents
  * gardent leur valeur par défaut ; les tableaux présents (même vides)
@@ -182,8 +239,14 @@ export function coerceCompany(raw: unknown): CompanyProfile {
   return {
     published: bool(r.published, d.published),
     name: str(r.name, d.name),
+    shortPitch: str(r.shortPitch, d.shortPitch),
     slogan: str(r.slogan, d.slogan),
     logoUrl: str(r.logoUrl, d.logoUrl),
+    logoDarkUrl: str(r.logoDarkUrl, d.logoDarkUrl),
+    foundedYear: str(r.foundedYear, d.foundedYear),
+    city: str(r.city, d.city),
+    country: str(r.country, d.country),
+    website: str(r.website, d.website),
     story: str(r.story, d.story),
     vision: str(r.vision, d.vision),
     mission: str(r.mission, d.mission),
@@ -234,6 +297,7 @@ export function coerceCompany(raw: unknown): CompanyProfile {
     social: has("social")
       ? mapItems(r.social, d.social, (o) => ({ platform: str(o.platform), url: str(o.url) }))
       : d.social,
+    recruitment: coerceRecruitment(r.recruitment, d.recruitment),
     contactEmail: str(r.contactEmail, d.contactEmail),
     contactPhone: str(r.contactPhone, d.contactPhone),
     address: str(r.address, d.address),

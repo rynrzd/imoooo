@@ -13,7 +13,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Comment ça marche", href: "/#comment-ca-marche" },
       { label: "Tarifs", href: "/tarifs" },
       { label: "FAQ", href: "/#faq" },
-      { label: "L’entreprise", href: "/entreprise" },
+      { label: "À propos", href: "/a-propos" },
       { label: "Contact", href: "/contact" },
     ],
   },

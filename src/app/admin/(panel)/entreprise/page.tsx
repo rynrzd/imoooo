@@ -27,7 +27,7 @@ export default async function AdminCompanyPage() {
           </p>
         </div>
         <Link
-          href="/entreprise"
+          href="/a-propos"
           target="_blank"
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >

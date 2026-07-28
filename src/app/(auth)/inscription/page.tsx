@@ -2,18 +2,19 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MailCheck } from "lucide-react";
+import { Check, Eye, EyeOff, Loader2, Lock, MailCheck, ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { FormField } from "@/components/shared/form-field";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
+import { cn } from "@/lib/utils";
 
 const schema = z
   .object({
@@ -21,30 +22,73 @@ const schema = z
     email: z.string().email("E-mail invalide."),
     password: z.string().min(8, "8 caractères minimum."),
     confirm: z.string(),
+    terms: z.boolean().refine((v) => v === true, "Vous devez accepter les conditions."),
   })
-  .refine((values) => values.password === values.confirm, {
+  .refine((v) => v.password === v.confirm, {
     path: ["confirm"],
     message: "Les mots de passe ne correspondent pas.",
   });
 
 type FormValues = z.infer<typeof schema>;
 
+/* Force du mot de passe : longueur + variété de caractères (0 → 4). */
+function passwordScore(pw: string): number {
+  if (!pw) return 0;
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (pw.length >= 12) s++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+  if (/\d/.test(pw)) s++;
+  if (/[^a-zA-Z0-9]/.test(pw)) s++;
+  return Math.min(4, s);
+}
+const SCORE_LABEL = ["", "Très faible", "Faible", "Correct", "Excellent"];
+const SCORE_COLOR = ["bg-white/10", "bg-rose-400", "bg-amber-400", "bg-sky-400", "bg-emerald-400"];
+
+function PasswordStrength({ value }: { value: string }) {
+  const score = passwordScore(value);
+  return (
+    <div className="mt-2" aria-live="polite">
+      <div className="flex gap-1.5">
+        {[1, 2, 3, 4].map((i) => (
+          <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= score ? SCORE_COLOR[score] : "bg-white/10")} />
+        ))}
+      </div>
+      {value ? <p className="mt-1.5 text-[11px] text-muted-foreground">Sécurité : <span className="text-foreground">{SCORE_LABEL[score]}</span></p> : null}
+    </div>
+  );
+}
+
+const TRUST = [
+  { icon: ShieldCheck, label: "Données protégées" },
+  { icon: Check, label: "Sans engagement" },
+  { icon: Lock, label: "Gratuit disponible" },
+];
+
 export default function SignupPage() {
   const [pending, setPending] = React.useState(false);
   const [sentTo, setSentTo] = React.useState<string | null>(null);
+  const [showPw, setShowPw] = React.useState(false);
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    mode: "onChange",
+    defaultValues: { fullName: "", email: "", password: "", confirm: "", terms: false },
+  });
+
+  const password = useWatch({ control, name: "password" }) ?? "";
+  const confirm = useWatch({ control, name: "confirm" }) ?? "";
+  const matches = Boolean(password) && password === confirm;
 
   const onSubmit = handleSubmit(async (values) => {
-    if (pending) return; // double clic
+    if (pending) return;
     setPending(true);
     const supabase = createClient();
-    // NEXT_PUBLIC_SITE_URL : le lien de confirmation pointe toujours vers
-    // l'URL canonique du site (localhost en dev, domaine en production).
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
@@ -58,10 +102,6 @@ export default function SignupPage() {
       toast.error(authErrorMessage(error, "signup"));
       return;
     }
-    // Adresse déjà enregistrée : Supabase renvoie un utilisateur factice sans
-    // identité et N'ENVOIE PAS d'e-mail. Aucun compte n'est créé — l'écran
-    // reste neutre (pas d'énumération) et n'annonce jamais un nouveau compte.
-    // Confirmation obligatoire : pas de session ici, jamais d'accès direct.
     if (data.session) {
       window.location.assign("/");
       return;
@@ -71,11 +111,11 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      title="Créer un compte"
-      description="Commencez à piloter votre patrimoine en quelques minutes."
+      title="Créer votre espace"
+      description="Le centre de contrôle de votre patrimoine, prêt en quelques minutes."
       footer={
         <p>
-          Déjà inscrit ?{" "}
+          Déjà un compte ?{" "}
           <Link href="/connexion" className="font-medium text-foreground underline-offset-2 hover:underline">
             Se connecter
           </Link>
@@ -83,63 +123,97 @@ export default function SignupPage() {
       }
     >
       {sentTo ? (
-        // Message volontairement neutre : identique que l'adresse soit nouvelle
-        // ou déjà enregistrée (aucune énumération de comptes, aucune fausse
-        // promesse de création).
         <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700">
-            <MailCheck className="size-5" />
+          <span className="grid size-12 place-items-center rounded-2xl bg-emerald-400/12 text-emerald-300">
+            <MailCheck className="size-6" />
           </span>
           <p className="text-sm text-foreground">
-            Si l&apos;adresse <span className="font-medium">{sentTo}</span> peut
-            être utilisée, vous allez recevoir un e-mail de confirmation.
+            Si l’adresse <span className="font-medium">{sentTo}</span> peut être utilisée, vous allez recevoir un e-mail de confirmation.
           </p>
           <p className="text-xs text-muted-foreground">
-            Cliquez sur le lien reçu pour activer votre compte. Rien reçu après
-            quelques minutes ? Cette adresse a peut-être déjà un compte.
+            Cliquez sur le lien reçu pour activer votre compte. Rien après quelques minutes ? Cette adresse a peut-être déjà un compte.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            <Button variant="outline" size="sm" render={<Link href="/connexion" />}>
-              Se connecter
-            </Button>
-            <Button variant="ghost" size="sm" render={<Link href="/mot-de-passe-oublie" />}>
-              Mot de passe oublié
-            </Button>
+            <Button variant="outline" size="sm" render={<Link href="/connexion" />}>Se connecter</Button>
+            <Button variant="ghost" size="sm" render={<Link href="/mot-de-passe-oublie" />}>Mot de passe oublié</Button>
           </div>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField label="Nom complet" htmlFor="fullName" error={errors.fullName?.message}>
-            <Input id="fullName" autoComplete="name" placeholder="Camille Roux" {...register("fullName")} />
-          </FormField>
-          <FormField label="Adresse e-mail" htmlFor="email" error={errors.email?.message}>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="vous@exemple.fr"
-              {...register("email")}
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <Label htmlFor="fullName">Nom complet</Label>
+            <Input id="fullName" autoComplete="name" placeholder="Camille Roux" aria-invalid={!!errors.fullName} {...register("fullName")} />
+            {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Adresse e-mail</Label>
+            <Input id="email" type="email" autoComplete="email" placeholder="vous@exemple.fr" aria-invalid={!!errors.email} {...register("email")} />
+            {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Mot de passe</Label>
+            <div className="relative">
+              <Input id="password" type={showPw ? "text" : "password"} autoComplete="new-password" className="pr-10" aria-invalid={!!errors.password} {...register("password")} />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+            <PasswordStrength value={password} />
+            {errors.password ? <p className="text-xs text-destructive">{errors.password.message}</p> : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="confirm">Confirmer le mot de passe</Label>
+            <div className="relative">
+              <Input id="confirm" type={showPw ? "text" : "password"} autoComplete="new-password" className="pr-10" aria-invalid={!!errors.confirm} {...register("confirm")} />
+              {matches ? (
+                <span className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-emerald-300" aria-hidden>
+                  <Check className="size-4" />
+                </span>
+              ) : null}
+            </div>
+            {errors.confirm ? <p className="text-xs text-destructive">{errors.confirm.message}</p> : null}
+          </div>
+
+          <label className="flex cursor-pointer items-start gap-2.5 text-xs text-muted-foreground select-none">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 shrink-0 rounded border-input bg-transparent text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
+              {...register("terms")}
             />
-          </FormField>
-          <FormField label="Mot de passe" htmlFor="password" error={errors.password?.message}>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              {...register("password")}
-            />
-          </FormField>
-          <FormField label="Confirmer le mot de passe" htmlFor="confirm" error={errors.confirm?.message}>
-            <Input
-              id="confirm"
-              type="password"
-              autoComplete="new-password"
-              {...register("confirm")}
-            />
-          </FormField>
+            <span>
+              J’accepte les{" "}
+              <Link href="/cgu" target="_blank" className="text-foreground underline-offset-2 hover:underline">conditions d’utilisation</Link>{" "}
+              et la{" "}
+              <Link href="/confidentialite" target="_blank" className="text-foreground underline-offset-2 hover:underline">politique de confidentialité</Link>.
+            </span>
+          </label>
+          {errors.terms ? <p className="-mt-2 text-xs text-destructive">{errors.terms.message}</p> : null}
+
           <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
-            {pending ? "Création…" : "Créer mon compte"}
+            {pending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" /> Création…
+              </>
+            ) : (
+              "Créer mon compte gratuitement"
+            )}
           </Button>
+
+          <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 pt-1">
+            {TRUST.map((t) => (
+              <li key={t.label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <t.icon className="size-3.5 text-primary/80" /> {t.label}
+              </li>
+            ))}
+          </ul>
         </form>
       )}
     </AuthShell>

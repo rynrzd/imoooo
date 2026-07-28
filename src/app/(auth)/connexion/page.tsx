@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, setPending] = React.useState(false);
+  const [showPw, setShowPw] = React.useState(false);
   // Case cochée par défaut : session persistante sur cet appareil.
   const [remember, setRemember] = React.useState(true);
 
@@ -93,12 +95,23 @@ function LoginForm() {
         />
       </FormField>
       <FormField label="Mot de passe" htmlFor="password" error={errors.password?.message}>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPw ? "text" : "password"}
+            autoComplete="current-password"
+            className="pr-10"
+            {...register("password")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPw((v) => !v)}
+            aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
       </FormField>
       <div className="flex items-center justify-between gap-3">
         <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground select-none">
