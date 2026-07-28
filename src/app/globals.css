@@ -217,55 +217,55 @@
 /* ================================================================== */
 
 .nireo {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* Canvas « atelier » : papier minéral, blanc cassé au sous-ton vert-gris. */
-  --background: oklch(0.985 0.004 155);
-  --foreground: oklch(0.23 0.017 235);
+  /* Fond obsidienne profond, léger sous-ton bleu nuit. */
+  --background: oklch(0.155 0.016 265);
+  --foreground: oklch(0.97 0.006 262);
 
-  /* Surfaces : papier blanc pur, légèrement soulevées. */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.23 0.017 235);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.23 0.017 235);
+  /* Surfaces légèrement soulevées (verre, cartes). */
+  --card: oklch(0.198 0.017 264);
+  --card-foreground: oklch(0.97 0.006 262);
+  --popover: oklch(0.205 0.018 264);
+  --popover-foreground: oklch(0.97 0.006 262);
 
-  /* Signature Nireo : vert émeraude minéral, profond, faible saturation.
-     Un seul accent, employé avec retenue — le fil conducteur de la vitrine. */
-  --primary: oklch(0.52 0.113 162);
-  --primary-foreground: oklch(0.99 0.008 155);
+  /* Accent signature : bleu-ardoise lumineux, faible chroma → premium. */
+  --primary: oklch(0.76 0.078 259);
+  --primary-foreground: oklch(0.17 0.02 265);
 
-  --secondary: oklch(0.965 0.006 160);
-  --secondary-foreground: oklch(0.28 0.018 235);
-  --muted: oklch(0.965 0.006 160);
-  --muted-foreground: oklch(0.505 0.013 232);
-  --accent: oklch(0.955 0.014 162);
-  --accent-foreground: oklch(0.28 0.02 235);
-  --destructive: oklch(0.58 0.2 27);
+  --secondary: oklch(0.245 0.018 264);
+  --secondary-foreground: oklch(0.965 0.006 262);
+  --muted: oklch(0.245 0.018 264);
+  --muted-foreground: oklch(0.73 0.016 264);
+  --accent: oklch(0.275 0.021 264);
+  --accent-foreground: oklch(0.97 0.006 262);
+  --destructive: oklch(0.7 0.19 22);
 
-  /* Traits de précision « blueprint » : encre très diluée, nette. */
-  --border: oklch(0.905 0.007 220);
-  --input: oklch(0.88 0.009 220);
-  --ring: oklch(0.52 0.113 162);
+  /* Traits d'un cheveu, très discrets sur fond sombre. */
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.76 0.078 259);
 
-  --chart-1: oklch(0.52 0.113 162);
-  --chart-2: oklch(0.58 0.088 200);
-  --chart-3: oklch(0.63 0.1 145);
-  --chart-4: oklch(0.7 0.12 85);
-  --chart-5: oklch(0.6 0.15 30);
+  --chart-1: oklch(0.76 0.078 259);
+  --chart-2: oklch(0.74 0.08 300);
+  --chart-3: oklch(0.76 0.09 210);
+  --chart-4: oklch(0.82 0.09 160);
+  --chart-5: oklch(0.8 0.09 60);
 
   /* Rayons généreux : douceur haut de gamme. */
   --radius: 1rem;
 
-  /* Encre & émeraude signature (référencées par les composants bespoke). */
-  --nireo-ink: oklch(0.23 0.017 235);
-  --nireo-emerald: oklch(0.52 0.113 162);
-  --nireo-emerald-strong: oklch(0.45 0.128 162);
-  --nireo-emerald-soft: oklch(0.63 0.1 162);
+  /* Signature (noms « emerald » hérités, désormais pointés sur le BLEU-ardoise
+     pour que les composants bespoke — courbe/donut du Hero — soient bleus). */
+  --nireo-ink: oklch(0.97 0.006 262);
+  --nireo-emerald: oklch(0.76 0.078 259);
+  --nireo-emerald-strong: oklch(0.7 0.09 262);
+  --nireo-emerald-soft: oklch(0.82 0.06 259);
 
-  /* Washes ambiants très diffus (émeraude + teal minéral + vert tendre). */
-  --nireo-glow-a: oklch(0.72 0.1 162);
-  --nireo-glow-b: oklch(0.74 0.07 200);
-  --nireo-glow-c: oklch(0.8 0.06 135);
+  /* Halos de l'aurore (ardoise + violet doux + teal). */
+  --nireo-glow-a: oklch(0.72 0.12 262);
+  --nireo-glow-b: oklch(0.7 0.12 300);
+  --nireo-glow-c: oklch(0.78 0.11 205);
 
   background-color: var(--background);
   color: var(--foreground);
@@ -282,30 +282,30 @@
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(48% 40% at 12% -6%, oklch(0.72 0.1 162 / 0.11), transparent 70%),
-    radial-gradient(44% 38% at 94% -2%, oklch(0.74 0.07 200 / 0.09), transparent 68%),
-    radial-gradient(64% 52% at 50% 114%, oklch(0.8 0.06 135 / 0.08), transparent 74%),
+    radial-gradient(60% 42% at 18% 0%, oklch(0.72 0.12 262 / 0.16), transparent 70%),
+    radial-gradient(52% 40% at 88% 6%, oklch(0.7 0.12 300 / 0.13), transparent 68%),
+    radial-gradient(70% 55% at 50% 108%, oklch(0.78 0.11 205 / 0.1), transparent 72%),
     var(--background);
 }
 
-/* Grille « blueprint » : encre très diluée, s'estompe vers le haut. */
+/* Grille fine en perspective, s'estompe vers le haut. */
 .nireo-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(to right, oklch(0.42 0.02 235 / 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.42 0.02 235 / 0.05) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(132% 82% at 50% -12%, #000 22%, transparent 82%);
-  -webkit-mask-image: radial-gradient(132% 82% at 50% -12%, #000 22%, transparent 82%);
+    linear-gradient(to right, oklch(1 0 0 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image: radial-gradient(120% 70% at 50% 0%, #000 30%, transparent 78%);
 }
 
-/* Grain très fin — casse les aplats, effet « papier / print ». */
+/* Grain photographique très fin — casse les aplats, effet « print ». */
 .nireo-noise {
   position: absolute;
   inset: 0;
-  opacity: 0.028;
-  mix-blend-mode: multiply;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -313,52 +313,56 @@
 /*  Surfaces « verre » — translucidité, flou, liseré lumineux interne. */
 /* ------------------------------------------------------------------ */
 
-/* Panneau « verre » clair : papier blanc soulevé, liseré net, ombre douce. */
+/* Surface « verre » — translucidité, flou, liseré lumineux interne. */
 @utility nireo-glass {
-  background: color-mix(in oklch, var(--card), transparent 4%);
-  backdrop-filter: blur(12px) saturate(1.08);
-  -webkit-backdrop-filter: blur(12px) saturate(1.08);
-  border: 1px solid var(--border);
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--card), transparent 22%),
+      color-mix(in oklch, var(--card), transparent 42%)
+    );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 0.09);
   box-shadow:
-    0 1px 0 0 oklch(1 0 0 / 0.9) inset,
-    0 1px 2px oklch(0.2 0.02 240 / 0.05),
-    0 26px 54px -30px oklch(0.28 0.03 235 / 0.3);
+    0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+    0 40px 80px -40px oklch(0 0 0 / 0.7);
 }
 
 @utility nireo-glass-soft {
-  background: color-mix(in oklch, var(--card), transparent 16%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--card), transparent 30%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 0.08);
 }
 
-/* Panneau plein (sans flou) — cartes solides. */
+/* Panneau plein (sans flou) — cartes solides sur fond sombre. */
 @utility nireo-panel {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid oklch(1 0 0 / 0.08);
   box-shadow:
-    0 1px 2px oklch(0.2 0.02 240 / 0.04),
-    0 20px 44px -30px oklch(0.28 0.03 235 / 0.26);
+    0 1px 0 0 oklch(1 0 0 / 0.04) inset,
+    0 24px 50px -34px oklch(0 0 0 / 0.75);
 }
 
 /* Micro-grille blueprint pour l'intérieur des panneaux. */
 @utility nireo-blueprint {
   background-image:
-    linear-gradient(to right, oklch(0.42 0.02 235 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.42 0.02 235 / 0.06) 1px, transparent 1px);
+    linear-gradient(to right, oklch(1 0 0 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.05) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
-/* Texte à dégradé émeraude — réservé aux mots-clés des titres.
-   `color` sert de repli si background-clip:text n'est pas supporté. */
+/* Texte à dégradé « aurore » — réservé aux mots-clés des titres. */
 @utility nireo-shine {
   color: var(--nireo-emerald-strong);
   background: linear-gradient(
     100deg,
-    oklch(0.5 0.13 168) 0%,
-    oklch(0.55 0.115 158) 30%,
-    oklch(0.53 0.09 196) 62%,
-    oklch(0.49 0.13 150) 100%
+    oklch(0.9 0.03 262) 0%,
+    oklch(0.84 0.1 262) 26%,
+    oklch(0.82 0.11 300) 52%,
+    oklch(0.86 0.09 205) 78%,
+    oklch(0.92 0.03 262) 100%
   );
   background-size: 220% 100%;
   -webkit-background-clip: text;
@@ -369,12 +373,12 @@
   }
 }
 
-/* Halo émeraude discret sous les CTA / cartes clés. */
+/* Halo lumineux au survol des CTA / cartes clés. */
 @utility nireo-glow {
   box-shadow:
-    0 1px 2px oklch(0.2 0.02 240 / 0.08),
-    0 12px 30px -12px oklch(0.52 0.113 162 / 0.5),
-    0 0 0 1px oklch(0.52 0.113 162 / 0.08);
+    0 0 0 1px oklch(1 0 0 / 0.06) inset,
+    0 10px 30px -12px oklch(0.76 0.12 262 / 0.55),
+    0 0 60px -18px oklch(0.72 0.12 300 / 0.35);
 }
 
 /* Balayage lumineux « sheen » au survol — moderne, discret (CTA). */
@@ -404,7 +408,7 @@
   }
 }
 
-/* Liseré supérieur émeraude — trait de précision en tête de panneau. */
+/* Liseré supérieur façon métal poli. */
 @utility nireo-hairline {
   position: relative;
   &::before {
@@ -413,7 +417,7 @@
     inset-inline: 12%;
     top: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, oklch(0.52 0.113 162 / 0.4), transparent);
+    background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.5), transparent);
   }
 }
 
@@ -471,13 +475,13 @@
 
 @keyframes nireo-pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 oklch(0.52 0.113 162 / 0.45);
+    box-shadow: 0 0 0 0 oklch(0.76 0.12 262 / 0.5);
   }
   70% {
-    box-shadow: 0 0 0 9px oklch(0.52 0.113 162 / 0);
+    box-shadow: 0 0 0 9px oklch(0.76 0.12 262 / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 oklch(0.52 0.113 162 / 0);
+    box-shadow: 0 0 0 0 oklch(0.76 0.12 262 / 0);
   }
 }
 
@@ -549,11 +553,11 @@
   border-radius: 0.7rem;
   padding-inline: 0.9rem;
   font-size: 0.92rem;
-  background: color-mix(in oklch, var(--card), var(--muted) 45%);
+  background: color-mix(in oklch, var(--card), transparent 45%);
 }
 
 .nireo-auth input:not([type="checkbox"]):focus-visible {
-  background: var(--card);
+  background: color-mix(in oklch, var(--card), transparent 25%);
 }
 
 .nireo-auth button[type="submit"] {
@@ -561,27 +565,7 @@
   border-radius: 0.7rem;
   font-size: 0.92rem;
   box-shadow:
-    0 1px 2px oklch(0.2 0.02 240 / 0.1),
-    0 12px 30px -12px oklch(0.52 0.113 162 / 0.55);
+    0 0 0 1px oklch(1 0 0 / 0.06) inset,
+    0 10px 30px -12px oklch(0.76 0.12 262 / 0.6);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Scope « Atelier » réutilisable HORS vitrine (ex. éditeur admin      */
-/*  entreprise) : bascule l'accent primaire sur l'émeraude signature   */
-/*  sans toucher les tokens globaux de l'app/admin.                    */
-/* ------------------------------------------------------------------ */
-.atelier-scope {
-  --primary: oklch(0.52 0.113 162);
-  --primary-foreground: oklch(0.99 0.008 155);
-  --ring: oklch(0.52 0.113 162);
-  --nireo-emerald: oklch(0.52 0.113 162);
-  --nireo-emerald-strong: oklch(0.45 0.128 162);
-}
-
-/* Micro-grille blueprint (émeraude très diluée) pour l'en-tête d'éditeur. */
-.atelier-rule {
-  background-image:
-    linear-gradient(to right, oklch(0.52 0.113 162 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.52 0.113 162 / 0.07) 1px, transparent 1px);
-  background-size: 20px 20px;
-}

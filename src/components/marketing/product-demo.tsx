@@ -38,9 +38,9 @@ function RentScene() {
     { name: "T4 · Villeurbanne", tenant: "Yann Diallo", amount: "1 210 €", state: "Encaissé", tone: "emerald" },
   ];
   const tone: Record<string, string> = {
-    emerald: "text-emerald-700 bg-emerald-500/10",
-    amber: "text-amber-700 bg-amber-500/10",
-    rose: "text-rose-700 bg-rose-500/10",
+    emerald: "text-emerald-300 bg-emerald-400/10",
+    amber: "text-amber-300 bg-amber-400/10",
+    rose: "text-rose-300 bg-rose-400/10",
   };
   return (
     <div className="grid gap-4 sm:grid-cols-[1.6fr_1fr]">
@@ -74,8 +74,8 @@ function RentScene() {
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">84 % du total attendu</p>
         </div>
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-4">
-          <p className="text-xs font-medium text-amber-700">1 relance à envoyer</p>
+        <div className="rounded-2xl border border-amber-400/15 bg-amber-400/[0.05] p-4">
+          <p className="text-xs font-medium text-amber-300">1 relance à envoyer</p>
           <p className="mt-1 text-sm text-foreground">Léa Bernard · retard de 6 jours</p>
         </div>
       </div>
@@ -85,17 +85,17 @@ function RentScene() {
 
 function PropertyScene() {
   const props = [
-    { name: "T3 Tête d’Or", meta: "68 m² · loué", yield: "5,1 %", grad: "from-primary/25 to-teal-500/15" },
-    { name: "Studio Croix-Rousse", meta: "26 m² · loué", yield: "5,4 %", grad: "from-primary/20 to-emerald-600/12" },
-    { name: "T4 Villeurbanne", meta: "82 m² · loué", yield: "4,8 %", grad: "from-primary/25 to-teal-500/15" },
-    { name: "T2 Part-Dieu", meta: "44 m² · en travaux", yield: "—", grad: "from-amber-500/25 to-orange-400/15" },
+    { name: "T3 Tête d’Or", meta: "68 m² · loué", yield: "5,1 %", grad: "from-sky-500/40 to-indigo-500/30" },
+    { name: "Studio Croix-Rousse", meta: "26 m² · loué", yield: "5,4 %", grad: "from-violet-500/40 to-fuchsia-500/25" },
+    { name: "T4 Villeurbanne", meta: "82 m² · loué", yield: "4,8 %", grad: "from-emerald-500/35 to-teal-500/25" },
+    { name: "T2 Part-Dieu", meta: "44 m² · en travaux", yield: "—", grad: "from-amber-500/35 to-orange-500/25" },
   ];
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {props.map((p) => (
         <div key={p.name} className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className={cn("relative h-20 bg-gradient-to-br", p.grad)}>
-            <Building2 className="absolute bottom-2 left-2 size-5 text-foreground/40" />
+            <Building2 className="absolute bottom-2 left-2 size-5 text-white/70" />
           </div>
           <div className="p-3">
             <p className="truncate text-xs font-semibold text-foreground">{p.name}</p>

@@ -428,7 +428,7 @@ export function HeroCockpit() {
             <Depth depth={44} className="absolute -bottom-6 left-4 z-20 hidden sm:block md:-left-8">
               <div className="nireo-float" style={{ ["--float-dur" as string]: "7.4s", ["--float-delay" as string]: "-3.5s" } as React.CSSProperties}>
                 <div className="nireo-panel flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5">
-                  <span className="nireo-pulse grid size-8 place-items-center rounded-full bg-amber-500/12 text-amber-600"><Bell className="size-4" /></span>
+                  <span className="nireo-pulse grid size-8 place-items-center rounded-full bg-amber-400/12 text-amber-300"><Bell className="size-4" /></span>
                   <span className="text-[11px] leading-snug text-muted-foreground">Assurance PNO<span className="block font-medium text-foreground">expire dans 3 mois</span></span>
                 </div>
               </div>

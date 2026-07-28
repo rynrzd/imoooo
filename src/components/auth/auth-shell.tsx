@@ -65,8 +65,8 @@ function AuthScene() {
           <div className="nireo-glass nireo-hairline w-full max-w-sm rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Ce mois-ci</p>
-              <span className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                <span className="size-1.5 rounded-full bg-primary" /> À jour
+              <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                <span className="size-1.5 rounded-full bg-emerald-400" /> À jour
               </span>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
@@ -91,11 +91,11 @@ function AuthScene() {
               ))}
             </div>
             <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border bg-muted/50 px-3 py-2">
-              <span className="grid size-7 place-items-center rounded-full bg-primary/12 text-primary">
+              <span className="grid size-7 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
                 <Check className="size-3.5" />
               </span>
               <span className="min-w-0 flex-1 text-xs text-foreground">Loyer de juillet encaissé</span>
-              <span className="flex items-center gap-1 text-xs font-medium text-primary">
+              <span className="flex items-center gap-1 text-xs font-medium text-emerald-300">
                 <TrendingUp className="size-3" /> +840 €
               </span>
             </div>
@@ -130,7 +130,7 @@ function cnBar(last: boolean) {
 /* ------------------------------------------------------------------ */
 export function AuthShell({ title, description, children, footer }: AuthShellProps) {
   return (
-    <div className="nireo relative min-h-svh overflow-hidden bg-background text-foreground">
+    <div className="dark nireo relative min-h-svh overflow-hidden bg-background text-foreground">
       {/* Décor ambiant global (visible surtout côté formulaire / mobile). */}
       <div aria-hidden className="nireo-ambient">
         <div className="nireo-grid" />
@@ -153,7 +153,7 @@ export function AuthShell({ title, description, children, footer }: AuthShellPro
               <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
 
               {!isSupabaseConfigured ? (
-                <p className="mt-5 flex items-start gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-700">
+                <p className="mt-5 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
                   <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                   Mode démo : Supabase n’est pas configuré. Renseignez vos clés
                   dans .env.local pour activer l’authentification.

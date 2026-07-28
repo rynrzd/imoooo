@@ -93,7 +93,7 @@ export function BeforeAfter() {
               {CHAOS.map((c) => (
                 <div
                   key={c.label}
-                  className="absolute flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 opacity-70 shadow-[0_18px_40px_-24px_oklch(0.28_0.03_235/0.35)] grayscale"
+                  className="absolute flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 opacity-70 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)] grayscale"
                   style={{ top: c.top, left: c.left, rotate: c.rot }}
                 >
                   <c.icon className="size-4 text-muted-foreground/70" />

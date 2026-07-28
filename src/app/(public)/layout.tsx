@@ -58,12 +58,12 @@ export default async function PublicLayout({ children }: { children: React.React
   const { announcement_message } = await getPublicSiteSettings();
 
   return (
-    // Univers Nireo « Atelier clair » : identité éditoriale claire FORCÉE sur
-    // toute la vitrine (indépendante de la préférence système). La classe
-    // « nireo » applique la palette papier minéral + signature émeraude ;
-    // aucune classe « dark » n'est posée, la vitrine reste toujours claire.
-    <div className="nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background text-foreground">
-      {/* Décor ambiant fixe : wash émeraude + grille blueprint + grain papier. */}
+    // Univers Nireo : thème sombre premium FORCÉ sur toute la vitrine
+    // (indépendant de la préférence système). « dark » active les variantes
+    // dark:* des composants réutilisés ; « nireo » applique la palette
+    // obsidienne + signature bleu-ardoise.
+    <div className="dark nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background text-foreground">
+      {/* Décor ambiant fixe : aurore + grille en perspective + grain fin. */}
       <div aria-hidden className="nireo-ambient">
         <div className="nireo-grid" />
         <div className="nireo-noise" />

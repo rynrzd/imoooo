@@ -215,20 +215,20 @@ export default function LandingPage() {
             </div>
             <div className="mt-5 grid grid-cols-12 gap-1.5" aria-hidden>
               {Array.from({ length: 24 }).map((_, i) => (
-                <span key={i} className={cn("h-6 rounded-md", [3, 7, 12, 18, 21].includes(i) ? "bg-primary/70" : [1, 9, 15].includes(i) ? "bg-amber-500/40" : "bg-muted")} />
+                <span key={i} className={cn("h-6 rounded-md", [3, 7, 12, 18, 21].includes(i) ? "bg-primary/70" : [1, 9, 15].includes(i) ? "bg-amber-400/40" : "bg-muted")} />
               ))}
             </div>
           </SpotlightCard>
 
           {/* Notifications — petit */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-600"><Bell className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-300"><Bell className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Notifications</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Retards, documents qui expirent, chantiers dépassés : prévenu au bon moment.</p>
             <div className="mt-4 space-y-2">
               {["Loyer en retard · Studio", "Assurance à renouveler"].map((n) => (
                 <div key={n} className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-2.5 py-1.5 text-[11px] text-foreground">
-                  <span className="size-1.5 rounded-full bg-amber-500" /> {n}
+                  <span className="size-1.5 rounded-full bg-amber-400" /> {n}
                 </div>
               ))}
             </div>
@@ -260,7 +260,7 @@ export default function LandingPage() {
 
           {/* Dépenses & travaux */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-600"><Receipt className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-300"><Receipt className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Dépenses &amp; travaux</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Catégorisées, reliées aux chantiers et à la comptabilité.</p>
             <div className="mt-4 space-y-2">

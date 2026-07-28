@@ -43,7 +43,7 @@ function passwordScore(pw: string): number {
   return Math.min(4, s);
 }
 const SCORE_LABEL = ["", "Très faible", "Faible", "Correct", "Excellent"];
-const SCORE_COLOR = ["bg-muted", "bg-rose-500", "bg-amber-500", "bg-sky-500", "bg-primary"];
+const SCORE_COLOR = ["bg-white/10", "bg-rose-400", "bg-amber-400", "bg-sky-400", "bg-emerald-400"];
 
 function PasswordStrength({ value }: { value: string }) {
   const score = passwordScore(value);
@@ -51,7 +51,7 @@ function PasswordStrength({ value }: { value: string }) {
     <div className="mt-2" aria-live="polite">
       <div className="flex gap-1.5">
         {[1, 2, 3, 4].map((i) => (
-          <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= score ? SCORE_COLOR[score] : "bg-muted")} />
+          <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= score ? SCORE_COLOR[score] : "bg-white/10")} />
         ))}
       </div>
       {value ? <p className="mt-1.5 text-[11px] text-muted-foreground">Sécurité : <span className="text-foreground">{SCORE_LABEL[score]}</span></p> : null}
@@ -124,7 +124,7 @@ export default function SignupPage() {
     >
       {sentTo ? (
         <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <span className="grid size-12 place-items-center rounded-2xl bg-emerald-400/12 text-emerald-300">
             <MailCheck className="size-6" />
           </span>
           <p className="text-sm text-foreground">
@@ -174,7 +174,7 @@ export default function SignupPage() {
             <div className="relative">
               <Input id="confirm" type={showPw ? "text" : "password"} autoComplete="new-password" className="pr-10" aria-invalid={!!errors.confirm} {...register("confirm")} />
               {matches ? (
-                <span className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-primary" aria-hidden>
+                <span className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-emerald-300" aria-hidden>
                   <Check className="size-4" />
                 </span>
               ) : null}

@@ -328,7 +328,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
             {p.awards.map((a, i) => (
               <Reveal key={"award" + i} delay={(i % 2) * 70}>
                 <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/12 text-amber-700"><Award className="size-5" /></span>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-400/12 text-amber-300"><Award className="size-5" /></span>
                   <div><p className="font-semibold text-foreground">{a.name}</p>{a.year ? <p className="mt-0.5 text-sm text-muted-foreground">{a.year}</p> : null}</div>
                 </div>
               </Reveal>
