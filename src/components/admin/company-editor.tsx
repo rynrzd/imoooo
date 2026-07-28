@@ -196,23 +196,31 @@ export function CompanyEditor({ initial, action }: { initial: CompanyProfile; ac
   const deviceWidth = device === "desktop" ? "100%" : device === "tablet" ? "820px" : "400px";
 
   return (
-    <div className="space-y-5 pb-24">
-      {/* Onglets */}
-      <div role="tablist" aria-label="Sections de la présentation" className="flex gap-1 overflow-x-auto rounded-xl bg-card p-1 ring-1 ring-foreground/10 [scrollbar-width:none]">
-        {TABS.map((t, i) => (
-          <button
-            key={t}
-            role="tab"
-            aria-selected={tab === i}
-            onClick={() => setTab(i)}
-            className={cn(
-              "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
-              tab === i ? "bg-primary/10 text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {t}
-          </button>
-        ))}
+    <div className="atelier-scope space-y-5 pb-24">
+      {/* Onglets — barre « Atelier » (accent émeraude, index façon plan) */}
+      <div className="nireo-hairline flex items-center gap-2 rounded-xl bg-card p-1.5 ring-1 ring-primary/15">
+        <span className="hidden shrink-0 items-center gap-2 pl-1.5 pr-1 sm:flex" aria-hidden>
+          <span className="font-mono text-[10px] tracking-widest text-primary">
+            {String(tab + 1).padStart(2, "0")}
+          </span>
+          <span className="h-4 w-px bg-primary/25" />
+        </span>
+        <div role="tablist" aria-label="Sections de la présentation" className="flex flex-1 gap-1 overflow-x-auto [scrollbar-width:none]">
+          {TABS.map((t, i) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === i}
+              onClick={() => setTab(i)}
+              className={cn(
+                "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+                tab === i ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 0 — Identité */}
@@ -479,9 +487,9 @@ export function CompanyEditor({ initial, action }: { initial: CompanyProfile; ac
             </p>
           </SectionCard>
 
-          <div className="overflow-x-auto rounded-2xl border border-border bg-[oklch(0.15_0.016_265)] p-3">
-            <div className="mx-auto overflow-hidden rounded-xl ring-1 ring-white/10 transition-[max-width] duration-300" style={{ maxWidth: deviceWidth }}>
-              <div className="dark nireo max-h-[70vh] overflow-y-auto bg-background text-foreground">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-muted/50 p-3">
+            <div className="mx-auto overflow-hidden rounded-xl ring-1 ring-border transition-[max-width] duration-300" style={{ maxWidth: deviceWidth }}>
+              <div className="nireo max-h-[70vh] overflow-y-auto bg-background text-foreground">
                 <AboutContent profile={profile} />
               </div>
             </div>

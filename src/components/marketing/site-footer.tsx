@@ -37,7 +37,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 
 export function SiteFooter() {
   return (
-    <footer className="nireo-hairline relative border-t border-white/8 bg-white/[0.015]">
+    <footer className="nireo-hairline relative border-t border-border bg-muted/40">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="space-y-3">
           <NireoLogo />

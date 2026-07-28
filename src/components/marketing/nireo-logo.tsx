@@ -12,25 +12,25 @@ export function NireoMark({ className }: { className?: string }) {
     <span
       className={cn(
         "relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-[0.7rem]",
-        "bg-gradient-to-br from-white/[0.14] to-white/[0.03] ring-1 ring-white/12",
-        "shadow-[0_1px_0_0_rgba(255,255,255,0.14)_inset,0_10px_24px_-14px_rgba(120,140,255,0.7)]",
+        "bg-gradient-to-br from-white to-[oklch(0.965_0.014_162)] ring-1 ring-[oklch(0.52_0.113_162/0.28)]",
+        "shadow-[0_1px_0_0_rgba(255,255,255,0.9)_inset,0_10px_24px_-14px_oklch(0.52_0.113_162/0.55)]",
         className
       )}
     >
-      {/* Halo interne */}
+      {/* Halo interne émeraude */}
       <span
         aria-hidden
-        className="absolute -inset-2 bg-[radial-gradient(60%_60%_at_30%_20%,var(--nireo-glow-a),transparent_70%)] opacity-40"
+        className="absolute -inset-2 bg-[radial-gradient(60%_60%_at_30%_20%,var(--nireo-glow-a),transparent_70%)] opacity-30"
       />
       <svg viewBox="0 0 24 24" className="relative size-5" fill="none" aria-hidden>
         <defs>
           <linearGradient id="nireo-mark" x1="4" y1="20" x2="20" y2="4" gradientUnits="userSpaceOnUse">
-            <stop stopColor="oklch(0.9 0.04 262)" />
-            <stop offset="0.5" stopColor="oklch(0.84 0.11 285)" />
-            <stop offset="1" stopColor="oklch(0.88 0.09 205)" />
+            <stop stopColor="oklch(0.45 0.128 162)" />
+            <stop offset="0.55" stopColor="oklch(0.52 0.113 162)" />
+            <stop offset="1" stopColor="oklch(0.58 0.1 190)" />
           </linearGradient>
         </defs>
-        {/* N ascendant */}
+        {/* N ascendant — la progression du patrimoine */}
         <path
           d="M5 18.5V6.5M5 6.5L19 18.5M19 18.5V6.5"
           stroke="url(#nireo-mark)"
@@ -39,7 +39,7 @@ export function NireoMark({ className }: { className?: string }) {
           strokeLinejoin="round"
         />
         {/* Socle / pierre */}
-        <path d="M4 21h16" stroke="url(#nireo-mark)" strokeWidth="1.6" strokeLinecap="round" opacity="0.55" />
+        <path d="M4 21h16" stroke="url(#nireo-mark)" strokeWidth="1.6" strokeLinecap="round" opacity="0.5" />
       </svg>
     </span>
   );

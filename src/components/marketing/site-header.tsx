@@ -28,6 +28,15 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [connected, setConnected] = React.useState(false);
+  const [scrolled, setScrolled] = React.useState(false);
+
+  // Header « flottant » : au défilement, la barre se détache en pilule.
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Détection non bloquante de la session : les CTA par défaut (visiteur)
   // restent corrects tant que la réponse n'est pas arrivée.
@@ -45,8 +54,15 @@ export function SiteHeader() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/8 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
-      <div className="mx-auto flex h-15 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-40">
+      <div
+        className={cn(
+          "mx-auto flex h-14 items-center justify-between gap-4 transition-all duration-300 ease-out",
+          scrolled
+            ? "mt-2.5 w-[min(72rem,calc(100%-1rem))] rounded-2xl border border-border bg-background/85 px-3 shadow-[0_16px_40px_-24px_oklch(0.28_0.03_235/0.55)] backdrop-blur-xl sm:px-4"
+            : "w-full max-w-6xl border border-transparent px-4 sm:px-6"
+        )}
+      >
         <NireoLogo />
 
         <nav
@@ -57,7 +73,7 @@ export function SiteHeader() {
             <a
               key={link.hash}
               href={anchor(link.hash)}
-              className="rounded-full px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-white/8 hover:text-foreground"
+              className="rounded-full px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {link.label}
             </a>
@@ -82,7 +98,7 @@ export function SiteHeader() {
               <Link
                 href="/inscription"
                 onClick={() => track("cta_essai_gratuit", { source: "header" })}
-                className={cn(buttonVariants({}), "nireo-glow")}
+                className={cn(buttonVariants({}), "nireo-glow nireo-sheen")}
               >
                 Essayer gratuitement
               </Link>
@@ -104,7 +120,7 @@ export function SiteHeader() {
 
       {/* Menu mobile */}
       {open ? (
-        <div id="menu-mobile" className="border-t border-white/8 bg-background/90 backdrop-blur-xl md:hidden">
+        <div id="menu-mobile" className="border-t border-border/70 bg-background/95 backdrop-blur-xl md:hidden">
           <nav aria-label="Navigation mobile" className="flex flex-col gap-1 px-4 py-3">
             {NAV_LINKS.map((link) => (
               <a

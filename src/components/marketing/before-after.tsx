@@ -39,13 +39,13 @@ export function BeforeAfter() {
   return (
     <div>
       {/* Bascule */}
-      <div className="mx-auto flex w-fit items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1">
+      <div className="mx-auto flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1">
         <button
           onClick={() => setAfter(false)}
           aria-pressed={!after}
           className={cn(
             "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-            !after ? "bg-white/10 text-foreground" : "text-muted-foreground hover:text-foreground"
+            !after ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
           )}
         >
           Sans Nireo
@@ -63,7 +63,7 @@ export function BeforeAfter() {
       </div>
 
       {/* Scène */}
-      <div className="relative mt-8 min-h-[22rem] overflow-hidden rounded-3xl border border-white/8 bg-white/[0.015] p-4 sm:p-6">
+      <div className="relative mt-8 min-h-[22rem] overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6">
         {after ? (
           <div key="after" className="animate-nireo-rise">
             <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_0%,var(--nireo-glow-a),transparent_60%)] opacity-20" />
@@ -78,8 +78,8 @@ export function BeforeAfter() {
                 </div>
                 <ul className="mt-4 space-y-2">
                   {ORDER.map((o, i) => (
-                    <li key={o} className="flex items-center gap-2.5 rounded-xl border border-white/6 bg-white/[0.02] px-3 py-2.5" style={{ animation: "nireo-rise 0.6s cubic-bezier(0.16,1,0.3,1) both", animationDelay: `${i * 90}ms` }}>
-                      <span className="grid size-5 place-items-center rounded-full bg-emerald-400/15 text-emerald-300"><Check className="size-3" /></span>
+                    <li key={o} className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/50 px-3 py-2.5" style={{ animation: "nireo-rise 0.6s cubic-bezier(0.16,1,0.3,1) both", animationDelay: `${i * 90}ms` }}>
+                      <span className="grid size-5 place-items-center rounded-full bg-primary/12 text-primary"><Check className="size-3" /></span>
                       <span className="text-sm text-foreground">{o}</span>
                     </li>
                   ))}
@@ -93,7 +93,7 @@ export function BeforeAfter() {
               {CHAOS.map((c) => (
                 <div
                   key={c.label}
-                  className="absolute flex items-center gap-2 rounded-xl border border-white/8 bg-[oklch(0.22_0.01_264)] px-3 py-2 opacity-70 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)] grayscale"
+                  className="absolute flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 opacity-70 shadow-[0_18px_40px_-24px_oklch(0.28_0.03_235/0.35)] grayscale"
                   style={{ top: c.top, left: c.left, rotate: c.rot }}
                 >
                   <c.icon className="size-4 text-muted-foreground/70" />

@@ -56,18 +56,20 @@ export const metadata: Metadata = {
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
+    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
       {children}
     </span>
   );
 }
 
 function SectionHead({
+  n,
   eyebrow,
   title,
   keyword,
   description,
 }: {
+  n?: string;
   eyebrow: string;
   title: string;
   keyword?: string;
@@ -75,7 +77,10 @@ function SectionHead({
 }) {
   return (
     <Reveal className="mx-auto max-w-2xl text-center">
-      <Eyebrow>{eyebrow}</Eyebrow>
+      <div className="flex items-center justify-center gap-2.5">
+        {n ? <span className="font-mono text-[11px] tracking-widest text-primary">N°{n}</span> : null}
+        <Eyebrow>{eyebrow}</Eyebrow>
+      </div>
       <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.6rem]">
         {title} {keyword ? <span className="nireo-shine">{keyword}</span> : null}
       </h2>
@@ -99,6 +104,8 @@ const TRUST = [
   { icon: Smartphone, label: "Sur tous vos appareils" },
   { icon: Layers, label: "Hébergé en Europe" },
   { icon: Clock, label: "Sauvegarde automatique" },
+  { icon: Check, label: "Sans carte bancaire" },
+  { icon: Sparkles, label: "Interface soignée au détail" },
 ];
 
 const STATS = [
@@ -137,21 +144,29 @@ export default function LandingPage() {
       {/* 1 — Hero cinématographique */}
       <HeroCockpit />
 
-      {/* Barre de confiance */}
-      <div className="relative border-y border-white/5">
-        <ul className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-center gap-x-10 gap-y-3 px-4 py-6 sm:px-6">
-          {TRUST.map((t) => (
-            <li key={t.label} className="flex items-center gap-2 text-xs font-medium text-muted-foreground sm:text-sm">
+      {/* Barre de confiance — défilement continu (marquee), statique en reduced-motion */}
+      <div className="relative overflow-hidden border-y border-border/70 py-5 [mask-image:linear-gradient(90deg,transparent,#000_7%,#000_93%,transparent)] motion-reduce:[mask-image:none]">
+        <div className="flex w-max items-center gap-x-10 pr-10 [animation:nireo-marquee_38s_linear_infinite] motion-reduce:w-full motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-3 motion-reduce:pr-0 motion-reduce:[animation:none]">
+          {[...TRUST, ...TRUST].map((t, i) => (
+            <span
+              key={i}
+              aria-hidden={i >= TRUST.length}
+              className={cn(
+                "flex shrink-0 items-center gap-2 text-xs font-medium text-muted-foreground sm:text-sm",
+                i >= TRUST.length && "motion-reduce:hidden"
+              )}
+            >
               <t.icon className="size-4 text-primary" aria-hidden />
               {t.label}
-            </li>
+            </span>
           ))}
-        </ul>
+        </div>
       </div>
 
       {/* 2+6 — Avant / Après (le chaos → l'ordre) */}
       <Section>
         <SectionHead
+          n="02"
           eyebrow="Avant / Après"
           title="Du désordre au"
           keyword="contrôle total."
@@ -163,8 +178,9 @@ export default function LandingPage() {
       </Section>
 
       {/* 3 — Démonstration interactive */}
-      <Section id="demo" className="border-t border-white/5">
+      <Section id="demo" className="border-t border-border/70">
         <SectionHead
+          n="03"
           eyebrow="Démonstration"
           title="Explorez Nireo,"
           keyword="scénario par scénario."
@@ -176,8 +192,9 @@ export default function LandingPage() {
       </Section>
 
       {/* 4 — Fonctionnalités éditoriales (bento) */}
-      <Section id="fonctionnalites" className="border-t border-white/5">
+      <Section id="fonctionnalites" className="border-t border-border/70">
         <SectionHead
+          n="04"
           eyebrow="Fonctionnalités"
           title="Six modules,"
           keyword="une seule évidence."
@@ -188,30 +205,30 @@ export default function LandingPage() {
           <SpotlightCard glow="var(--nireo-glow-a)" className="p-6 sm:col-span-2 lg:col-span-4">
             <div className="flex items-start justify-between">
               <div>
-                <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-primary"><Banknote className="size-5" /></span>
+                <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><Banknote className="size-5" /></span>
                 <h3 className="mt-4 text-lg font-semibold text-foreground">Gestion des loyers</h3>
                 <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                   Échéances générées chaque mois, encaissements, impayés et relances — suivis automatiquement.
                 </p>
               </div>
-              <span className="hidden shrink-0 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300 sm:block">96 % encaissé</span>
+              <span className="hidden shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary sm:block">96 % encaissé</span>
             </div>
             <div className="mt-5 grid grid-cols-12 gap-1.5" aria-hidden>
               {Array.from({ length: 24 }).map((_, i) => (
-                <span key={i} className={cn("h-6 rounded-md", [3, 7, 12, 18, 21].includes(i) ? "bg-primary/70" : [1, 9, 15].includes(i) ? "bg-amber-400/40" : "bg-white/6")} />
+                <span key={i} className={cn("h-6 rounded-md", [3, 7, 12, 18, 21].includes(i) ? "bg-primary/70" : [1, 9, 15].includes(i) ? "bg-amber-500/40" : "bg-muted")} />
               ))}
             </div>
           </SpotlightCard>
 
           {/* Notifications — petit */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-amber-300"><Bell className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-600"><Bell className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Notifications</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Retards, documents qui expirent, chantiers dépassés : prévenu au bon moment.</p>
             <div className="mt-4 space-y-2">
               {["Loyer en retard · Studio", "Assurance à renouveler"].map((n) => (
-                <div key={n} className="flex items-center gap-2 rounded-lg border border-white/6 bg-white/[0.02] px-2.5 py-1.5 text-[11px] text-foreground">
-                  <span className="size-1.5 rounded-full bg-amber-400" /> {n}
+                <div key={n} className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-2.5 py-1.5 text-[11px] text-foreground">
+                  <span className="size-1.5 rounded-full bg-amber-500" /> {n}
                 </div>
               ))}
             </div>
@@ -219,23 +236,23 @@ export default function LandingPage() {
 
           {/* Documents */}
           <SpotlightCard glow="var(--nireo-glow-c)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-sky-300"><FileText className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><FileText className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Documents</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Baux, diagnostics, factures — rangés automatiquement par logement.</p>
             <div className="mt-4 space-y-1.5">
               {["Bail — T3 Tête d’Or", "DPE — T4", "Facture chaudière"].map((d) => (
-                <div key={d} className="flex items-center gap-2 text-[11px] text-muted-foreground"><FileText className="size-3.5 text-sky-300/70" /> {d}</div>
+                <div key={d} className="flex items-center gap-2 text-[11px] text-muted-foreground"><FileText className="size-3.5 text-primary/70" /> {d}</div>
               ))}
             </div>
           </SpotlightCard>
 
           {/* Patrimoine */}
           <SpotlightCard glow="var(--nireo-glow-b)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-violet-300"><Building2 className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><Building2 className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Patrimoine</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Une vue globale de tous vos biens et de leur statut.</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {[{ g: "from-sky-500/40 to-indigo-500/25" }, { g: "from-violet-500/40 to-fuchsia-500/20" }].map((p, i) => (
+              {[{ g: "from-primary/30 to-primary/10" }, { g: "from-teal-500/25 to-primary/10" }].map((p, i) => (
                 <div key={i} className={cn("h-12 rounded-lg bg-gradient-to-br", p.g)} />
               ))}
             </div>
@@ -243,14 +260,14 @@ export default function LandingPage() {
 
           {/* Dépenses & travaux */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
-            <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-amber-300"><Receipt className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-600"><Receipt className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Dépenses &amp; travaux</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Catégorisées, reliées aux chantiers et à la comptabilité.</p>
             <div className="mt-4 space-y-2">
               {[["Travaux", 62], ["Charges", 40], ["Assurance", 24]].map(([l, v]) => (
                 <div key={l as string}>
                   <div className="flex justify-between text-[10px] text-muted-foreground"><span>{l}</span></div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary" style={{ width: `${v}%` }} /></div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary" style={{ width: `${v}%` }} /></div>
                 </div>
               ))}
             </div>
@@ -260,7 +277,7 @@ export default function LandingPage() {
           <SpotlightCard glow="var(--nireo-glow-c)" className="p-6 sm:col-span-2 lg:col-span-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="max-w-md">
-                <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-sky-300"><BarChart3 className="size-5" /></span>
+                <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><BarChart3 className="size-5" /></span>
                 <h3 className="mt-4 text-lg font-semibold text-foreground">Statistiques &amp; performances</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   Revenus, dépenses, résultat net, rendement et taux d’occupation, calculés en continu sur vos vraies données.
@@ -268,7 +285,7 @@ export default function LandingPage() {
               </div>
               <div className="flex h-28 items-end gap-1.5 sm:w-1/2" aria-hidden>
                 {[38, 52, 46, 63, 57, 71, 66, 79, 74, 86, 81, 94].map((h, i) => (
-                  <span key={i} className={cn("flex-1 rounded-t-[3px]", i === 11 ? "bg-gradient-to-t from-sky-400/50 to-sky-300" : "bg-white/12")} style={{ height: `${h}%` }} />
+                  <span key={i} className={cn("flex-1 rounded-t-[3px]", i === 11 ? "bg-gradient-to-t from-primary/50 to-primary" : "bg-muted")} style={{ height: `${h}%` }} />
                 ))}
               </div>
             </div>
@@ -277,16 +294,16 @@ export default function LandingPage() {
       </Section>
 
       {/* 5 — Une journée avec Nireo */}
-      <Section id="comment-ca-marche" className="border-t border-white/5">
-        <SectionHead eyebrow="Le quotidien" title="Une journée" keyword="avec Nireo." description="Le produit travaille pour vous, du matin au soir." />
+      <Section id="comment-ca-marche" className="border-t border-border/70">
+        <SectionHead n="05" eyebrow="Le quotidien" title="Une journée" keyword="avec Nireo." description="Le produit travaille pour vous, du matin au soir." />
         <Reveal className="mt-12">
           <DayTimeline />
         </Reveal>
       </Section>
 
       {/* 7 — Chiffres & crédibilité */}
-      <Section className="border-t border-white/5">
-        <SectionHead eyebrow="Ce que Nireo garantit" title="Des bénéfices" keyword="concrets." description="Pas de faux chiffres clients : uniquement ce que le produit fait vraiment." />
+      <Section className="border-t border-border/70">
+        <SectionHead n="07" eyebrow="Ce que Nireo garantit" title="Des bénéfices" keyword="concrets." description="Pas de faux chiffres clients : uniquement ce que le produit fait vraiment." />
         <Reveal className="mt-12">
           <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
             {STATS.map((s) => (
@@ -302,8 +319,8 @@ export default function LandingPage() {
       </Section>
 
       {/* 8 — Tarifs */}
-      <Section id="tarifs" className="border-t border-white/5">
-        <SectionHead eyebrow="Tarifs" title="Un plan pour chaque" keyword="taille de patrimoine." description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit." />
+      <Section id="tarifs" className="border-t border-border/70">
+        <SectionHead n="08" eyebrow="Tarifs" title="Un plan pour chaque" keyword="taille de patrimoine." description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit." />
         <div className="mt-14 space-y-10">
           <FounderOffer stripeEnabled={isStripeConfigured} />
           <PricingSection />
@@ -311,7 +328,7 @@ export default function LandingPage() {
       </Section>
 
       {/* 9 — Présentation de Nireo */}
-      <Section className="border-t border-white/5">
+      <Section className="border-t border-border/70">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
             <Eyebrow>L’entreprise</Eyebrow>
@@ -347,7 +364,7 @@ export default function LandingPage() {
                   { icon: Rocket, t: "Ambition", d: "Un produit pensé pour durer." },
                   { icon: Check, t: "Exigence", d: "Le soin du détail, partout." },
                 ].map((c) => (
-                  <div key={c.t} className="rounded-2xl border border-white/8 bg-white/[0.02] p-4">
+                  <div key={c.t} className="rounded-2xl border border-border bg-card p-4">
                     <span className="grid size-9 place-items-center rounded-lg bg-primary/12 text-primary"><c.icon className="size-4.5" /></span>
                     <p className="mt-3 text-sm font-semibold text-foreground">{c.t}</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{c.d}</p>
@@ -360,13 +377,13 @@ export default function LandingPage() {
       </Section>
 
       {/* 10a — FAQ */}
-      <Section id="faq" className="border-t border-white/5">
-        <SectionHead eyebrow="FAQ" title="Questions" keyword="fréquentes." description="Les réponses correspondent aux fonctions réellement disponibles dans l’application." />
+      <Section id="faq" className="border-t border-border/70">
+        <SectionHead n="10" eyebrow="FAQ" title="Questions" keyword="fréquentes." description="Les réponses correspondent aux fonctions réellement disponibles dans l’application." />
         <div className="mt-12"><FaqSection /></div>
       </Section>
 
       {/* 10b — CTA final cinématographique */}
-      <section className="relative overflow-hidden border-t border-white/5">
+      <section className="relative overflow-hidden border-t border-border/70">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="nireo-aurora absolute bottom-0 left-1/2 h-[30rem] w-[50rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-30 blur-2xl" />
         </div>
@@ -388,7 +405,7 @@ export default function LandingPage() {
               Créez votre espace en une minute, ajoutez votre premier logement, et reprenez le contrôle.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/inscription" className={cn(buttonVariants({ size: "lg" }), "nireo-glow h-11 w-full px-6 text-[0.95rem] sm:w-auto")}>
+              <Link href="/inscription" className={cn(buttonVariants({ size: "lg" }), "nireo-glow nireo-sheen h-11 w-full px-6 text-[0.95rem] sm:w-auto")}>
                 Créer mon espace Nireo <ArrowRight className="size-4" />
               </Link>
               <Link href="/connexion" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "nireo-glass-soft h-11 w-full px-6 text-[0.95rem] text-foreground sm:w-auto")}>

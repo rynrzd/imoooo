@@ -130,7 +130,7 @@ function LoginForm() {
           Mot de passe oublié ?
         </Link>
       </div>
-      <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+      <Button type="submit" className="nireo-sheen w-full" disabled={!isSupabaseConfigured || pending}>
         {pending ? "Connexion…" : "Se connecter"}
       </Button>
     </form>

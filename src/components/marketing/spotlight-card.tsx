@@ -29,8 +29,8 @@ export function SpotlightCard({
       ref={ref}
       onPointerMove={onMove}
       className={cn(
-        "group/spot relative overflow-hidden rounded-2xl border border-white/10 bg-card/40 backdrop-blur-sm transition-all duration-300",
-        "hover:border-white/20 hover:-translate-y-0.5",
+        "group/spot relative overflow-hidden rounded-2xl border border-border bg-card/70 backdrop-blur-sm transition-all duration-300",
+        "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_20px_44px_-30px_oklch(0.28_0.03_235/0.3)]",
         className
       )}
       {...props}

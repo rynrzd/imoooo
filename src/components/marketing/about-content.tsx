@@ -73,7 +73,7 @@ function isVideoFile(url: string): boolean {
 
 function Band({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className={cn("scroll-mt-24 border-t border-white/5 py-20 sm:py-24", className)}>
+    <section id={id} className={cn("scroll-mt-24 border-t border-border/70 py-20 sm:py-24", className)}>
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">{children}</div>
     </section>
   );
@@ -82,7 +82,7 @@ function Band({ id, className, children }: { id?: string; className?: string; ch
 function Head({ eyebrow, title, keyword, description }: { eyebrow: string; title: string; keyword?: string; description?: string }) {
   return (
     <Reveal className="mx-auto max-w-2xl text-center">
-      <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
+      <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
         {eyebrow}
       </span>
       <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.5rem]">
@@ -113,7 +113,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
                 <NireoMark className="size-14 rounded-2xl" />
               )}
             </div>
-            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
+            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
               L’entreprise{location ? ` · ${location}` : ""}{p.foundedYear ? ` · depuis ${p.foundedYear}` : ""}
             </p>
             <h1 className="mt-4 text-5xl font-semibold text-balance text-foreground sm:text-6xl">{p.name}</h1>
@@ -196,7 +196,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {p.values.map((v, i) => (
               <Reveal key={v.title} delay={(i % 4) * 70}>
-                <div className="h-full rounded-2xl border border-white/8 bg-white/[0.02] p-6">
+                <div className="h-full rounded-2xl border border-border bg-card p-6">
                   <p className="text-2xl font-semibold text-primary/70">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="mt-3 text-base font-semibold text-foreground">{v.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{v.text}</p>
@@ -212,7 +212,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
         <Band>
           <Head eyebrow="Parcours" title="Les grandes" keyword="étapes." />
           <div className="mx-auto mt-12 max-w-3xl">
-            <ol className="relative border-l border-white/10 pl-8">
+            <ol className="relative border-l border-border pl-8">
               {p.timeline.map((t, i) => (
                 <Reveal key={t.title + i} delay={(i % 5) * 60}>
                   <li className="relative pb-9 last:pb-0">
@@ -235,13 +235,13 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {p.team.map((m, i) => (
               <Reveal key={m.name + i} delay={(i % 3) * 70}>
-                <div className="h-full rounded-2xl border border-white/8 bg-white/[0.02] p-6">
+                <div className="h-full rounded-2xl border border-border bg-card p-6">
                   <div className="flex items-center gap-4">
                     {m.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={m.photoUrl} alt={m.name} loading="lazy" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-white/10" />
+                      <img src={m.photoUrl} alt={m.name} loading="lazy" className="size-16 shrink-0 rounded-full object-cover ring-1 ring-border" />
                     ) : (
-                      <span className="grid size-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary/30 to-primary/5 text-lg font-semibold text-foreground ring-1 ring-white/10">{initials(m.name)}</span>
+                      <span className="grid size-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary/30 to-primary/5 text-lg font-semibold text-foreground ring-1 ring-border">{initials(m.name)}</span>
                     )}
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-foreground">{m.name}</p>
@@ -262,7 +262,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
           <Head eyebrow="En vidéo" title="Nireo, en" keyword="images." />
           <Reveal className="mx-auto mt-10 max-w-4xl">
             <div className="nireo-glass overflow-hidden rounded-3xl p-2">
-              <div className="relative aspect-video overflow-hidden rounded-2xl bg-black/40">
+              <div className="relative aspect-video overflow-hidden rounded-2xl bg-muted">
                 {isVideoFile(p.videoUrl) ? (
                   <video src={p.videoUrl} controls className="h-full w-full object-cover" />
                 ) : (
@@ -281,7 +281,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
           <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {p.gallery.map((g, i) => (
               <Reveal key={g.url + i} delay={(i % 4) * 50}>
-                <figure className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/8 bg-white/[0.02]">
+                <figure className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={g.url} alt={g.caption || "Nireo"} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   {g.caption ? <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-xs font-medium text-white">{g.caption}</figcaption> : null}
@@ -319,7 +319,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {p.certifications.map((c, i) => (
               <Reveal key={"cert" + i} delay={(i % 2) * 70}>
-                <div className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] p-5">
+                <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5">
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary"><BadgeCheck className="size-5" /></span>
                   <div><p className="font-semibold text-foreground">{c.name}</p>{c.issuer ? <p className="mt-0.5 text-sm text-muted-foreground">{c.issuer}</p> : null}</div>
                 </div>
@@ -327,8 +327,8 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
             ))}
             {p.awards.map((a, i) => (
               <Reveal key={"award" + i} delay={(i % 2) * 70}>
-                <div className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] p-5">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-400/12 text-amber-300"><Award className="size-5" /></span>
+                <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-5">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-500/12 text-amber-700"><Award className="size-5" /></span>
                   <div><p className="font-semibold text-foreground">{a.name}</p>{a.year ? <p className="mt-0.5 text-sm text-muted-foreground">{a.year}</p> : null}</div>
                 </div>
               </Reveal>
@@ -341,9 +341,9 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
       {p.press.length > 0 ? (
         <Band>
           <Head eyebrow="Presse" title="Ils parlent de" keyword="nous." />
-          <div className="mx-auto mt-10 max-w-3xl divide-y divide-white/8 overflow-hidden rounded-3xl border border-white/8 bg-white/[0.02]">
+          <div className="mx-auto mt-10 max-w-3xl divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card">
             {p.press.map((article, i) => (
-              <a key={article.title + i} href={article.url || "#"} target={article.url ? "_blank" : undefined} rel="noopener noreferrer" className="flex items-center gap-4 p-5 transition-colors hover:bg-white/[0.03]">
+              <a key={article.title + i} href={article.url || "#"} target={article.url ? "_blank" : undefined} rel="noopener noreferrer" className="flex items-center gap-4 p-5 transition-colors hover:bg-muted">
                 <Newspaper className="size-5 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-foreground">{article.title}</p>
@@ -366,7 +366,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
               return (
                 <Reveal key={w.title + i} delay={(i % 4) * 70}>
                   <SpotlightCard glow={WHY_GLOWS[i % WHY_GLOWS.length]} className="h-full p-6">
-                    <span className="grid size-11 place-items-center rounded-xl border border-white/8 bg-white/[0.04] text-primary"><Icon className="size-5" /></span>
+                    <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><Icon className="size-5" /></span>
                     <h3 className="mt-4 text-base font-semibold text-foreground">{w.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{w.text}</p>
                   </SpotlightCard>
@@ -387,7 +387,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
               {p.recruitment.reasons.map((r, i) => (
                 <Reveal key={r.title + i} delay={(i % 3) * 70}>
-                  <div className="h-full rounded-2xl border border-white/8 bg-white/[0.02] p-6">
+                  <div className="h-full rounded-2xl border border-border bg-card p-6">
                     <span className="grid size-11 place-items-center rounded-xl bg-primary/12 text-primary"><Sparkles className="size-5" /></span>
                     <h3 className="mt-4 text-base font-semibold text-foreground">{r.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{r.text}</p>
