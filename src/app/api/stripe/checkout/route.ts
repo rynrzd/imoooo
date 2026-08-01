@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { recordAnalyticsEvent } from "@/lib/analytics/server";
+import { recordPaymentConversion } from "@/lib/landing/server";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
 import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
@@ -134,6 +135,9 @@ export async function POST(request: Request) {
     }
     // Analytics : démarrage d'un paiement (best-effort, jamais bloquant).
     await recordAnalyticsEvent("payment_started", { userId: user.id, plan });
+    // Landing Intelligence : rattache l'étape au parcours d'acquisition réel
+    // (variante servie sur la vitrine). Silencieux si aucune attribution.
+    await recordPaymentConversion("payment_started", user.id, { plan });
     return NextResponse.json({ url: session.url });
   } catch (e) {
     logger.error("[stripe/checkout]", e);

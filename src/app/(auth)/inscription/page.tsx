@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { LandingIntent } from "@/components/landing/landing-tracker";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
@@ -110,6 +111,9 @@ export default function SignupPage() {
   });
 
   return (
+    <>
+    {/* Tunnel de conversion : « inscription démarrée » (anonyme, non bloquant). */}
+    <LandingIntent event="signup_started" />
     <AuthShell
       title="Créer votre espace"
       description="Le centre de contrôle de votre patrimoine, prêt en quelques minutes."
@@ -217,5 +221,6 @@ export default function SignupPage() {
         </form>
       )}
     </AuthShell>
+    </>
   );
 }

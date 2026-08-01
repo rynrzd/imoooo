@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import type Stripe from "stripe";
 import { recordAnalyticsEvent } from "@/lib/analytics/server";
+import { recordPaymentConversion } from "@/lib/landing/server";
 import {
   createCommissionForPaidInvoice,
   reverseCommissionForRefund,
@@ -196,6 +197,11 @@ export async function POST(request: Request) {
         await recordAnalyticsEvent("subscription_success", {
           userId,
           plan: planFromPriceId(subscription.items.data[0]?.price.id ?? "") ?? null,
+          amountCents: session.amount_total ?? null,
+        });
+        // Landing Intelligence : conversion FINALE attribuée à la variante de
+        // vitrine réellement servie à ce visiteur (source : webhook signé).
+        await recordPaymentConversion("payment_success", userId, {
           amountCents: session.amount_total ?? null,
         });
         break;

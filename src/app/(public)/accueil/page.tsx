@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -17,8 +18,9 @@ import {
   Smartphone,
   Sparkles,
 } from "lucide-react";
+import { LandingTracker } from "@/components/landing/landing-tracker";
+import { ProofSection, proofHeading } from "@/components/landing/proof-section";
 import { BeforeAfter } from "@/components/marketing/before-after";
-import { CountUp } from "@/components/marketing/count-up";
 import { DayTimeline } from "@/components/marketing/day-timeline";
 import { FAQ_ITEMS, FaqSection } from "@/components/marketing/faq-section";
 import { FounderOffer } from "@/components/marketing/founder-offer";
@@ -28,10 +30,26 @@ import { ProductDemo } from "@/components/marketing/product-demo";
 import { Reveal } from "@/components/marketing/reveal";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
 import { buttonVariants } from "@/components/ui/button";
+import { getEngineState } from "@/lib/landing/config";
+import { getLandingResolution } from "@/lib/landing/server";
+import type { SectionKey } from "@/lib/landing/types";
 import { PLANS } from "@/lib/stripe/plans";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { SITE_URL } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
+
+/**
+ * Landing page « intelligente ».
+ *
+ * Le contenu (titre, sous-titre, boutons, média, preuve, mise en avant
+ * tarifaire, ordre des sections) est résolu CÔTÉ SERVEUR par le moteur
+ * Landing Intelligence, à partir du profil du visiteur et des performances
+ * réellement mesurées. Le HTML arrive donc déjà personnalisé : aucun
+ * rechargement, aucun scintillement, aucun script bloquant.
+ *
+ * Les robots d'indexation reçoivent systématiquement la version de référence
+ * (contenu canonique stable) : le SEO n'est jamais affecté.
+ */
 
 export const metadata: Metadata = {
   title: {
@@ -51,6 +69,9 @@ export const metadata: Metadata = {
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Nireo — Le centre de contrôle du patrimoine" }],
   },
 };
+
+/** La personnalisation lit les cookies : la page est rendue à chaque requête. */
+export const dynamic = "force-dynamic";
 
 /* ------------------------------------------------------------------ */
 
@@ -89,9 +110,20 @@ function SectionHead({
   );
 }
 
-function Section({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
+/** `data-lx-section` : repère lu par le moteur de mesure (vues, temps, sorties). */
+function Section({
+  id,
+  track,
+  className,
+  children,
+}: {
+  id?: string;
+  track: SectionKey;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section id={id} className={cn("scroll-mt-24 py-20 sm:py-28", className)}>
+    <section id={id} data-lx-section={track} className={cn("scroll-mt-24 py-20 sm:py-28", className)}>
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">{children}</div>
     </section>
   );
@@ -106,13 +138,6 @@ const TRUST = [
   { icon: Clock, label: "Sauvegarde automatique" },
   { icon: Check, label: "Sans carte bancaire" },
   { icon: Sparkles, label: "Interface soignée au détail" },
-];
-
-const STATS = [
-  { value: 6, suffix: "", label: "modules réunis dans un seul espace" },
-  { value: 1, suffix: "", label: "logement suivi gratuitement, à vie" },
-  { value: 100, suffix: " %", label: "de vos données isolées de tout autre compte" },
-  { value: 24, suffix: "/7", label: "accès à votre patrimoine, partout" },
 ];
 
 const JSON_LD = {
@@ -136,16 +161,18 @@ const JSON_LD = {
 
 /* ------------------------------------------------------------------ */
 
-export default function LandingPage() {
-  return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+export default async function LandingPage() {
+  const [{ content }, state] = await Promise.all([getLandingResolution(), getEngineState()]);
+  const { videoUrl, testimonials } = state.capabilities;
+  const proof = proofHeading(content.proof.kind, testimonials.length >= 2);
 
-      {/* 1 — Hero cinématographique */}
-      <HeroCockpit />
-
-      {/* Barre de confiance — défilement continu (marquee), statique en reduced-motion */}
-      <div className="relative overflow-hidden border-y border-border/70 py-5 [mask-image:linear-gradient(90deg,transparent,#000_7%,#000_93%,transparent)] motion-reduce:[mask-image:none]">
+  /** Chaque section sait se rendre — l'ordre, lui, vient du moteur. */
+  const SECTIONS: Record<SectionKey, (n: string) => React.ReactNode> = {
+    trust: () => (
+      <div
+        data-lx-section="trust"
+        className="relative overflow-hidden border-y border-border/70 py-5 [mask-image:linear-gradient(90deg,transparent,#000_7%,#000_93%,transparent)] motion-reduce:[mask-image:none]"
+      >
         <div className="flex w-max items-center gap-x-10 pr-10 [animation:nireo-marquee_38s_linear_infinite] motion-reduce:w-full motion-reduce:flex-wrap motion-reduce:justify-center motion-reduce:gap-y-3 motion-reduce:pr-0 motion-reduce:[animation:none]">
           {[...TRUST, ...TRUST].map((t, i) => (
             <span
@@ -162,11 +189,12 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+    ),
 
-      {/* 2+6 — Avant / Après (le chaos → l'ordre) */}
-      <Section>
+    before_after: (n) => (
+      <Section track="before_after" className="border-t border-border/70">
         <SectionHead
-          n="02"
+          n={n}
           eyebrow="Avant / Après"
           title="Du désordre au"
           keyword="contrôle total."
@@ -176,11 +204,12 @@ export default function LandingPage() {
           <BeforeAfter />
         </Reveal>
       </Section>
+    ),
 
-      {/* 3 — Démonstration interactive */}
-      <Section id="demo" className="border-t border-border/70">
+    demo: (n) => (
+      <Section id="demo" track="demo" className="border-t border-border/70">
         <SectionHead
-          n="03"
+          n={n}
           eyebrow="Démonstration"
           title="Explorez Nireo,"
           keyword="scénario par scénario."
@@ -190,18 +219,18 @@ export default function LandingPage() {
           <ProductDemo />
         </Reveal>
       </Section>
+    ),
 
-      {/* 4 — Fonctionnalités éditoriales (bento) */}
-      <Section id="fonctionnalites" className="border-t border-border/70">
+    features: (n) => (
+      <Section id="fonctionnalites" track="features" className="border-t border-border/70">
         <SectionHead
-          n="04"
+          n={n}
           eyebrow="Fonctionnalités"
           title="Six modules,"
           keyword="une seule évidence."
           description="Chaque module a sa propre mise en scène — tous parlent le même langage."
         />
         <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
-          {/* Loyers — grand */}
           <SpotlightCard glow="var(--nireo-glow-a)" className="p-6 sm:col-span-2 lg:col-span-4">
             <div className="flex items-start justify-between">
               <div>
@@ -220,21 +249,19 @@ export default function LandingPage() {
             </div>
           </SpotlightCard>
 
-          {/* Notifications — petit */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
             <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-300"><Bell className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Notifications</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Retards, documents qui expirent, chantiers dépassés : prévenu au bon moment.</p>
             <div className="mt-4 space-y-2">
-              {["Loyer en retard · Studio", "Assurance à renouveler"].map((n) => (
-                <div key={n} className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-2.5 py-1.5 text-[11px] text-foreground">
-                  <span className="size-1.5 rounded-full bg-amber-400" /> {n}
+              {["Loyer en retard · Studio", "Assurance à renouveler"].map((notice) => (
+                <div key={notice} className="flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-2.5 py-1.5 text-[11px] text-foreground">
+                  <span className="size-1.5 rounded-full bg-amber-400" /> {notice}
                 </div>
               ))}
             </div>
           </SpotlightCard>
 
-          {/* Documents */}
           <SpotlightCard glow="var(--nireo-glow-c)" className="p-6 sm:col-span-2">
             <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><FileText className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Documents</h3>
@@ -246,7 +273,6 @@ export default function LandingPage() {
             </div>
           </SpotlightCard>
 
-          {/* Patrimoine */}
           <SpotlightCard glow="var(--nireo-glow-b)" className="p-6 sm:col-span-2">
             <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-primary"><Building2 className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Patrimoine</h3>
@@ -258,7 +284,6 @@ export default function LandingPage() {
             </div>
           </SpotlightCard>
 
-          {/* Dépenses & travaux */}
           <SpotlightCard glow="oklch(0.82 0.09 60)" className="p-6 sm:col-span-2">
             <span className="grid size-11 place-items-center rounded-xl border border-border bg-primary/8 text-amber-300"><Receipt className="size-5" /></span>
             <h3 className="mt-4 text-lg font-semibold text-foreground">Dépenses &amp; travaux</h3>
@@ -273,7 +298,6 @@ export default function LandingPage() {
             </div>
           </SpotlightCard>
 
-          {/* Statistiques — pleine largeur */}
           <SpotlightCard glow="var(--nireo-glow-c)" className="p-6 sm:col-span-2 lg:col-span-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="max-w-md">
@@ -292,46 +316,53 @@ export default function LandingPage() {
           </SpotlightCard>
         </div>
       </Section>
+    ),
 
-      {/* 5 — Une journée avec Nireo */}
-      <Section id="comment-ca-marche" className="border-t border-border/70">
-        <SectionHead n="05" eyebrow="Le quotidien" title="Une journée" keyword="avec Nireo." description="Le produit travaille pour vous, du matin au soir." />
+    day: (n) => (
+      <Section id="comment-ca-marche" track="day" className="border-t border-border/70">
+        <SectionHead n={n} eyebrow="Le quotidien" title="Une journée" keyword="avec Nireo." description="Le produit travaille pour vous, du matin au soir." />
         <Reveal className="mt-12">
           <DayTimeline />
         </Reveal>
       </Section>
+    ),
 
-      {/* 7 — Chiffres & crédibilité */}
-      <Section className="border-t border-border/70">
-        <SectionHead n="07" eyebrow="Ce que Nireo garantit" title="Des bénéfices" keyword="concrets." description="Pas de faux chiffres clients : uniquement ce que le produit fait vraiment." />
-        <Reveal className="mt-12">
-          <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
-            {STATS.map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                  <span className="nireo-shine"><CountUp value={s.value} suffix={s.suffix} /></span>
-                </p>
-                <p className="mx-auto mt-3 max-w-[16ch] text-sm text-muted-foreground">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+    proof: (n) => (
+      <Section track="proof" className="border-t border-border/70">
+        <SectionHead
+          n={n}
+          eyebrow={proof.eyebrow}
+          title={proof.title}
+          keyword={proof.keyword}
+          description="Aucun chiffre client inventé : uniquement ce que le produit fait vraiment."
+        />
+        <ProofSection variant={content.proof.kind} testimonials={testimonials} />
       </Section>
+    ),
 
-      {/* 8 — Tarifs */}
-      <Section id="tarifs" className="border-t border-border/70">
-        <SectionHead n="08" eyebrow="Tarifs" title="Un plan pour chaque" keyword="taille de patrimoine." description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit." />
+    pricing: (n) => (
+      <Section id="tarifs" track="pricing" className="border-t border-border/70">
+        <SectionHead n={n} eyebrow="Tarifs" title="Un plan pour chaque" keyword="taille de patrimoine." description="Démarrez gratuitement avec un logement, montez en gamme quand votre patrimoine grandit." />
         <div className="mt-14 space-y-10">
-          <FounderOffer stripeEnabled={isStripeConfigured} />
-          <PricingSection />
+          {content.pricingEmphasis.plan === "founder" ? (
+            <FounderOffer stripeEnabled={isStripeConfigured} />
+          ) : null}
+          <PricingSection emphasis={content.pricingEmphasis.plan} />
+          {content.pricingEmphasis.plan === "founder" ? null : (
+            <FounderOffer stripeEnabled={isStripeConfigured} />
+          )}
         </div>
       </Section>
+    ),
 
-      {/* 9 — Présentation de Nireo */}
-      <Section className="border-t border-border/70">
+    company: (n) => (
+      <Section track="company" className="border-t border-border/70">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
-            <Eyebrow>L’entreprise</Eyebrow>
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-[11px] tracking-widest text-primary">N°{n}</span>
+              <Eyebrow>L’entreprise</Eyebrow>
+            </div>
             <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.5rem]">
               Nous construisons le futur de la <span className="nireo-shine">gestion locative.</span>
             </h2>
@@ -350,7 +381,11 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link href="/a-propos" className={cn(buttonVariants({ variant: "outline" }), "nireo-glass-soft mt-8 text-foreground")}>
+            <Link
+              href="/a-propos"
+              data-lx="company-link"
+              className={cn(buttonVariants({ variant: "outline" }), "nireo-glass-soft mt-8 text-foreground")}
+            >
               Découvrir l’entreprise <ArrowRight className="size-4" />
             </Link>
           </Reveal>
@@ -375,21 +410,43 @@ export default function LandingPage() {
           </Reveal>
         </div>
       </Section>
+    ),
 
-      {/* 10a — FAQ */}
-      <Section id="faq" className="border-t border-border/70">
-        <SectionHead n="10" eyebrow="FAQ" title="Questions" keyword="fréquentes." description="Les réponses correspondent aux fonctions réellement disponibles dans l’application." />
+    faq: (n) => (
+      <Section id="faq" track="faq" className="border-t border-border/70">
+        <SectionHead n={n} eyebrow="FAQ" title="Questions" keyword="fréquentes." description="Les réponses correspondent aux fonctions réellement disponibles dans l’application." />
         <div className="mt-12"><FaqSection /></div>
       </Section>
+    ),
+  };
 
-      {/* 10b — CTA final cinématographique */}
-      <section className="relative overflow-hidden border-t border-border/70">
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+
+      {/* 1 — Hero, entièrement piloté par le moteur de personnalisation */}
+      <div data-lx-section="hero">
+        <HeroCockpit
+          headline={content.headline}
+          subheadline={content.subheadline.text}
+          cta={content.cta}
+          media={content.media.kind}
+          videoUrl={videoUrl}
+        />
+      </div>
+
+      {/* 2…n — Sections, dans l'ordre décidé par le moteur */}
+      {content.sections.map((key, index) => (
+        <Fragment key={key}>{SECTIONS[key](String(index + 2).padStart(2, "0"))}</Fragment>
+      ))}
+
+      {/* Final — Appel à l'action */}
+      <section data-lx-section="cta" className="relative overflow-hidden border-t border-border/70">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="nireo-aurora absolute bottom-0 left-1/2 h-[30rem] w-[50rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-30 blur-2xl" />
         </div>
         <div className="mx-auto w-full max-w-4xl px-4 py-24 text-center sm:px-6 sm:py-32">
           <Reveal>
-            {/* Le patrimoine qui se rassemble */}
             <div className="mx-auto mb-8 flex w-fit items-center gap-1.5" aria-hidden>
               {[Building2, Banknote, FileText, BarChart3].map((Icon, i) => (
                 <span key={i} className="nireo-glass grid size-11 place-items-center rounded-2xl text-primary" style={{ animation: "nireo-rise 0.7s cubic-bezier(0.16,1,0.3,1) both", animationDelay: `${i * 90}ms` }}>
@@ -398,23 +455,32 @@ export default function LandingPage() {
               ))}
             </div>
             <h2 className="mx-auto max-w-2xl text-4xl font-semibold text-balance text-foreground sm:text-5xl">
-              Votre patrimoine mérite mieux que{" "}
-              <span className="nireo-shine">des fichiers dispersés.</span>
+              {content.finalCta.lead} <span className="nireo-shine">{content.finalCta.highlight}</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">
-              Créez votre espace en une minute, ajoutez votre premier logement, et reprenez le contrôle.
-            </p>
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground">{content.finalCta.text}</p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/inscription" className={cn(buttonVariants({ size: "lg" }), "nireo-glow nireo-sheen h-11 w-full px-6 text-[0.95rem] sm:w-auto")}>
-                Créer mon espace Nireo <ArrowRight className="size-4" />
+              <Link
+                href={content.cta.href}
+                data-lx="final-cta-primary"
+                data-lx-cta=""
+                className={cn(buttonVariants({ size: "lg" }), "nireo-glow nireo-sheen h-11 w-full px-6 text-[0.95rem] sm:w-auto")}
+              >
+                {content.finalCta.primary} <ArrowRight className="size-4" />
               </Link>
-              <Link href="/connexion" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "nireo-glass-soft h-11 w-full px-6 text-[0.95rem] text-foreground sm:w-auto")}>
+              <Link
+                href="/connexion"
+                data-lx="final-cta-login"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "nireo-glass-soft h-11 w-full px-6 text-[0.95rem] text-foreground sm:w-auto")}
+              >
                 Se connecter
               </Link>
             </div>
           </Reveal>
         </div>
       </section>
+
+      {/* Mesure du comportement réel (anonyme, non bloquante). */}
+      <LandingTracker />
     </>
   );
 }

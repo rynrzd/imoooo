@@ -14,6 +14,7 @@ import {
   Receipt,
   ScrollText,
   Settings,
+  Sparkles,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -29,6 +30,7 @@ interface AdminNavItem {
 export const ADMIN_NAV: AdminNavItem[] = [
   { title: "Tableau de bord", href: "/admin", icon: LayoutDashboard },
   { title: "Analytics", href: "/admin/analytics", icon: ChartColumn },
+  { title: "Landing Intelligence", href: "/admin/landing", icon: Sparkles },
   { title: "Utilisateurs", href: "/admin/utilisateurs", icon: Users },
   { title: "Abonnements", href: "/admin/abonnements", icon: CreditCard },
   { title: "Codes promo", href: "/admin/codes-promo", icon: BadgePercent },

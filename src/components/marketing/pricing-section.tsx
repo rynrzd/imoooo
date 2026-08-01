@@ -72,28 +72,42 @@ function BusinessFeatures() {
  * avantages par catégories. Tant que Stripe n'est pas activé, tous les CTA
  * mènent à l'inscription (chaque compte démarre en Gratuit). Aucun paiement simulé.
  */
-export function PricingSection({ withComparison = true }: { withComparison?: boolean }) {
+export function PricingSection({
+  withComparison = true,
+  emphasis,
+}: {
+  withComparison?: boolean;
+  /**
+   * Plan mis en avant. Piloté par le moteur d'optimisation de la landing
+   * (slot `pricing_emphasis`) ; sans valeur, on garde le plan marqué
+   * « populaire » dans la configuration produit.
+   */
+  emphasis?: "starter" | "pro" | "founder";
+}) {
   // Événement interne « vue des tarifs » (aucun service tiers).
   React.useEffect(() => track("vue_tarifs"), []);
+
+  const featuredId = emphasis === "starter" || emphasis === "pro" ? emphasis : null;
 
   return (
     <div className="space-y-10">
       <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((plan) => {
           const premium = plan.id === "business";
+          const featured = featuredId ? plan.id === featuredId : Boolean(plan.popular);
           return (
           <Card
             key={plan.id}
             className={cn(
               "relative flex flex-col",
-              plan.popular && "border-primary shadow-md ring-1 ring-primary/20",
+              featured && "border-primary shadow-md ring-1 ring-primary/20",
               premium &&
                 // Carte Premium : légèrement plus grande, fond dégradé sobre,
                 // double bordure, ombre portée moderne, survol discret.
                 "border-foreground/25 bg-linear-[165deg] from-primary/[0.07] via-card to-card ring-1 ring-foreground/10 shadow-[0_16px_48px_-16px_rgb(0_0_0/0.35)] transition-[scale,box-shadow] duration-300 motion-safe:hover:shadow-[0_20px_56px_-16px_rgb(0_0_0/0.4)] xl:z-10 xl:scale-[1.04] xl:motion-safe:hover:scale-[1.05]"
             )}
           >
-            {plan.popular ? (
+            {featured ? (
               <Badge className="absolute -top-2.5 left-4">Recommandé</Badge>
             ) : null}
             {premium ? (
@@ -161,11 +175,14 @@ export function PricingSection({ withComparison = true }: { withComparison?: boo
             <CardFooter>
               <Link
                 href={plan.ctaHref}
+                // Marqueurs lus par le moteur de mesure de la landing.
+                data-lx={`plan-${plan.id}`}
+                data-lx-event="plan_selected"
                 onClick={() =>
                   track("cta_essai_gratuit", { source: "tarifs", plan: plan.id })
                 }
                 className={buttonVariants({
-                  variant: plan.popular || premium ? "default" : "outline",
+                  variant: featured || premium ? "default" : "outline",
                   className: "w-full",
                 })}
               >

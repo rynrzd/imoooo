@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { Megaphone, Wrench } from "lucide-react";
 import { AppDataBoundary } from "@/components/layout/app-data-boundary";
 import { FounderIntentRedirect } from "@/components/layout/founder-intent-redirect";
@@ -8,6 +10,8 @@ import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { ProductTour } from "@/components/onboarding/product-tour";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
+import { VISITOR_COOKIE } from "@/lib/landing/audience";
+import { recordSignupConversion } from "@/lib/landing/server";
 import { AppStoreProvider } from "@/lib/store";
 import { isAdminConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -38,6 +42,22 @@ export default async function AppLayout({
     if (isAdminConfigured && (await isUserAdmin(user.id))) {
       redirect("/admin");
     }
+
+    // Landing Intelligence — conversion « compte créé ».
+    // Elle est enregistrée ICI, côté serveur, à partir d'une session Supabase
+    // vérifiée : le navigateur ne peut donc pas déclarer une fausse
+    // inscription. Un index unique en base empêche tout double comptage, et
+    // `after()` garantit que cela ne retarde jamais l'affichage.
+    if (isAdminConfigured) {
+      const visitorId = (await cookies()).get(VISITOR_COOKIE)?.value ?? "";
+      const createdAt = user.created_at;
+      const userId = user.id;
+      if (visitorId) {
+        // La fenêtre de 24 h et la déduplication sont gérées côté serveur.
+        after(() => recordSignupConversion(userId, visitorId, createdAt));
+      }
+    }
+
     settings = await getPublicSiteSettings();
   }
 

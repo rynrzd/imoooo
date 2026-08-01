@@ -1,6 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import {
+  detectAcquisition,
+  isCrawler,
+  isValidVisitorId,
+  parseVisit,
+  serializeVisit,
+  VISIT_COOKIE,
+  VISIT_GAP_MS,
+  VISITOR_COOKIE,
+  VISITOR_COOKIE_MAX_AGE,
+  type VisitState,
+} from "@/lib/landing/audience";
+import {
   DEFAULT_ATTRIBUTION_WINDOW_DAYS,
   parseRefCookie,
   recordPartnerClick,
@@ -110,8 +122,113 @@ async function capturePartnerReferral(
   });
 }
 
+/* ------------------------------------------------------------------ */
+/*  Landing Intelligence — identité du visiteur                        */
+/* ------------------------------------------------------------------ */
+
+interface IdentityCookie {
+  name: string;
+  value: string;
+}
+
+/**
+ * Pose l'identité nécessaire à la personnalisation de la vitrine :
+ * - `nireo_vid` : UUID ALÉATOIRE (jamais dérivé de l'IP ni d'un compte) qui
+ *   permet de servir la même version d'une visite à l'autre ;
+ * - `nireo_vst` : nombre de visites + source d'acquisition de la visite.
+ *
+ * Les deux cookies sont HttpOnly, first-party, sans donnée personnelle, et
+ * sont posés AVANT le rendu : la page voit l'identité dès la toute première
+ * requête (sinon chaque nouveau visiteur fausserait les mesures).
+ */
+function captureLandingIdentity(request: NextRequest): IdentityCookie[] {
+  if (request.method !== "GET") return [];
+  const { pathname, searchParams } = request.nextUrl;
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/_next")
+  ) {
+    return [];
+  }
+  // Les robots ne sont ni identifiés, ni personnalisés, ni mesurés.
+  if (isCrawler(request.headers.get("user-agent"))) return [];
+
+  const out: IdentityCookie[] = [];
+  const nowSec = Math.floor(Date.now() / 1000);
+
+  let visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
+  if (!isValidVisitorId(visitorId)) {
+    visitorId = crypto.randomUUID();
+    request.cookies.set(VISITOR_COOKIE, visitorId);
+    out.push({ name: VISITOR_COOKIE, value: visitorId });
+  }
+
+  const previous = parseVisit(request.cookies.get(VISIT_COOKIE)?.value);
+  const partnerRef =
+    sanitizeRef(searchParams.get(REF_PARAM)) ||
+    parseRefCookie(request.cookies.get(REF_COOKIE_NAME)?.value)?.ref ||
+    null;
+  const incoming = detectAcquisition({
+    referrer: request.headers.get("referer"),
+    utmSource: searchParams.get("utm_source"),
+    utmMedium: searchParams.get("utm_medium"),
+    partnerRef,
+    siteHost: request.nextUrl.host,
+  });
+
+  let next: VisitState;
+  if (!previous) {
+    next = { count: 1, first: nowSec, last: nowSec, source: incoming };
+  } else {
+    const newVisit = nowSec - previous.last > VISIT_GAP_MS / 1000;
+    next = {
+      count: previous.count + (newVisit ? 1 : 0),
+      first: previous.first,
+      last: nowSec,
+      // Dernier contact identifiable : une nouvelle provenance prime ;
+      // sinon on conserve celle déjà attribuée à la visite.
+      source: incoming !== "direct" ? incoming : previous.source,
+    };
+  }
+
+  // On n'écrit que si l'état change vraiment (ou toutes les minutes) : pas de
+  // `Set-Cookie` inutile à chaque navigation.
+  const changed =
+    !previous ||
+    previous.count !== next.count ||
+    previous.source !== next.source ||
+    nowSec - previous.last > 60;
+  if (changed) {
+    const value = serializeVisit(next);
+    request.cookies.set(VISIT_COOKIE, value);
+    out.push({ name: VISIT_COOKIE, value });
+  }
+  return out;
+}
+
 export async function proxy(request: NextRequest) {
+  // AVANT le rendu : la landing doit voir l'identité dès la 1re requête.
+  let identity: IdentityCookie[] = [];
+  try {
+    identity = captureLandingIdentity(request);
+  } catch {
+    // silencieux : sans identité, la vitrine sert simplement la version de référence.
+  }
+
   const response = await handleRequest(request);
+
+  for (const cookie of identity) {
+    response.cookies.set(cookie.name, cookie.value, {
+      maxAge: VISITOR_COOKIE_MAX_AGE,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+  }
+
   // Jamais bloquant : une erreur d'attribution n'empêche pas la navigation.
   try {
     await capturePartnerReferral(request, response);
@@ -207,7 +324,9 @@ async function handleRequest(request: NextRequest) {
   if (!user && pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/accueil";
-    const rewrite = NextResponse.rewrite(url);
+    // `{ request }` transmet les cookies d'identité posés juste avant : la
+    // landing personnalisée les voit dès la toute première requête.
+    const rewrite = NextResponse.rewrite(url, { request });
     response.cookies.getAll().forEach((cookie) => rewrite.cookies.set(cookie));
     return rewrite;
   }

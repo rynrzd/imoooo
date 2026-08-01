@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { CountUp } from "@/components/marketing/count-up";
+import { DashboardPreview } from "@/components/marketing/product-previews";
 import { buttonVariants } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -286,8 +287,60 @@ function Tick({ className }: { className?: string }) {
 
 /* ------------------------------- Hero ------------------------------ */
 
-export function HeroCockpit() {
+/**
+ * Contenu du hero. Tout est optionnel : sans propriété, le composant rend la
+ * version de RÉFÉRENCE (celle d'origine). Les valeurs viennent normalement du
+ * moteur de personnalisation, résolu côté serveur — d'où l'absence totale de
+ * scintillement : le HTML arrive déjà personnalisé.
+ */
+export interface HeroCockpitProps {
+  headline?: { lead: string; highlight: string };
+  subheadline?: string;
+  cta?: { primary: string; href: string; secondary: string; secondaryHref: string };
+  /** Média affiché à droite : composition animée, vidéo réelle, ou aperçu. */
+  media?: "cockpit" | "video" | "preview";
+  /** URL de la vidéo publiée depuis l'administration (média « video »). */
+  videoUrl?: string | null;
+}
+
+const DEFAULT_HEADLINE = { lead: "Pilotez tout votre patrimoine", highlight: "depuis un seul endroit." };
+const DEFAULT_SUBHEADLINE =
+  "Loyers, locataires, documents, dépenses et performances réunis dans un espace conçu pour les propriétaires exigeants.";
+const DEFAULT_CTA = {
+  primary: "Commencer gratuitement",
+  href: "/inscription",
+  secondary: "Découvrir Nireo",
+  secondaryHref: "#demo",
+};
+
+/** Cadre commun aux médias alternatifs (vidéo, aperçu d'interface). */
+function MediaFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="nireo-glass relative overflow-hidden rounded-[1.5rem] p-3 sm:p-4">
+      <div className="flex flex-wrap items-center gap-2 px-1 pb-3">
+        <span className="flex gap-1.5" aria-hidden>
+          <span className="size-2.5 rounded-full bg-border" />
+          <span className="size-2.5 rounded-full bg-border" />
+          <span className="size-2.5 rounded-full bg-border" />
+        </span>
+        <span className="ml-1 text-xs font-medium text-foreground">Centre de contrôle</span>
+        <span className="text-xs text-muted-foreground">· 6 biens · à jour</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export function HeroCockpit({
+  headline = DEFAULT_HEADLINE,
+  subheadline = DEFAULT_SUBHEADLINE,
+  cta = DEFAULT_CTA,
+  media = "cockpit",
+  videoUrl = null,
+}: HeroCockpitProps = {}) {
   const { ref, onMove, onLeave } = useParallax();
+  // La variante vidéo n'est servable que si une vidéo est réellement publiée.
+  const kind = media === "video" && !videoUrl ? "cockpit" : media;
 
   return (
     <section className="relative isolate overflow-hidden" onPointerMove={onMove} onPointerLeave={onLeave}>
@@ -314,29 +367,30 @@ export function HeroCockpit() {
           </div>
 
           <h1 className="animate-nireo-rise mt-5 text-[2.6rem] leading-[1.03] font-semibold text-balance text-foreground sm:text-[3.4rem]" style={{ animationDelay: "0.12s" }}>
-            Pilotez tout votre patrimoine{" "}
-            <span className="nireo-shine">depuis un seul endroit.</span>
+            {headline.lead} <span className="nireo-shine">{headline.highlight}</span>
           </h1>
 
           <p className="animate-nireo-rise mt-5 max-w-md text-base leading-relaxed text-balance text-muted-foreground" style={{ animationDelay: "0.2s" }}>
-            Loyers, locataires, documents, dépenses et performances réunis dans
-            un espace conçu pour les propriétaires exigeants.
+            {subheadline}
           </p>
 
           <div className="animate-nireo-rise mt-7 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ animationDelay: "0.28s" }}>
             <Link
-              href="/inscription"
+              href={cta.href}
+              data-lx="hero-cta-primary"
+              data-lx-cta=""
               onClick={() => track("cta_essai_gratuit", { source: "hero" })}
               className={cn(buttonVariants({ size: "lg" }), "nireo-glow nireo-sheen h-11 px-6 text-[0.95rem]")}
             >
-              Commencer gratuitement
+              {cta.primary}
               <ArrowRight className="size-4 transition-transform group-hover/button:translate-x-0.5" />
             </Link>
             <a
-              href="#demo"
+              href={cta.secondaryHref}
+              data-lx="hero-cta-secondary"
               className="group inline-flex h-11 items-center justify-center gap-1.5 px-2 text-[0.95rem] font-medium text-foreground"
             >
-              Découvrir Nireo
+              {cta.secondary}
               <ArrowUpRight className="size-4 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
           </div>
@@ -377,6 +431,24 @@ export function HeroCockpit() {
             <div aria-hidden className="pointer-events-none absolute -bottom-8 left-1/2 h-24 w-3/4 -translate-x-1/2 rounded-[100%] bg-primary/10 blur-2xl" />
 
             <Depth depth={10}>
+              {kind === "video" ? (
+                <MediaFrame>
+                  {/* Vidéo RÉELLE publiée depuis l'administration. `data-lx-video`
+                      permet au moteur de mesurer lecture et progression. */}
+                  <video
+                    data-lx-video="hero"
+                    src={videoUrl ?? undefined}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="aspect-video w-full rounded-2xl border border-border bg-black object-cover"
+                  />
+                </MediaFrame>
+              ) : kind === "preview" ? (
+                <MediaFrame>
+                  <DashboardPreview className="w-full" />
+                </MediaFrame>
+              ) : (
               <div className="nireo-glass relative overflow-hidden rounded-[1.5rem] p-3 sm:p-4">
                 {/* Barre de statut */}
                 <div className="flex flex-wrap items-center gap-2 px-1 pb-3">
@@ -401,9 +473,12 @@ export function HeroCockpit() {
                   <div className="sm:col-span-5"><ActivityStrip /></div>
                 </div>
               </div>
+              )}
             </Depth>
 
-            {/* Satellites flottants */}
+            {/* Satellites flottants — réservés à la composition « cockpit ». */}
+            {kind !== "cockpit" ? null : (
+              <>
             <Depth depth={36} className="absolute -top-5 -left-3 z-20 sm:-left-10">
               <div className="nireo-float" style={{ ["--float-dur" as string]: "6.5s" } as React.CSSProperties}>
                 <div className="nireo-panel flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5">
@@ -443,6 +518,8 @@ export function HeroCockpit() {
                 </div>
               </div>
             </Depth>
+              </>
+            )}
           </div>
         </div>
       </div>
