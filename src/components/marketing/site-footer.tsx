@@ -18,6 +18,14 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     ],
   },
   {
+    title: "Autres produits",
+    links: [
+      // Nireo ID : second produit de la marque (passeport numérique des objets).
+      { label: "Nireo ID", href: "/id" },
+      { label: "Espace réparateurs", href: "/id/pro/candidature" },
+    ],
+  },
+  {
     title: "Compte",
     links: [
       { label: "Se connecter", href: "/connexion" },
@@ -38,7 +46,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 export function SiteFooter() {
   return (
     <footer className="nireo-hairline relative border-t border-border bg-muted/40">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-6 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div className="space-y-3">
           <NireoLogo />
           <p className="max-w-xs text-sm text-muted-foreground">

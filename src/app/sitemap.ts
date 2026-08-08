@@ -16,5 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "yearly", priority: 0.5 },
     { url: `${SITE_URL}/inscription`, lastModified: now, changeFrequency: "yearly", priority: 0.6 },
     { url: `${SITE_URL}/connexion`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    // Nireo ID — vitrine du second produit et sa démonstration publique.
+    { url: `${SITE_URL}/id`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${SITE_URL}/id/exemple`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
   ];
 }

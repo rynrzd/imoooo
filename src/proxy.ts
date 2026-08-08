@@ -49,12 +49,28 @@ const MARKETING_PATHS = [
 
 const PUBLIC_PATHS = [...AUTH_PATHS, ...MARKETING_PATHS];
 
+/**
+ * Nireo ID (second produit) — surfaces PUBLIQUES uniquement :
+ * vitrine, démonstration, aperçu public d'un passeport et dossier partagé
+ * par lien. Tout le reste (/id/app, /id/pro, /id/admin) exige une session
+ * et repasse par la connexion partagée Nireo.
+ */
+const NIREO_ID_PUBLIC_PREFIXES = ["/id/exemple", "/id/p", "/id/s"];
+
+function isNireoIdPublicPath(pathname: string): boolean {
+  if (pathname === "/id") return true;
+  return NIREO_ID_PUBLIC_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+}
+
 function matches(paths: string[], pathname: string): boolean {
   return paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 function isPublicPath(pathname: string): boolean {
   return (
+    isNireoIdPublicPath(pathname) ||
     pathname.startsWith("/auth") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||

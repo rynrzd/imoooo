@@ -569,3 +569,164 @@
     0 10px 30px -12px oklch(0.76 0.12 262 / 0.6);
 }
 
+/* ================================================================== */
+/*  NIREO ID — second produit de la marque (scope « .nid »)            */
+/*                                                                    */
+/*  Univers propre : clair par défaut, sombre suivant le thème choisi, */
+/*  accent turquoise réservé aux actions principales et aux éléments   */
+/*  de confiance. Entièrement scopé : Nireo Immo n'est jamais affecté. */
+/* ================================================================== */
+
+.nid {
+  --background: #f6f8fb;
+  --foreground: #0b1220;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --popover: #ffffff;
+  --popover-foreground: #0b1220;
+
+  /* Turquoise Nireo ID — texte foncé dessus pour respecter WCAG AA. */
+  --primary: #0faf9b;
+  --primary-foreground: #04211d;
+
+  --secondary: #eef2f7;
+  --secondary-foreground: #0b1220;
+  --muted: #eef2f7;
+  --muted-foreground: #667085;
+  --accent: #e6f7f4;
+  --accent-foreground: #087f73;
+  --destructive: #b42318;
+  --border: #e3e8ef;
+  --input: #e3e8ef;
+  --ring: #0faf9b;
+
+  --radius: 1rem;
+
+  /* Signature du produit (états de confiance, halos discrets). */
+  --nid-accent-strong: #087f73;
+  --nid-success: #15803d;
+  --nid-warning: #b45309;
+  --nid-danger: #b42318;
+  --nid-info: #0369a1;
+  --nid-shadow: 0 1px 2px rgb(11 18 32 / 0.04), 0 12px 32px -20px rgb(11 18 32 / 0.28);
+
+  background-color: var(--background);
+  color: var(--foreground);
+  color-scheme: light;
+}
+
+.dark .nid,
+.nid.dark {
+  --background: #081018;
+  --foreground: #f4f7fa;
+  --card: #101923;
+  --card-foreground: #f4f7fa;
+  --popover: #101923;
+  --popover-foreground: #f4f7fa;
+
+  --primary: #2dd4bf;
+  --primary-foreground: #04211d;
+
+  --secondary: #16212d;
+  --secondary-foreground: #f4f7fa;
+  --muted: #16212d;
+  --muted-foreground: #9aa7b5;
+  --accent: #12262a;
+  --accent-foreground: #5eead4;
+  --destructive: #fb7185;
+  --border: #263341;
+  --input: #263341;
+  --ring: #2dd4bf;
+
+  --nid-accent-strong: #5eead4;
+  --nid-success: #4ade80;
+  --nid-warning: #fbbf24;
+  --nid-danger: #fb7185;
+  --nid-info: #7dd3fc;
+  --nid-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -24px rgb(0 0 0 / 0.8);
+
+  color-scheme: dark;
+}
+
+/* Surface principale : bordure nette, ombre très légère. */
+@utility nid-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--nid-shadow);
+}
+
+/* Liseré supérieur turquoise discret (cartes clés, en-têtes). */
+@utility nid-topline {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0.55;
+  }
+}
+
+/* Trame technique très fine — évoque l'objet, jamais le « crypto ». */
+@utility nid-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Cibles tactiles confortables : 44 px minimum sur mobile. */
+.nid button,
+.nid [role="button"],
+.nid a[data-touch] {
+  min-height: 2.25rem;
+}
+
+@media (width < 48rem) {
+  .nid button[type="submit"],
+  .nid a[data-touch],
+  .nid button[data-touch] {
+    min-height: 2.75rem;
+  }
+}
+
+/* Champs de formulaire plus généreux que dans l'app de gestion. */
+.nid input:not([type="checkbox"]):not([type="radio"]),
+.nid select,
+.nid textarea {
+  min-height: 2.6rem;
+  border-radius: 0.75rem;
+  padding-inline: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.nid textarea {
+  padding-block: 0.6rem;
+}
+
+/* Titres du produit : compacts, jamais démesurés. */
+.nid h1,
+.nid h2 {
+  letter-spacing: -0.028em;
+  line-height: 1.1;
+}
+
+@keyframes nid-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility nid-in {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nid-fade-up 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+

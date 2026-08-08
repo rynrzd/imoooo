@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Check, Eye, EyeOff, Loader2, Lock, MailCheck, ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
@@ -66,7 +67,14 @@ const TRUST = [
   { icon: Lock, label: "Gratuit disponible" },
 ];
 
-export default function SignupPage() {
+/** Destination après inscription : uniquement un chemin interne. */
+function safeNext(raw: string | null): string {
+  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+}
+
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   const [pending, setPending] = React.useState(false);
   const [sentTo, setSentTo] = React.useState<string | null>(null);
   const [showPw, setShowPw] = React.useState(false);
@@ -95,7 +103,12 @@ export default function SignupPage() {
       password: values.password,
       options: {
         data: { full_name: values.fullName },
-        emailRedirectTo: `${SITE_URL}/auth/callback`,
+        // `next` permet à un autre produit Nireo (ex. Nireo ID) de ramener
+        // l'utilisateur à son parcours après confirmation. Défaut : « / ».
+        emailRedirectTo:
+          next === "/"
+            ? `${SITE_URL}/auth/callback`
+            : `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     setPending(false);
@@ -104,7 +117,7 @@ export default function SignupPage() {
       return;
     }
     if (data.session) {
-      window.location.assign("/");
+      window.location.assign(next);
       return;
     }
     setSentTo(values.email);
@@ -120,7 +133,10 @@ export default function SignupPage() {
       footer={
         <p>
           Déjà un compte ?{" "}
-          <Link href="/connexion" className="font-medium text-foreground underline-offset-2 hover:underline">
+          <Link
+            href={next === "/" ? "/connexion" : `/connexion?next=${encodeURIComponent(next)}`}
+            className="font-medium text-foreground underline-offset-2 hover:underline"
+          >
             Se connecter
           </Link>
         </p>
@@ -222,5 +238,14 @@ export default function SignupPage() {
       )}
     </AuthShell>
     </>
+  );
+}
+
+export default function SignupPage() {
+  // `useSearchParams` impose une frontière Suspense (rendu statique).
+  return (
+    <React.Suspense>
+      <SignupForm />
+    </React.Suspense>
   );
 }
