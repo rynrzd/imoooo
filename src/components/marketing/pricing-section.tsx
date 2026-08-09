@@ -9,6 +9,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { track } from "@/lib/analytics";
 import {
   BUSINESS_CATEGORIES,
+  formatLimit,
+  formatPlanPrice,
+  formatStorage,
   PLANS,
   type BusinessCategory,
   type Plan,
@@ -19,15 +22,14 @@ import { PlanComparison } from "./plan-comparison";
 /** Limites du plan, formulées explicitement (source : plan.limits). */
 function planLimits(plan: Plan): string[] {
   const { maxProperties, maxActiveTenants, maxDocuments, maxPhotos, storageMb } = plan.limits;
-  const storage = storageMb >= 1024 ? `${storageMb / 1024} Go` : `${storageMb} Mo`;
   return [
     maxProperties === null ? "Logements illimités" : `${maxProperties} logement${maxProperties > 1 ? "s" : ""} max`,
     maxActiveTenants === null
       ? "Locataires actifs illimités"
       : `${maxActiveTenants} locataire${maxActiveTenants > 1 ? "s" : ""} actif${maxActiveTenants > 1 ? "s" : ""} max`,
-    maxDocuments === null ? "Documents illimités" : `${maxDocuments} documents max`,
-    maxPhotos === null ? "Photos illimitées" : `${maxPhotos} photos max`,
-    `${storage} de stockage`,
+    maxDocuments === null ? "Documents illimités" : `${formatLimit(maxDocuments)} documents max`,
+    maxPhotos === null ? "Photos illimitées" : `${formatLimit(maxPhotos)} photos max`,
+    `${formatStorage(storageMb)} de stockage`,
   ];
 }
 
@@ -75,6 +77,7 @@ function BusinessFeatures() {
 export function PricingSection({
   withComparison = true,
   emphasis,
+  paymentsEnabled = false,
 }: {
   withComparison?: boolean;
   /**
@@ -83,6 +86,11 @@ export function PricingSection({
    * « populaire » dans la configuration produit.
    */
   emphasis?: "starter" | "pro" | "founder";
+  /**
+   * État RÉEL du paiement en ligne (`isStripeConfigured`, lu côté serveur).
+   * Tant qu'il est faux, aucune mention ne promet un paiement disponible.
+   */
+  paymentsEnabled?: boolean;
 }) {
   // Événement interne « vue des tarifs » (aucun service tiers).
   React.useEffect(() => track("vue_tarifs"), []);
@@ -137,10 +145,7 @@ export function PricingSection({
                     premium ? "text-4xl" : "text-2xl"
                   )}
                 >
-                  {plan.monthlyPrice.toLocaleString("fr-FR", {
-                    minimumFractionDigits: plan.monthlyPrice % 1 === 0 ? 0 : 2,
-                  })}{" "}
-                  €
+                  {formatPlanPrice(plan.monthlyPrice)} €
                 </span>
                 <span className="text-sm text-muted-foreground"> /mois</span>
               </p>
@@ -196,9 +201,15 @@ export function PricingSection({
 
       {withComparison ? <PlanComparison /> : null}
 
+      {/* Mention légale : elle ne peut pas annoncer un paiement disponible
+          si Stripe n'est pas configuré (l'information vient du serveur), et
+          les prix sont TTC — comme déclaré dans src/config/plans.ts. */}
       <p className="text-center text-xs text-muted-foreground">
-        Sans engagement · annulation possible à tout moment · paiement sécurisé
-        par Stripe. Chaque compte démarre gratuitement. Prix indiqués hors taxes.
+        Sans engagement · annulation possible à tout moment ·{" "}
+        {paymentsEnabled
+          ? "paiement sécurisé par Stripe"
+          : "paiement en ligne pas encore ouvert"}
+        . Chaque compte démarre gratuitement. Prix en euros TTC par mois.
       </p>
     </div>
   );

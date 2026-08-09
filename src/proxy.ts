@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { CONTENT_PAGES } from "@/config/seo-pages";
 import {
   detectAcquisition,
   isCrawler,
@@ -36,15 +37,23 @@ const AUTH_PATHS = [
  * publiques) autorisée à une session dont l'e-mail n'est pas confirmé. */
 const VERIFY_EMAIL_PATH = "/verification-email";
 
-/** Pages marketing publiques (landing, tarifs, pages légales). */
+/**
+ * Pages marketing publiques (landing, tarifs, pages légales, contenu).
+ * Les pages de contenu référençables viennent de src/config/seo-pages.ts :
+ * une page ajoutée là devient publique ici, apparaît dans le sitemap et dans
+ * /ressources — sans qu'aucune liste d'URL soit tenue à jour deux fois.
+ */
 const MARKETING_PATHS = [
   "/accueil",
   "/tarifs",
   "/contact",
+  "/a-propos",
+  "/entreprise",
   "/confidentialite",
   "/cgu",
   "/mentions-legales",
   "/cookies",
+  ...CONTENT_PAGES.map((page) => page.path),
 ];
 
 const PUBLIC_PATHS = [...AUTH_PATHS, ...MARKETING_PATHS];

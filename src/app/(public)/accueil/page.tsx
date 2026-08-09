@@ -22,18 +22,26 @@ import { LandingTracker } from "@/components/landing/landing-tracker";
 import { ProofSection, proofHeading } from "@/components/landing/proof-section";
 import { BeforeAfter } from "@/components/marketing/before-after";
 import { DayTimeline } from "@/components/marketing/day-timeline";
-import { FAQ_ITEMS, FaqSection } from "@/components/marketing/faq-section";
+import { FaqSection, getFaqItems } from "@/components/marketing/faq-section";
 import { FounderOffer } from "@/components/marketing/founder-offer";
 import { HeroCockpit } from "@/components/marketing/hero-cockpit";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { ProductDemo } from "@/components/marketing/product-demo";
 import { Reveal } from "@/components/marketing/reveal";
 import { SpotlightCard } from "@/components/marketing/spotlight-card";
+import { JsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
+import { PILLAR_PAGE, RESOURCES_PAGE } from "@/config/seo-pages";
 import { getEngineState } from "@/lib/landing/config";
 import { getLandingResolution } from "@/lib/landing/server";
 import type { SectionKey } from "@/lib/landing/types";
-import { PLANS } from "@/lib/stripe/plans";
+import {
+  faqPageJsonLd,
+  jsonLdGraph,
+  organizationJsonLd,
+  softwareApplicationJsonLd,
+  webSiteJsonLd,
+} from "@/lib/seo/jsonld";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { SITE_URL } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
@@ -140,24 +148,20 @@ const TRUST = [
   { icon: Sparkles, label: "Interface soignée au détail" },
 ];
 
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@graph": [
-    { "@type": "WebSite", name: "Nireo", url: SITE_URL, inLanguage: "fr" },
-    {
-      "@type": "SoftwareApplication",
-      name: "Nireo",
-      applicationCategory: "BusinessApplication",
-      operatingSystem: "Web",
-      inLanguage: "fr",
-      url: SITE_URL,
-      description:
-        "Le centre de contrôle du patrimoine des propriétaires bailleurs : loyers, locataires, documents, dépenses et performances.",
-      offers: PLANS.map((plan) => ({ "@type": "Offer", name: `Nireo ${plan.name}`, price: plan.monthlyPrice.toFixed(2), priceCurrency: "EUR" })),
-    },
-    { "@type": "FAQPage", mainEntity: FAQ_ITEMS.map((i) => ({ "@type": "Question", name: i.question, acceptedAnswer: { "@type": "Answer", text: i.answer } })) },
-  ],
-};
+/**
+ * FAQ de la landing : les réponses dépendent de l'état RÉEL du paiement
+ * (Stripe configuré ou non) et des quotas déclarés dans src/config/plans.ts.
+ * Le même tableau alimente l'accordéon visible et le balisage FAQPage —
+ * les deux ne peuvent donc pas diverger.
+ */
+const FAQ_ITEMS = getFaqItems({ paymentsEnabled: isStripeConfigured });
+
+const JSON_LD = jsonLdGraph([
+  organizationJsonLd,
+  webSiteJsonLd,
+  softwareApplicationJsonLd,
+  faqPageJsonLd(FAQ_ITEMS, `${SITE_URL}/`),
+]);
 
 /* ------------------------------------------------------------------ */
 
@@ -347,7 +351,10 @@ export default async function LandingPage() {
           {content.pricingEmphasis.plan === "founder" ? (
             <FounderOffer stripeEnabled={isStripeConfigured} />
           ) : null}
-          <PricingSection emphasis={content.pricingEmphasis.plan} />
+          <PricingSection
+            emphasis={content.pricingEmphasis.plan}
+            paymentsEnabled={isStripeConfigured}
+          />
           {content.pricingEmphasis.plan === "founder" ? null : (
             <FounderOffer stripeEnabled={isStripeConfigured} />
           )}
@@ -415,14 +422,35 @@ export default async function LandingPage() {
     faq: (n) => (
       <Section id="faq" track="faq" className="border-t border-border/70">
         <SectionHead n={n} eyebrow="FAQ" title="Questions" keyword="fréquentes." description="Les réponses correspondent aux fonctions réellement disponibles dans l’application." />
-        <div className="mt-12"><FaqSection /></div>
+        <div className="mt-12"><FaqSection items={FAQ_ITEMS} /></div>
+        {/* Maillage interne : la page pilier et l'espace de contenu, en
+            prolongement naturel de la FAQ (aucun bandeau promotionnel). */}
+        <Reveal className="mx-auto mt-8 max-w-3xl text-center">
+          <p className="text-sm text-muted-foreground">
+            Vous cherchez une explication plus complète ? Lisez la page{" "}
+            <Link
+              href={PILLAR_PAGE.path}
+              className="text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+            >
+              logiciel de gestion locative
+            </Link>{" "}
+            ou parcourez nos{" "}
+            <Link
+              href={RESOURCES_PAGE.path}
+              className="text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+            >
+              ressources
+            </Link>
+            .
+          </p>
+        </Reveal>
       </Section>
     ),
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
+      <JsonLd data={JSON_LD} />
 
       {/* 1 — Hero, entièrement piloté par le moteur de personnalisation */}
       <div data-lx-section="hero">

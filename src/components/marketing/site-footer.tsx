@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NireoLogo } from "@/components/marketing/nireo-logo";
+import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE } from "@/config/seo-pages";
 import { version } from "../../../package.json";
 
 /** Adresse de contact publique (footer, pages légales, formulaire, bug). */
@@ -15,6 +16,16 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "FAQ", href: "/#faq" },
       { label: "À propos", href: "/a-propos" },
       { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    // Espace de contenu : la liste vient de src/config/seo-pages.ts, comme le
+    // sitemap — aucune URL n'est saisie deux fois.
+    title: "Ressources",
+    links: [
+      { label: PILLAR_PAGE.shortTitle, href: PILLAR_PAGE.path },
+      { label: RESOURCES_PAGE.shortTitle, href: RESOURCES_PAGE.path },
+      ...GUIDES.map((guide) => ({ label: guide.shortTitle, href: guide.path })),
     ],
   },
   {
@@ -46,7 +57,9 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
 export function SiteFooter() {
   return (
     <footer className="nireo-hairline relative border-t border-border bg-muted/40">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:px-6 sm:grid-cols-2 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+      {/* 6 colonnes au total (marque + 5 rubriques) : la grille se replie en
+          2 puis 3 colonnes avant d'être serrée — jamais de texte écrasé. */}
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 md:grid-cols-3 lg:grid-cols-[1.3fr_repeat(5,minmax(0,1fr))]">
         <div className="space-y-3">
           <NireoLogo />
           <p className="max-w-xs text-sm text-muted-foreground">

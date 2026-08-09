@@ -228,6 +228,63 @@ export const BUSINESS_CATEGORIES: readonly BusinessCategory[] = [
   },
 ] as const;
 
+/* ------------------------------------------------------------------ */
+/* Libellés dérivés — AUCUN prix ni quota ne doit être ressaisi ailleurs */
+/* ------------------------------------------------------------------ */
+
+/** « 9,99 » / « 0 » — sans symbole, formaté en français. */
+export function formatPlanPrice(monthlyPrice: number): string {
+  return monthlyPrice.toLocaleString("fr-FR", {
+    minimumFractionDigits: monthlyPrice % 1 === 0 ? 0 : 2,
+  });
+}
+
+/** « 50 Mo » / « 2 Go » / « 100 Go ». */
+export function formatStorage(storageMb: number): string {
+  return storageMb >= 1024 ? `${storageMb / 1024} Go` : `${storageMb} Mo`;
+}
+
+/** « 20 » / « Illimité » pour une limite de comptage. */
+export function formatLimit(value: number | null): string {
+  return value === null ? "Illimité" : String(value);
+}
+
+/** « 1 logement » / « jusqu'à 5 logements » / « logements illimités ». */
+export function propertiesLabel(plan: Plan): string {
+  const max = plan.limits.maxProperties;
+  if (max === null) return "logements illimités";
+  if (max === 1) return "1 logement";
+  return `jusqu'à ${max} logements`;
+}
+
+/**
+ * Phrase de quotas utilisée par la FAQ et les pages de contenu.
+ * Générée depuis PLANS : elle ne peut pas diverger de la grille tarifaire.
+ */
+export function propertiesQuotaSentence(): string {
+  return PLANS.map((plan) => `${plan.name} : ${propertiesLabel(plan)}`).join(" · ") + ".";
+}
+
+/** Plans réellement proposés (les plans retirés du catalogue disparaissent). */
+export const AVAILABLE_PLANS: readonly Plan[] = PLANS.filter((p) => p.available);
+
+/**
+ * Offres schema.org d'un `SoftwareApplication`, dérivées de PLANS.
+ * Aucun prix n'est ressaisi : modifier un tarif met à jour le JSON-LD.
+ */
+export function planOffersJsonLd(siteUrl: string) {
+  return AVAILABLE_PLANS.map((plan) => ({
+    "@type": "Offer" as const,
+    name: `Nireo ${plan.name}`,
+    description: plan.description,
+    price: plan.monthlyPrice.toFixed(2),
+    priceCurrency: "EUR",
+    category: plan.monthlyPrice === 0 ? "free" : "subscription",
+    url: `${siteUrl}/tarifs`,
+    availability: "https://schema.org/InStock",
+  }));
+}
+
 export const DEFAULT_PLAN_ID: PlanId = "free";
 
 /** Ordre hiérarchique des plans (guards « plan minimum »). */

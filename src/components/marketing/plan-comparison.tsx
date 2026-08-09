@@ -1,5 +1,12 @@
 import { Check, Minus } from "lucide-react";
-import { PLANS, planHasFeature, type FeatureId } from "@/config/plans";
+import {
+  formatLimit,
+  formatPlanPrice,
+  formatStorage,
+  PLANS,
+  planHasFeature,
+  type FeatureId,
+} from "@/config/plans";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,8 +22,8 @@ interface ComparisonRow {
   values: CellValue[]; // dans l'ordre de PLANS
 }
 
-const countLabel = (n: number | null) => (n === null ? "Illimité" : String(n));
-const storageLabel = (mb: number) => (mb >= 1024 ? `${mb / 1024} Go` : `${mb} Mo`);
+const countLabel = formatLimit;
+const storageLabel = formatStorage;
 const featureRow = (label: string, feature: FeatureId): ComparisonRow => ({
   label,
   values: PLANS.map((p) => planHasFeature(p.id, feature)),
@@ -116,10 +123,7 @@ export function PlanComparison() {
             <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
               {plan.name}
               <span className="text-xs text-muted-foreground">
-                {plan.monthlyPrice.toLocaleString("fr-FR", {
-                  minimumFractionDigits: plan.monthlyPrice % 1 === 0 ? 0 : 2,
-                })}{" "}
-                €/mois
+                {formatPlanPrice(plan.monthlyPrice)} €/mois
               </span>
             </summary>
             <ul className="divide-y divide-border border-t border-border">
