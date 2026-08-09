@@ -536,6 +536,28 @@
   }
 }
 
+/* Accordéons de la vitrine (FAQ) : dépliage progressif au lieu d'un saut.
+   Repose sur ::details-content — ignoré par les navigateurs qui ne le
+   connaissent pas, l'accordéon s'ouvre alors instantanément (aucune
+   régression, aucun JavaScript). */
+@media (prefers-reduced-motion: no-preference) {
+  .nireo {
+    interpolate-size: allow-keywords;
+  }
+
+  .nireo details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      content-visibility 0.3s allow-discrete;
+  }
+
+  .nireo details[open]::details-content {
+    block-size: auto;
+  }
+}
+
 /* Titres de la vitrine : encore plus resserrés, présence maximale. */
 .nireo h1,
 .nireo h2 {

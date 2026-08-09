@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Check, Crown, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,18 @@ export const FOUNDER_BENEFITS = [
   "Aucun abonnement mensuel",
 ];
 
-export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
+export function FounderOffer({
+  stripeEnabled,
+  compact = false,
+}: {
+  stripeEnabled: boolean;
+  /**
+   * Bandeau court (landing) : une ligne, le palier en cours, un lien vers la
+   * page Tarifs où l'offre est présentée en entier. Comme la carte complète,
+   * il disparaît dès que les 100 places sont attribuées.
+   */
+  compact?: boolean;
+}) {
   const [confirmed, setConfirmed] = React.useState<number | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -94,6 +106,33 @@ export function FounderOffer({ stripeEnabled }: { stripeEnabled: boolean }) {
       setBusy(false);
     }
   };
+
+  if (compact) {
+    return (
+      <Reveal>
+        <div className="nireo-glass-soft flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-2xl px-4 py-3 text-center">
+          <p className="flex items-center gap-2 text-sm text-foreground">
+            <Crown className="size-4 text-primary" aria-hidden />
+            <span className="font-medium">Offre Fondateur</span>
+            <span className="text-muted-foreground">
+              Business+ à vie pour{" "}
+              {currentTier.price.toLocaleString("fr-FR", {
+                minimumFractionDigits: currentTier.price % 1 === 0 ? 0 : 2,
+              })}{" "}
+              € — {FOUNDER_TOTAL_PLACES} places
+              {confirmed !== null ? `, ${remainingTotal} restantes` : ""}.
+            </span>
+          </p>
+          <Link
+            href="/tarifs#offre-fondateur"
+            className="text-sm font-medium text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+          >
+            Voir l’offre
+          </Link>
+        </div>
+      </Reveal>
+    );
+  }
 
   return (
     <Reveal>

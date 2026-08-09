@@ -26,6 +26,11 @@ import {
 /*  Titres                                                            */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Titres du hero. `lead` peut contenir des retours à la ligne (« \n ») :
+ * chaque ligne est rendue séparément et apparaît l'une après l'autre. Seul
+ * `highlight` reçoit le dégradé bleu/violet — jamais tout le titre.
+ */
 const HERO_HEADLINE: SlotDef<"hero_headline"> = {
   key: "hero_headline",
   label: "Titre principal",
@@ -33,27 +38,27 @@ const HERO_HEADLINE: SlotDef<"hero_headline"> = {
   variants: [
     {
       key: "control",
-      label: "Centre de contrôle",
-      description: "Promesse de centralisation — formulation d'origine, référence de comparaison.",
-      payload: { lead: "Pilotez tout votre patrimoine", highlight: "depuis un seul endroit." },
+      label: "Ça suffit",
+      description: "Nomme le quotidien du bailleur en deux lignes, puis tranche — référence de comparaison.",
+      payload: { lead: "Un loyer sur Excel.\nUn bail dans vos mails.", highlight: "Ça suffit." },
     },
     {
       key: "clarity",
-      label: "Sérénité",
-      description: "Met en avant le bénéfice émotionnel : reprendre le contrôle.",
-      payload: { lead: "Votre gestion locative,", highlight: "enfin sous contrôle." },
+      label: "Au même endroit",
+      description: "Met en avant le bénéfice : tout se retrouve dans un seul espace.",
+      payload: { lead: "Vos loyers, vos baux,\nvos factures.", highlight: "Au même endroit." },
     },
     {
       key: "problem",
-      label: "Problème",
-      description: "Nomme la douleur du propriétaire (tableurs, oublis) avant la solution.",
-      payload: { lead: "Fini les tableurs, les relances", highlight: "et les loyers oubliés." },
+      label: "Recherche de documents",
+      description: "Nomme la douleur la plus concrète : retrouver un document.",
+      payload: { lead: "Chercher un bail\ndans ses mails.", highlight: "C’est terminé." },
     },
     {
       key: "mobile",
       label: "Mobile",
       description: "Formulation courte et directe, pensée pour les arrivées réseaux sociaux.",
-      payload: { lead: "Gérez vos locations", highlight: "depuis votre téléphone." },
+      payload: { lead: "Toute votre gestion\nlocative.", highlight: "Dans un seul espace." },
     },
   ],
 };
@@ -65,10 +70,10 @@ const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
   variants: [
     {
       key: "control",
-      label: "Modules réunis",
-      description: "Énumère les modules — formulation d'origine.",
+      label: "Un seul espace clair",
+      description: "Énumère ce qui est réuni, en une phrase courte — référence de comparaison.",
       payload: {
-        text: "Loyers, locataires, documents, dépenses et performances réunis dans un espace conçu pour les propriétaires exigeants.",
+        text: "Nireo réunit vos loyers, vos locataires, vos documents et vos dépenses dans un seul espace clair.",
       },
     },
     {
@@ -107,18 +112,18 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
         primary: "Commencer gratuitement",
         href: "/inscription",
         secondary: "Découvrir Nireo",
-        secondaryHref: "#demo",
+        secondaryHref: "#decouvrir",
       },
     },
     {
       key: "instant",
-      label: "Espace en 1 minute",
-      description: "Insiste sur la rapidité de mise en route.",
+      label: "Créer mon espace",
+      description: "Insiste sur la mise en route immédiate.",
       payload: {
-        primary: "Créer mon espace en 1 minute",
+        primary: "Créer mon espace",
         href: "/inscription",
-        secondary: "Voir la démonstration",
-        secondaryHref: "#demo",
+        secondary: "Découvrir Nireo",
+        secondaryHref: "#decouvrir",
       },
     },
     {
@@ -164,35 +169,24 @@ const FINAL_CTA: SlotDef<"final_cta"> = {
   variants: [
     {
       key: "control",
-      label: "Fichiers dispersés",
-      description: "Rappelle le problème une dernière fois — formulation d'origine.",
+      label: "Plus simple dès aujourd'hui",
+      description: "Promesse de simplicité immédiate — référence de comparaison.",
       payload: {
-        lead: "Votre patrimoine mérite mieux que",
-        highlight: "des fichiers dispersés.",
-        text: "Créez votre espace en une minute, ajoutez votre premier logement, et reprenez le contrôle.",
-        primary: "Créer mon espace Nireo",
+        lead: "Votre gestion immobilière peut être",
+        highlight: "plus simple dès aujourd’hui.",
+        text: "Ajoutez votre premier logement gratuitement et retrouvez toutes vos informations dans un seul espace.",
+        primary: "Commencer gratuitement",
       },
     },
     {
       key: "start_free",
       label: "Premier logement offert",
-      description: "Rappelle l'offre gratuite à vie pour un logement.",
+      description: "Rappelle l'offre gratuite, sans carte bancaire.",
       payload: {
         lead: "Votre premier logement,",
         highlight: "suivi gratuitement.",
-        text: "Sans carte bancaire, sans engagement : ajoutez un logement et voyez ce que Nireo change dès aujourd'hui.",
+        text: "Sans carte bancaire, sans engagement : ajoutez un logement et retrouvez toutes vos informations au même endroit.",
         primary: "Commencer gratuitement",
-      },
-    },
-    {
-      key: "time",
-      label: "Fin de la paperasse",
-      description: "Promesse de tranquillité, ton plus direct.",
-      payload: {
-        lead: "Reprenez vos soirées.",
-        highlight: "Nireo s'occupe du reste.",
-        text: "Échéances, documents, relances et performances : votre gestion locative tourne sans vous y noyer.",
-        primary: "Créer mon espace",
       },
     },
   ],
@@ -205,26 +199,19 @@ const FINAL_CTA: SlotDef<"final_cta"> = {
 const HERO_MEDIA: SlotDef<"hero_media"> = {
   key: "hero_media",
   label: "Média du hero",
-  description: "Ce qui est montré à droite du titre : composition produit, vidéo ou aperçu d'écran.",
+  description:
+    "Ce qui est montré à droite du titre. Toujours l'interface Nireo : aucune vidéo n'est servie sur la landing.",
   variants: [
     {
       key: "cockpit",
-      label: "Cockpit animé",
-      description: "Composition multi-panneaux animée (référence de comparaison).",
+      label: "Tableau de bord",
+      description: "Le tableau de bord Nireo, composé de panneaux réels (référence de comparaison).",
       payload: { kind: "cockpit" },
-    },
-    {
-      key: "video",
-      label: "Vidéo de présentation",
-      description:
-        "Lecteur de la vidéo publiée depuis /admin/entreprise. Indisponible tant qu'aucune vidéo n'est publiée.",
-      payload: { kind: "video" },
-      requires: "video",
     },
     {
       key: "preview",
       label: "Aperçu d'interface",
-      description: "Capture d'écran fidèle de l'application, statique et immédiatement lisible.",
+      description: "Aperçu statique du tableau de bord, immédiatement lisible.",
       payload: { kind: "preview" },
     },
   ],
@@ -232,20 +219,14 @@ const HERO_MEDIA: SlotDef<"hero_media"> = {
 
 const PROOF: SlotDef<"proof"> = {
   key: "proof",
-  label: "Preuve & réassurance",
-  description: "Le bloc qui rassure avant les tarifs.",
+  label: "Sécurité & réassurance",
+  description: "Le bloc compact qui rassure avant les tarifs.",
   variants: [
     {
       key: "guarantees",
-      label: "Garanties produit",
-      description: "Ce que Nireo garantit réellement (isolation des données, hébergement, sauvegardes).",
+      label: "Engagements réels",
+      description: "Hébergement, isolation des données, sauvegardes, gratuit sans carte bancaire.",
       payload: { kind: "guarantees" },
-    },
-    {
-      key: "figures",
-      label: "Bénéfices chiffrés",
-      description: "Les chiffres vérifiables du produit — jamais de statistiques clients inventées.",
-      payload: { kind: "figures" },
     },
     {
       key: "testimonials",
@@ -273,17 +254,7 @@ const PRICING_EMPHASIS: SlotDef<"pricing_emphasis"> = {
 /*  Ordre des sections                                                */
 /* ------------------------------------------------------------------ */
 
-const ORDER_DEFAULT: SectionKey[] = [
-  "trust",
-  "before_after",
-  "demo",
-  "features",
-  "day",
-  "proof",
-  "pricing",
-  "company",
-  "faq",
-];
+const ORDER_DEFAULT: SectionKey[] = ["unify", "features", "proof", "pricing", "faq"];
 
 const SECTION_ORDER: SlotDef<"section_order"> = {
   key: "section_order",
@@ -293,32 +264,26 @@ const SECTION_ORDER: SlotDef<"section_order"> = {
     {
       key: "default",
       label: "Récit complet",
-      description: "Problème → démonstration → fonctionnalités → preuve → tarifs (ordre d'origine).",
+      description: "Problème → fonctionnalités → réassurance → tarifs → FAQ (ordre d'origine).",
       payload: { order: ORDER_DEFAULT },
     },
     {
-      key: "demo_first",
-      label: "Démonstration d'abord",
+      key: "features_first",
+      label: "Fonctionnalités d'abord",
       description: "Montre le produit immédiatement après le hero — efficace sur trafic froid.",
-      payload: {
-        order: ["trust", "demo", "before_after", "features", "proof", "day", "pricing", "company", "faq"],
-      },
+      payload: { order: ["features", "unify", "proof", "pricing", "faq"] },
     },
     {
       key: "proof_early",
       label: "Réassurance d'abord",
       description: "Rassure très tôt — utile quand le trafic connaît peu la marque.",
-      payload: {
-        order: ["trust", "proof", "demo", "before_after", "features", "day", "pricing", "company", "faq"],
-      },
+      payload: { order: ["proof", "unify", "features", "pricing", "faq"] },
     },
     {
       key: "pricing_early",
       label: "Tarifs remontés",
-      description: "Place les tarifs juste après la démonstration — pour une audience à intention d'achat.",
-      payload: {
-        order: ["trust", "demo", "pricing", "before_after", "features", "proof", "day", "company", "faq"],
-      },
+      description: "Place les tarifs juste après les fonctionnalités — audience à intention d'achat.",
+      payload: { order: ["features", "pricing", "unify", "proof", "faq"] },
     },
   ],
 };

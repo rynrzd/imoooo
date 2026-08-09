@@ -18,7 +18,6 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
  */
 
 const NAV_LINKS = [
-  { label: "Démo", hash: "#demo" },
   { label: "Fonctionnalités", hash: "#fonctionnalites" },
   { label: "Tarifs", hash: "#tarifs" },
   { label: "FAQ", hash: "#faq" },

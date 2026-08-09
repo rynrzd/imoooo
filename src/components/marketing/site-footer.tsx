@@ -11,10 +11,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: "Produit",
     links: [
       { label: "Fonctionnalités", href: "/#fonctionnalites" },
-      { label: "Comment ça marche", href: "/#comment-ca-marche" },
       { label: "Tarifs", href: "/tarifs" },
       { label: "FAQ", href: "/#faq" },
       { label: "À propos", href: "/a-propos" },
+      { label: "L’entreprise", href: "/entreprise" },
       { label: "Contact", href: "/contact" },
     ],
   },

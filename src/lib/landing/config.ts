@@ -27,13 +27,11 @@ import {
 
 /** Règles de personnalisation livrées par défaut (modifiables dans l'admin). */
 export const DEFAULT_RULES: SegmentRule[] = [
-  // Réseaux sociaux : arrivée mobile, attention courte → vidéo + promesse directe.
+  // Réseaux sociaux : arrivée mobile, attention courte → promesse directe.
   { segment: "tiktok", slot: "hero_headline", variant: "mobile", origin: "default" },
-  { segment: "tiktok", slot: "hero_media", variant: "video", origin: "default" },
   { segment: "tiktok", slot: "hero_cta", variant: "instant", origin: "default" },
-  { segment: "tiktok", slot: "section_order", variant: "demo_first", origin: "default" },
+  { segment: "tiktok", slot: "section_order", variant: "features_first", origin: "default" },
   { segment: "facebook", slot: "hero_headline", variant: "problem", origin: "default" },
-  { segment: "facebook", slot: "hero_media", variant: "video", origin: "default" },
   // Recherche Google : intention explicite → montrer l'outil et lever l'objection prix.
   { segment: "google", slot: "hero_headline", variant: "problem", origin: "default" },
   { segment: "google", slot: "hero_media", variant: "preview", origin: "default" },
@@ -45,7 +43,7 @@ export const DEFAULT_RULES: SegmentRule[] = [
   { segment: "partner", slot: "hero_cta", variant: "no_card", origin: "default" },
   { segment: "partner", slot: "section_order", variant: "pricing_early", origin: "default" },
   { segment: "qr", slot: "hero_media", variant: "preview", origin: "default" },
-  { segment: "qr", slot: "section_order", variant: "demo_first", origin: "default" },
+  { segment: "qr", slot: "section_order", variant: "features_first", origin: "default" },
   // Visiteur déjà venu / connecté : ne pas répéter la découverte.
   { segment: "returning", slot: "hero_cta", variant: "resume", origin: "default" },
   { segment: "returning", slot: "section_order", variant: "pricing_early", origin: "default" },

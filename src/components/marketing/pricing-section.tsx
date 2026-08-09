@@ -69,6 +69,95 @@ function BusinessFeatures() {
 }
 
 /**
+ * Version COMPACTE de la grille (landing) : une carte par formule, le prix, la
+ * limite de logements et les deux différences principales — la comparaison
+ * détaillée reste sur /tarifs. Aucun prix ni quota n'est ressaisi : tout vient
+ * de src/config/plans.ts.
+ */
+function CompactPricing({
+  emphasis,
+  paymentsEnabled,
+}: {
+  emphasis?: "starter" | "pro" | "founder";
+  paymentsEnabled: boolean;
+}) {
+  const featuredId = emphasis === "starter" || emphasis === "pro" ? emphasis : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {PLANS.map((plan) => {
+          const featured = featuredId ? plan.id === featuredId : Boolean(plan.popular);
+          const { maxProperties } = plan.limits;
+          return (
+            <Card
+              key={plan.id}
+              size="sm"
+              className={cn("relative flex flex-col", featured && "ring-primary/40")}
+            >
+              {featured ? <Badge className="absolute -top-2.5 left-4">Recommandé</Badge> : null}
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">{plan.name}</CardTitle>
+                <p>
+                  <span className="text-2xl font-semibold tracking-tight text-foreground">
+                    {formatPlanPrice(plan.monthlyPrice)} €
+                  </span>
+                  <span className="text-sm text-muted-foreground"> /mois</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {maxProperties === null
+                    ? "Logements illimités"
+                    : `Jusqu'à ${maxProperties} logement${maxProperties > 1 ? "s" : ""}`}
+                  {" · "}
+                  {formatStorage(plan.limits.storageMb)}
+                </p>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <ul className="space-y-1.5">
+                  {/* Seulement les différences principales : le détail est sur /tarifs. */}
+                  {plan.highlights.slice(1, 4).map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                      <Check className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Link
+                  href={plan.ctaHref}
+                  data-lx={`plan-${plan.id}`}
+                  data-lx-event="plan_selected"
+                  onClick={() => track("cta_essai_gratuit", { source: "tarifs", plan: plan.id })}
+                  className={buttonVariants({
+                    variant: featured ? "default" : "outline",
+                    className: "w-full",
+                  })}
+                >
+                  {plan.cta}
+                </Link>
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
+
+      <p className="text-center text-xs text-muted-foreground">
+        Sans engagement · annulation possible à tout moment ·{" "}
+        {paymentsEnabled ? "paiement sécurisé par Stripe" : "paiement en ligne pas encore ouvert"}.
+        Prix en euros TTC par mois.{" "}
+        <Link
+          href="/tarifs"
+          className="text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+        >
+          Comparer les formules en détail
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+/**
  * Grille tarifaire publique — source unique : src/config/plans.ts.
  * Business+ est la carte Premium : plus grande, hiérarchie visuelle forte,
  * avantages par catégories. Tant que Stripe n'est pas activé, tous les CTA
@@ -78,8 +167,11 @@ export function PricingSection({
   withComparison = true,
   emphasis,
   paymentsEnabled = false,
+  compact = false,
 }: {
   withComparison?: boolean;
+  /** Version courte pour la landing (cartes resserrées, sans comparatif). */
+  compact?: boolean;
   /**
    * Plan mis en avant. Piloté par le moteur d'optimisation de la landing
    * (slot `pricing_emphasis`) ; sans valeur, on garde le plan marqué
@@ -96,6 +188,8 @@ export function PricingSection({
   React.useEffect(() => track("vue_tarifs"), []);
 
   const featuredId = emphasis === "starter" || emphasis === "pro" ? emphasis : null;
+
+  if (compact) return <CompactPricing emphasis={emphasis} paymentsEnabled={paymentsEnabled} />;
 
   return (
     <div className="space-y-10">

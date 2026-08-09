@@ -356,22 +356,6 @@ export function analyse(input: AnalysisInput): GeneratedRecommendation[] {
   }
 
   // --- 6. Contenus manquants --------------------------------------
-  if (!input.capabilities.videoUrl && totalSessions >= 150) {
-    out.push({
-      key: "content_video",
-      kind: "content",
-      title: "Aucune vidéo publiée : une variante reste inutilisable",
-      detail:
-        "La variante « Vidéo de présentation » du hero ne peut pas être testée tant qu'aucune vidéo n'est publiée. " +
-        "Publiez-en une depuis Entreprise → Vidéo : elle entrera automatiquement dans l'expérimentation, " +
-        "en priorité sur le trafic réseaux sociaux.",
-      evidence: { sessions: totalSessions, videoPubliee: false },
-      patch: { type: "none" },
-      impact: 0,
-      confidence: 1,
-      severity: "info",
-    });
-  }
   if (input.capabilities.testimonials.length < 2 && totalSessions >= 150) {
     out.push({
       key: "content_testimonials",

@@ -22,29 +22,15 @@
  * Sections réordonnables. Le hero est toujours en premier et le CTA final
  * toujours en dernier : ils ne font pas partie de la liste réordonnable.
  */
-export const SECTION_KEYS = [
-  "trust",
-  "before_after",
-  "demo",
-  "features",
-  "day",
-  "proof",
-  "pricing",
-  "company",
-  "faq",
-] as const;
+export const SECTION_KEYS = ["unify", "features", "proof", "pricing", "faq"] as const;
 
 export type SectionKey = (typeof SECTION_KEYS)[number];
 
 export const SECTION_LABELS: Record<SectionKey, string> = {
-  trust: "Bandeau de confiance",
-  before_after: "Avant / Après",
-  demo: "Démonstration",
+  unify: "Tout au même endroit",
   features: "Fonctionnalités",
-  day: "Une journée avec Nireo",
-  proof: "Preuve & réassurance",
+  proof: "Sécurité & réassurance",
   pricing: "Tarifs",
-  company: "L'entreprise",
   faq: "FAQ",
 };
 
@@ -96,14 +82,17 @@ export interface CtaPayload {
   secondaryHref: string;
 }
 
-/** Média du hero : composition produit, vidéo réelle, ou aperçu d'écran. */
+/**
+ * Média du hero : composition produit (le tableau de bord Nireo) ou aperçu
+ * d'écran statique. Aucune vidéo n'est servie sur la landing.
+ */
 export interface MediaPayload {
-  kind: "cockpit" | "video" | "preview";
+  kind: "cockpit" | "preview";
 }
 
-/** Bloc de réassurance : garanties produit, chiffres, ou vrais témoignages. */
+/** Bloc de réassurance : engagements réels, ou vrais témoignages. */
 export interface ProofPayload {
-  kind: "guarantees" | "figures" | "testimonials";
+  kind: "guarantees" | "testimonials";
 }
 
 export interface PricingEmphasisPayload {

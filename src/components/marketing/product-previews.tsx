@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { EXPENSE_CATEGORY_LABELS, RENT_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 /**
@@ -108,6 +109,101 @@ export function DashboardPreview({ className }: { className?: string }) {
             />
           ))}
         </div>
+      </div>
+    </Frame>
+  );
+}
+
+/**
+ * Loyers : échéances mensuelles avec les statuts RÉELS du produit
+ * (`RENT_STATUS_LABELS`) et le rappel de l'historique par logement.
+ */
+export function RentsPreview({ className }: { className?: string }) {
+  const rows = [
+    { month: "Juillet 2026", unit: "T3 Tête d’Or", expected: "980 €", received: "980 €", status: "paye" },
+    { month: "Juillet 2026", unit: "T4 Villeurbanne", expected: "1 210 €", received: "1 210 €", status: "paye" },
+    { month: "Juillet 2026", unit: "Studio Croix-Rousse", expected: "560 €", received: "—", status: "attente" },
+    { month: "Juin 2026", unit: "T2 Monplaisir", expected: "755 €", received: "400 €", status: "partiel" },
+  ] as const;
+
+  const TONE: Record<string, string> = {
+    paye: "border-primary/30 bg-primary/10 text-primary",
+    attente: "border-border bg-muted/60 text-muted-foreground",
+    partiel: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+    retard: "border-destructive/30 bg-destructive/10 text-destructive",
+  };
+
+  return (
+    <Frame title="Loyers — échéances du mois" className={className}>
+      <div className="grid grid-cols-2 gap-2.5">
+        <MiniStat label="Prévu ce mois" value="3 505 €" />
+        <MiniStat label="Encaissé" value="2 590 €" hint="1 échéance à vérifier" />
+      </div>
+      <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-background">
+        {rows.map((row) => (
+          <li key={`${row.month}-${row.unit}`} className="flex items-center gap-2.5 px-3 py-2.5">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs text-foreground">{row.unit}</span>
+              <span className="block text-[11px] text-muted-foreground">{row.month}</span>
+            </span>
+            <span className="text-xs tabular-nums text-muted-foreground">{row.received}</span>
+            <span className="hidden text-xs tabular-nums text-muted-foreground sm:inline">
+              / {row.expected}
+            </span>
+            <span
+              className={cn(
+                "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                TONE[row.status]
+              )}
+            >
+              {RENT_STATUS_LABELS[row.status]}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Frame>
+  );
+}
+
+/**
+ * Dépenses & travaux : catégories réelles (`EXPENSE_CATEGORY_LABELS`) et
+ * suivi d'un chantier relié au logement.
+ */
+export function ExpensesPreview({ className }: { className?: string }) {
+  const rows = [
+    { category: "travaux" as const, amount: "6 240 €", share: 88 },
+    { category: "copropriete" as const, amount: "2 180 €", share: 46 },
+    { category: "taxe_fonciere" as const, amount: "1 640 €", share: 34 },
+    { category: "assurance" as const, amount: "720 €", share: 16 },
+  ];
+  return (
+    <Frame title="Dépenses — année en cours" className={className}>
+      <div className="grid grid-cols-2 gap-2.5">
+        <MiniStat label="Dépenses" value="10 780 €" />
+        <MiniStat label="Résultat net" value="21 340 €" hint="revenus − dépenses" positive />
+      </div>
+      <ul className="mt-3 space-y-2.5 rounded-xl border border-border bg-background p-3">
+        {rows.map((row) => (
+          <li key={row.category}>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-foreground">{EXPENSE_CATEGORY_LABELS[row.category]}</span>
+              <span className="tabular-nums text-muted-foreground">{row.amount}</span>
+            </div>
+            <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
+              <span
+                className="block h-full rounded-full bg-primary/70"
+                style={{ width: `${row.share}%` }}
+              />
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border bg-background px-3 py-2.5">
+        <Hammer className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate text-xs text-foreground">
+          Rénovation cuisine — T2 Monplaisir
+        </span>
+        <Badge variant="secondary">En cours</Badge>
       </div>
     </Frame>
   );
