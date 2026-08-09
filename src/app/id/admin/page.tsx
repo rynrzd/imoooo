@@ -32,7 +32,7 @@ export default async function NidAdminHomePage() {
       icon: AlertTriangle,
       href: "/id/admin/signalements",
     },
-    { label: "Passeports créés", value: overview.assets, icon: Smartphone, href: null },
+    { label: "Téléphones suivis", value: overview.assets, icon: Smartphone, href: null },
   ];
 
   return (

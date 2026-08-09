@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { CONDITION_POINTS, type ConditionGrade } from "../constants";
+import { CONDITION_POINTS, EPREL_HOSTS, MANAGING_ROLES, type ConditionGrade } from "../constants";
 import {
   createAssetSchema,
   createShareSchema,
@@ -45,7 +45,24 @@ import {
   createTransfer,
   declineTransfer,
 } from "../server/transfers";
+import { ensurePersonalWorkspace, requireWorkspaceRole } from "../server/workspaces";
 import { bool, fail, file, files, list, numberOrNull, ok, parseInput, run, text } from "./helpers";
+
+/**
+ * Étiquette énergétique européenne : on ne conserve l'URL que si elle
+ * pointe réellement vers un domaine officiel. Aucune caractéristique n'est
+ * inventée à partir de ce lien.
+ */
+function normalizeEprelUrl(raw: string): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:") return null;
+    return (EPREL_HOSTS as readonly string[]).includes(url.hostname) ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Server Actions du parcours PROPRIÉTAIRE.
@@ -58,7 +75,7 @@ import { bool, fail, file, files, list, numberOrNull, ok, parseInput, run, text 
 const APP = "/id/app";
 
 /* ------------------------------------------------------------------ */
-/*  Création d'un passeport                                            */
+/*  Création d'un téléphone                                            */
 /* ------------------------------------------------------------------ */
 
 export async function createAssetAction(
@@ -92,13 +109,43 @@ export async function createAssetAction(
     });
     if (!parsed.ok) return fail(parsed.error, parsed.field);
 
-    const created = await createAsset(session.user.id, parsed.value, {
-      primaryPhoto: file(form, "primary_photo"),
-      conditionPhotos: files(form, "condition_photos"),
-      purchaseProof: file(form, "purchase_proof"),
-    });
+    // Espace de destination : personnel par défaut, entreprise si l'écran
+    // d'ajout a été ouvert depuis un espace où l'utilisateur gère le parc.
+    const requestedWorkspace = text(form, "workspace_id");
+    let workspaceId: string | null = await ensurePersonalWorkspace(
+      session.user.id,
+      session.email
+    );
+    if (requestedWorkspace) {
+      const context = await requireWorkspaceRole(
+        session.user.id,
+        requestedWorkspace,
+        MANAGING_ROLES
+      );
+      workspaceId = context.workspace.id;
+    }
+
+    const frequency = Number(text(form, "check_frequency_months") || "1");
+
+    const created = await createAsset(
+      session.user.id,
+      parsed.value,
+      {
+        primaryPhoto: file(form, "primary_photo"),
+        conditionPhotos: files(form, "condition_photos"),
+        purchaseProof: file(form, "purchase_proof"),
+      },
+      {
+        workspaceId,
+        warrantyEnd: text(form, "warranty_end") || null,
+        internalReference: text(form, "internal_reference"),
+        eprelUrl: normalizeEprelUrl(text(form, "eprel_url")),
+        checkFrequencyMonths: Number.isFinite(frequency) ? Math.min(12, Math.max(1, frequency)) : 1,
+      }
+    );
 
     revalidatePath(APP);
+    if (requestedWorkspace) revalidatePath(`/id/entreprise/${requestedWorkspace}/parc`);
     return ok(created);
   });
 }
@@ -163,7 +210,7 @@ export async function archiveAssetAction(form: FormData): Promise<ActionResult> 
   return run("owner/archive", async () => {
     const session = await requireNidUser();
     const assetId = text(form, "asset_id");
-    if (!assetId) return fail("Passeport introuvable.");
+    if (!assetId) return fail("Téléphone introuvable.");
     await setAssetArchived(session.user.id, assetId, bool(form, "archived"));
     revalidatePath(APP);
     revalidatePath(`${APP}/objets/${assetId}`);
@@ -175,7 +222,7 @@ export async function deleteAssetAction(form: FormData): Promise<ActionResult> {
   return run("owner/delete", async () => {
     const session = await requireNidUser();
     const assetId = text(form, "asset_id");
-    if (!assetId) return fail("Passeport introuvable.");
+    if (!assetId) return fail("Téléphone introuvable.");
     await deleteAsset(session.user.id, assetId);
     revalidatePath(APP);
     return ok();
@@ -451,7 +498,7 @@ export async function inviteProfessionalAction(
 
 /**
  * Recherche par identifiant Nireo (saisie manuelle ou scan).
- * La vérification « est-ce l'un de mes passeports ? » utilise la session de
+ * La vérification « est-ce l'un de mes téléphones ? » utilise la session de
  * l'utilisateur (RLS) : aucune énumération de la base n'est possible.
  */
 export async function resolveIdentifierAction(

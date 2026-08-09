@@ -171,7 +171,7 @@ export function ProfessionalApplicationForm({
         />
         <p className="text-xs text-muted-foreground">
           C’est l’adresse qu’un client saisira pour vous donner accès à son
-          passeport, et celle à laquelle la décision vous sera notifiée.
+          téléphone, et celle à laquelle la décision vous sera notifiée.
         </p>
       </div>
 
@@ -185,7 +185,7 @@ export function ProfessionalApplicationForm({
         <span className="text-muted-foreground">
           Je m’engage à n’enregistrer que des interventions réellement
           effectuées, à corriger une erreur par révocation motivée plutôt que
-          par suppression, et à n’accéder à un passeport qu’avec l’accord de
+          par suppression, et à n’accéder à un téléphone qu’avec l’accord de
           son propriétaire.
         </span>
       </label>

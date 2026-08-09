@@ -8,7 +8,7 @@ import { requireNidSession } from "@/features/nireo-id/server/guards";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Partager un passeport",
+  title: "Partager un téléphone",
   robots: { index: false, follow: false },
 };
 
@@ -31,7 +31,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
       </p>
 
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Partager ce passeport</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Partager ce téléphone</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Vous choisissez ce qui est visible, pour combien de temps, et vous
           pouvez couper l’accès à tout moment.

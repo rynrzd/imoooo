@@ -28,7 +28,7 @@ export default async function TransfersPage() {
       <header>
         <h1 className="text-2xl font-semibold text-foreground">Transferts</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Les passeports que vous cédez et ceux que l’on vous transmet.
+          Les téléphones que vous cédez et ceux que l’on vous transmet.
         </p>
       </header>
 
@@ -40,7 +40,7 @@ export default async function TransfersPage() {
 
         {pendingReceived.length === 0 && historyReceived.length === 0 ? (
           <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-            Aucun transfert reçu. Lorsqu’un vendeur vous transmet un passeport,
+            Aucun transfert reçu. Lorsqu’un vendeur vous transmet un téléphone,
             il apparaît ici — et vous recevez un e-mail si le service d’envoi
             est configuré.
           </p>
@@ -49,7 +49,7 @@ export default async function TransfersPage() {
         {pendingReceived.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {pendingReceived.map((transfer) => (
-              <li key={transfer.id} className="nid-panel nid-topline rounded-2xl p-5">
+              <li key={transfer.id} className="nid-panel rounded-2xl p-5">
                 <p className="text-[15px] font-semibold text-foreground">
                   {transfer.asset_summary.brand} {transfer.asset_summary.model}
                 </p>
@@ -100,12 +100,12 @@ export default async function TransfersPage() {
         {sent.length === 0 ? (
           <div className="mt-3 rounded-2xl border border-border bg-card p-5">
             <p className="text-sm text-muted-foreground">
-              Vous n’avez encore transmis aucun passeport. Le transfert
-              s’ouvre depuis la fiche d’un smartphone.
+              Vous n’avez encore transmis aucun téléphone. Le transfert
+              s’ouvre depuis la fiche d’un téléphone.
             </p>
             <Button variant="outline" className="mt-4" render={<Link href="/id/app" />}>
               <ArrowLeftRight className="size-4" data-icon="inline-start" />
-              Voir mes smartphones
+              Voir mes téléphones
             </Button>
           </div>
         ) : (
@@ -143,7 +143,7 @@ export default async function TransfersPage() {
                 {transfer.status === "accepte" ? (
                   <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
                     Reçu de transfert — vous n’êtes plus propriétaire de ce
-                    passeport et vous n’avez pas accès aux données ajoutées
+                    téléphone et vous n’avez pas accès aux données ajoutées
                     depuis par son nouveau propriétaire.
                   </p>
                 ) : null}

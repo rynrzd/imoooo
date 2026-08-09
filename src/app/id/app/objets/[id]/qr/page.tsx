@@ -11,7 +11,7 @@ import { publicUrl } from "@/features/nireo-id/server/sharing";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "QR code du passeport",
+  title: "QR code du téléphone",
   robots: { index: false, follow: false },
 };
 
@@ -52,7 +52,7 @@ export default async function QrPage({ params }: { params: Promise<{ id: string 
       <section className="nid-panel rounded-2xl p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-foreground">Aperçu public permanent</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ce QR pointe vers la page publique du passeport. Elle affiche
+          Ce QR pointe vers la page publique du téléphone. Elle affiche
           uniquement la marque, le modèle, l’identifiant Nireo et des
           compteurs. Aucun document, aucun IMEI, aucune donnée personnelle.
         </p>

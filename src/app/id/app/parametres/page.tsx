@@ -74,7 +74,7 @@ export default async function NidSettingsPage() {
         <h2 className="text-sm font-semibold text-foreground">Mes données Nireo ID</h2>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Passeports", value: summary.assets },
+            { label: "Téléphones", value: summary.assets },
             { label: "Événements", value: summary.events },
             { label: "Documents", value: summary.documents },
             { label: "Liens actifs", value: summary.shares },
@@ -92,9 +92,9 @@ export default async function NidSettingsPage() {
           Exporter mes données (JSON)
         </Button>
         <p className="text-xs text-muted-foreground">
-          L’export contient vos passeports, leur historique, les métadonnées de
+          L’export contient vos téléphones, leur historique, les métadonnées de
           vos documents et vos liens de partage. Les fichiers restent
-          téléchargeables depuis chaque passeport.
+          téléchargeables depuis chaque téléphone.
         </p>
       </section>
 
@@ -125,7 +125,7 @@ export default async function NidSettingsPage() {
             <p className="text-sm text-muted-foreground">
               Réparateur, reconditionneur ou atelier de diagnostic ? Demandez
               un compte professionnel pour enregistrer vos interventions dans
-              les passeports de vos clients.
+              les téléphones de vos clients.
             </p>
             <Button variant="outline" data-touch render={<Link href="/id/pro/candidature" />}>
               Demander un compte professionnel
@@ -159,9 +159,9 @@ export default async function NidSettingsPage() {
           <li>· Aucun accès administrateur silencieux à vos fichiers privés.</li>
         </ul>
         <p className="mt-3 text-xs text-muted-foreground">
-          Supprimer un passeport transmis à un autre propriétaire est
+          Supprimer un téléphone transmis à un autre propriétaire est
           impossible : son historique appartient désormais à l’objet. Vous
-          pouvez en revanche archiver vos passeports et supprimer vos
+          pouvez en revanche archiver vos téléphones et supprimer vos
           documents personnels.
         </p>
       </section>

@@ -92,7 +92,7 @@ export default async function TransferInvitationPage({
         </Link>
       </p>
 
-      <div className="nid-panel nid-topline rounded-2xl p-5 sm:p-6">
+      <div className="nid-panel rounded-2xl p-5 sm:p-6">
         <div className="flex items-center gap-4">
           <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-accent text-accent-foreground">
             <Smartphone className="size-6" aria-hidden />
@@ -108,7 +108,7 @@ export default async function TransferInvitationPage({
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
-          Le propriétaire actuel vous transmet ce passeport. L’invitation
+          Le propriétaire actuel vous transmet ce téléphone. L’invitation
           expire dans {formatRemaining(transfer.expires_at)} (
           {formatDateTime(transfer.expires_at)}).
         </p>
@@ -118,7 +118,7 @@ export default async function TransferInvitationPage({
           <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
             <li>· Les caractéristiques de l’appareil et son identifiant Nireo.</li>
             <li>· L’historique complet, avec le niveau de confiance de chaque information.</li>
-            <li>· L’état déclaré et les photos du passeport.</li>
+            <li>· L’état déclaré et les photos du téléphone.</li>
             <li>
               ·{" "}
               {transferred > 0

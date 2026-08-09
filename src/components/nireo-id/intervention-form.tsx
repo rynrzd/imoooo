@@ -96,7 +96,7 @@ export function InterventionForm({ assetId }: { assetId: string }) {
       toast.error(result.error);
       return;
     }
-    toast.success("Intervention enregistrée dans le passeport.");
+    toast.success("Intervention enregistrée dans le téléphone.");
     setTitle("");
     setDiagnostic("");
     setParts("");

@@ -71,11 +71,11 @@ export async function requestAccessAction(
     );
     if (result.state === "introuvable") {
       return fail(
-        "Aucun passeport actif ne correspond à cet identifiant. Vérifiez la saisie auprès du client."
+        "Aucun téléphone actif ne correspond à cet identifiant. Vérifiez la saisie auprès du client."
       );
     }
     if (result.state === "deja_en_cours") {
-      return fail("Une demande est déjà en cours pour ce passeport.");
+      return fail("Une demande est déjà en cours pour ce téléphone.");
     }
 
     revalidatePath(PRO);

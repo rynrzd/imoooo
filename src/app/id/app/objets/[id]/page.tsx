@@ -6,24 +6,31 @@ import {
   ArrowLeftRight,
   CalendarPlus,
   Check,
+  ClipboardCheck,
+  FileText,
   Minus,
   Pencil,
   QrCode,
   Share2,
   Smartphone,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccessManager } from "@/components/nireo-id/access-manager";
+import { CheckupPanel } from "@/components/nireo-id/checkup-panel";
 import { DocumentManager } from "@/components/nireo-id/document-manager";
 import { EventActions } from "@/components/nireo-id/event-actions";
-import { TrustBadge } from "@/components/nireo-id/trust-badge";
+import { RepairPanel } from "@/components/nireo-id/repair-panel";
+import { HealthBadge, SourceBadge } from "@/components/nireo-id/state-badge";
 import {
   ASSET_STATUS_LABELS,
+  CHECK_ANSWER_SHORT,
   CONDITION_GRADE_LABELS,
   CONDITION_POINTS,
   EVENT_TYPE_LABELS,
   PURCHASE_CONDITION_LABELS,
   type ConditionGrade,
+  type HealthState,
 } from "@/features/nireo-id/constants";
 import {
   formatEventDate,
@@ -32,21 +39,23 @@ import {
   maskIdentifier,
 } from "@/features/nireo-id/format";
 import { getAssetDetail } from "@/features/nireo-id/server/assets";
+import { getSchedule, listCheckups } from "@/features/nireo-id/server/checkups";
 import { requireNidSession } from "@/features/nireo-id/server/guards";
+import { listRepairsForAsset } from "@/features/nireo-id/server/repairs";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Passeport",
+  title: "Mon téléphone",
   robots: { index: false, follow: false },
 };
 
 const TABS = [
-  { key: "apercu", label: "Aperçu" },
+  { key: "apercu", label: "Résumé" },
   { key: "historique", label: "Historique" },
   { key: "documents", label: "Documents" },
-  { key: "acces", label: "Accès" },
+  { key: "acces", label: "Partage" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -64,8 +73,14 @@ export default async function PassportPage({
 
   const detail = await getAssetDetail(id);
   // Inexistant OU appartenant à quelqu'un d'autre : même réponse, aucune
-  // information ne filtre sur l'existence du passeport.
+  // information ne filtre sur l'existence du téléphone.
   if (!detail) notFound();
+
+  const [schedule, checkups, repairs] = await Promise.all([
+    getSchedule(id),
+    listCheckups(id),
+    listRepairsForAsset(id),
+  ]);
 
   const tab: TabKey = TABS.some((item) => item.key === onglet) ? (onglet as TabKey) : "apercu";
   const { asset, events, documents, media, pro_access, completeness } = detail;
@@ -83,18 +98,29 @@ export default async function PassportPage({
   );
   const warrantyEvent = events.find((event) => event.type === "garantie" && !event.revoked_at);
 
+  const assetV2 = asset as typeof asset & {
+    health_state?: HealthState;
+    warranty_end?: string | null;
+  };
+  const healthState: HealthState = assetV2.health_state ?? "bon_etat";
+  const warrantyEnd = assetV2.warranty_end ?? null;
+  const lastCheckup = checkups[0] ?? null;
+
   return (
     <div className="space-y-6">
       <p className="text-sm">
-        <Link href="/id/app" className="text-muted-foreground underline-offset-2 hover:underline">
-          ← Mes smartphones
+        <Link
+          href="/id/app/telephones"
+          className="text-muted-foreground underline-offset-2 hover:underline"
+        >
+          ← Mes téléphones
         </Link>
       </p>
 
       {/* ------------------------------------------------------------ */}
       {/*  En-tête                                                      */}
       {/* ------------------------------------------------------------ */}
-      <header className="nid-panel nid-topline rounded-2xl p-5 sm:p-6">
+      <header className="nid-panel rounded-2xl p-5 sm:p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
             {detail.photo_url ? (
@@ -125,54 +151,72 @@ export default async function PassportPage({
             <p className="mt-1 font-mono text-xs tracking-wider text-muted-foreground">
               {asset.public_id}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Propriétaire actuel : <span className="font-medium text-foreground">Vous</span>
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <HealthBadge state={healthState} />
+              <span className="text-xs text-muted-foreground">
+                Propriétaire : <span className="text-foreground">Vous</span>
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {lastCheckup
+                  ? `Dernier bilan : ${formatShortDate(lastCheckup.answered_at)} — ${CHECK_ANSWER_SHORT[lastCheckup.answer]}`
+                  : "Aucun bilan enregistré"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {warrantyEnd
+                  ? `Garantie jusqu’au ${formatEventDate(warrantyEnd)}`
+                  : warrantyEvent
+                    ? `Garantie : ${warrantyEvent.title}`
+                    : "Garantie non renseignée"}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Complétude — règles affichées, jamais un « score de fiabilité ». */}
-        <div className="mt-5 rounded-xl border border-border bg-muted/50 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-foreground">Complétude du dossier</p>
-            <p className="text-sm font-semibold text-foreground tabular-nums">
-              {completeness.percent} %
-            </p>
+        {/* Ce qui manque — une liste claire, jamais un score. */}
+        {completeness.rules.some((rule) => !rule.done) ? (
+          <div className="mt-5 rounded-xl border border-border bg-muted/50 p-4">
+            <p className="text-sm font-medium text-foreground">Ce qui pourrait être complété</p>
+            <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+              {completeness.rules.map((rule) => (
+                <li
+                  key={rule.key}
+                  className={cn(
+                    "flex items-center gap-2 text-xs",
+                    rule.done ? "text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {rule.done ? (
+                    <Check className="size-3.5 shrink-0 text-[var(--nid-success)]" aria-hidden />
+                  ) : (
+                    <Minus className="size-3.5 shrink-0" aria-hidden />
+                  )}
+                  {rule.label}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${completeness.percent}%` }}
-            />
-          </div>
-          <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
-            {completeness.rules.map((rule) => (
-              <li
-                key={rule.key}
-                className={cn(
-                  "flex items-center gap-2 text-xs",
-                  rule.done ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {rule.done ? (
-                  <Check className="size-3.5 shrink-0 text-[var(--nid-success)]" aria-hidden />
-                ) : (
-                  <Minus className="size-3.5 shrink-0" aria-hidden />
-                )}
-                {rule.label} ({rule.points} pts)
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Cet indicateur mesure ce qui est renseigné dans le dossier. Il ne
-            dit rien de la fiabilité des informations déclarées.
-          </p>
-        </div>
+        ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <Button data-touch render={<Link href={`/id/app/objets/${asset.id}/evenement`} />}>
-            <CalendarPlus className="size-4" data-icon="inline-start" />
-            Ajouter un événement
+          <Button data-touch render={<Link href={`/id/app/objets/${asset.id}#bilan`} />}>
+            <ClipboardCheck className="size-4" data-icon="inline-start" />
+            Faire le bilan
+          </Button>
+          <Button
+            variant="outline"
+            data-touch
+            render={<Link href={`/id/app/objets/${asset.id}#reparations`} />}
+          >
+            <Wrench className="size-4" data-icon="inline-start" />
+            Ajouter une réparation
+          </Button>
+          <Button
+            variant="outline"
+            data-touch
+            render={<Link href={`/id/app/objets/${asset.id}?onglet=documents`} />}
+          >
+            <FileText className="size-4" data-icon="inline-start" />
+            Documents
           </Button>
           <Button
             variant="outline"
@@ -183,20 +227,28 @@ export default async function PassportPage({
             Partager
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             data-touch
-            render={<Link href={`/id/app/objets/${asset.id}/qr`} />}
+            render={<Link href={`/id/app/objets/${asset.id}/evenement`} />}
           >
-            <QrCode className="size-4" data-icon="inline-start" />
-            Afficher le QR
+            <CalendarPlus className="size-4" data-icon="inline-start" />
+            Ajouter un événement
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             data-touch
             render={<Link href={`/id/app/objets/${asset.id}/transfert`} />}
           >
             <ArrowLeftRight className="size-4" data-icon="inline-start" />
             Transférer
+          </Button>
+          <Button
+            variant="ghost"
+            data-touch
+            render={<Link href={`/id/app/objets/${asset.id}/qr`} />}
+          >
+            <QrCode className="size-4" data-icon="inline-start" />
+            QR
           </Button>
           <Button
             variant="ghost"
@@ -224,7 +276,7 @@ export default async function PassportPage({
       {/* ------------------------------------------------------------ */}
       {/*  Onglets                                                      */}
       {/* ------------------------------------------------------------ */}
-      <nav aria-label="Sections du passeport" className="flex gap-1 overflow-x-auto border-b border-border">
+      <nav aria-label="Sections du téléphone" className="flex gap-1 overflow-x-auto border-b border-border">
         {TABS.map((item) => (
           <Link
             key={item.key}
@@ -258,6 +310,19 @@ export default async function PassportPage({
       {/* ------------------------------------------------------------ */}
       {tab === "apercu" ? (
         <div className="space-y-6">
+          <CheckupPanel
+            assetId={asset.id}
+            frequencyMonths={schedule?.frequency_months ?? 1}
+            enabled={schedule?.enabled ?? true}
+            nextCheckOn={schedule?.next_due_on ?? null}
+            lastCheckAt={lastCheckup?.answered_at ?? null}
+            canSendLink={canEdit}
+          />
+
+          <div id="reparations" className="scroll-mt-20">
+            <RepairPanel assetId={asset.id} orders={repairs} canEdit={canEdit} />
+          </div>
+
           <section>
             <h2 className="text-sm font-semibold text-foreground">Caractéristiques</h2>
             <dl className="mt-3 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
@@ -309,7 +374,7 @@ export default async function PassportPage({
             <section>
               <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
                 État déclaré
-                <TrustBadge level={0} />
+                <SourceBadge source="declare_proprietaire" />
               </h2>
               <div className="mt-3 rounded-2xl border border-border bg-card p-4">
                 <ul className="grid gap-2 sm:grid-cols-2">
@@ -379,7 +444,7 @@ export default async function PassportPage({
                     >
                       <Image
                         src={item.url}
-                        alt={item.caption || "Photo du smartphone"}
+                        alt={item.caption || "Photo du téléphone"}
                         width={200}
                         height={200}
                         unoptimized
@@ -415,10 +480,18 @@ export default async function PassportPage({
                   <li key={event.id} className="nid-panel rounded-2xl p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-foreground">{event.title}</h3>
-                      <TrustBadge
-                        level={event.revoked_at ? 4 : event.trust_level}
-                        variant="full"
-                      />
+                      {event.revoked_at ? (
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                          Corrigé
+                        </span>
+                      ) : (
+                        <SourceBadge
+                          source={
+                            (event as { source_type?: string }).source_type ??
+                            (event.trust_level === 2 ? "atteste_reparateur" : "declare_proprietaire")
+                          }
+                        />
+                      )}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {EVENT_TYPE_LABELS[event.type]} ·{" "}

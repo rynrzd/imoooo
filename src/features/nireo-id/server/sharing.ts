@@ -8,7 +8,7 @@ import { dbErrorMessage, isNireoIdConfigured, nidService, nidUserClient } from "
 import { recordNidAudit } from "./audit";
 
 /**
- * Partage contrôlé d'un passeport.
+ * Partage contrôlé d'un téléphone.
  *
  * Deux surfaces publiques, volontairement différentes :
  *  • l'APERÇU PUBLIC (/id/p/<identifiant>) : permanent, minimal, ne montre
@@ -44,7 +44,7 @@ export async function createShare(
   const token = createToken();
   const expiresAt = new Date(Date.now() + input.duration_hours * 3600 * 1000);
 
-  // Les documents partagés doivent appartenir au passeport concerné :
+  // Les documents partagés doivent appartenir au téléphone concerné :
   // la liste envoyée par le navigateur n'est jamais reprise telle quelle.
   let documentIds: string[] = [];
   if (input.sections.includes("documents") && input.document_ids.length > 0) {

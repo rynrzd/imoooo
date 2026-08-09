@@ -19,7 +19,7 @@ import { getProAssetView } from "@/features/nireo-id/server/professionals";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Passeport client",
+  title: "Téléphone client",
   robots: { index: false, follow: false },
 };
 
@@ -46,8 +46,8 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
           <h1 className="mt-4 text-xl font-semibold text-foreground">Accès non autorisé</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             {profile?.status === "approuve"
-              ? "Le propriétaire ne vous a pas (ou plus) donné accès à ce passeport. Demandez-lui une nouvelle autorisation."
-              : "Votre compte professionnel doit être approuvé par Nireo pour consulter un passeport client."}
+              ? "Le propriétaire ne vous a pas (ou plus) donné accès à ce téléphone. Demandez-lui une nouvelle autorisation."
+              : "Votre compte professionnel doit être approuvé par Nireo pour consulter un téléphone client."}
           </p>
           <div className="mt-6">
             <Button render={<Link href="/id/pro" />}>Retour à l’espace professionnel</Button>
@@ -73,7 +73,7 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
         </Link>
       </p>
 
-      <header className="nid-panel nid-topline rounded-2xl p-5 sm:p-6">
+      <header className="nid-panel rounded-2xl p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
             {view.photo_url ? (

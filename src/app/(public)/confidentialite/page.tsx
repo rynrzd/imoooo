@@ -53,6 +53,17 @@ export default function PrivacyPage() {
           ],
         },
         {
+          title: "Nireo ID — suivi des téléphones",
+          paragraphs: [
+            "Nireo ID traite les informations que vous saisissez sur un téléphone : marque, modèle, date d'achat, état déclaré, réparations, documents joints et, si vous le souhaitez, numéro de série ou IMEI. Ces identifiants restent privés : ils ne sont jamais affichés en entier dans un rapport partagé ni dans un aperçu public, et servent uniquement à détecter qu'un même appareil n'est pas enregistré deux fois.",
+            "Bilans : lorsque vous ou votre entreprise activez les bilans réguliers, un lien personnel est envoyé à l'adresse du détenteur du téléphone. Ce lien est limité à un appareil, expire et peut être révoqué. La réponse enregistre uniquement l'état matériel déclaré.",
+            "Téléphones professionnels : une entreprise voit l'état matériel du téléphone qu'elle possède, son détenteur déclaré et ses réparations. Nireo ID ne collecte et ne transmet AUCUNE donnée d'usage personnel : ni appels, ni messages, ni photos personnelles, ni applications, ni navigation, ni position, ni temps d'écran. Ce n'est pas un outil de surveillance.",
+            "Téléphone personnel utilisé au travail : vous restez propriétaire de la fiche. L'entreprise n'obtient qu'un accès explicitement accordé, et aucun document privé n'est partagé automatiquement.",
+            "Réparateurs : un atelier n'accède qu'à l'intervention que vous lui confiez, pour une durée limitée et révocable. Il ne voit ni vos autres téléphones, ni vos documents privés.",
+            "Transfert : lorsque vous cédez un téléphone, l'historique de l'appareil suit l'appareil. Vos documents privés, vos coordonnées et les noms des personnes qui l'ont utilisé ne sont jamais transmis automatiquement.",
+          ],
+        },
+        {
           title: "Cookies",
           paragraphs: [
             "Nireo utilise uniquement des cookies techniques nécessaires à l'authentification et au maintien de votre session. Aucun cookie publicitaire ou de pistage tiers n'est déposé.",

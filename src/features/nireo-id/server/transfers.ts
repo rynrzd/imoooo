@@ -41,28 +41,28 @@ export async function createTransfer(
   sellerEmail: string
 ): Promise<CreatedTransfer> {
   if (input.recipient_email === sellerEmail.toLowerCase()) {
-    throw new Error("Vous ne pouvez pas transférer un passeport vers votre propre adresse.");
+    throw new Error("Vous ne pouvez pas transférer un téléphone vers votre propre adresse.");
   }
 
   const supabase = await nidUserClient();
 
-  // Le passeport doit être à vous, actif, et sans transfert en cours.
+  // Le Téléphone doit être à vous, actif, et sans transfert en cours.
   const { data: asset } = await supabase
     .from("nid_assets")
     .select("id, public_id, brand, model, color, status")
     .eq("id", input.asset_id)
     .maybeSingle();
-  if (!asset) throw new Error("Ce passeport est introuvable ou ne vous appartient plus.");
+  if (!asset) throw new Error("Ce téléphone est introuvable ou ne vous appartient plus.");
   const row = asset as Pick<AssetRow, "id" | "public_id" | "brand" | "model" | "color" | "status">;
   if (row.status === "transfer_pending") {
-    throw new Error("Un transfert est déjà en cours pour ce passeport.");
+    throw new Error("Un transfert est déjà en cours pour ce téléphone.");
   }
   if (row.status === "archived") {
-    throw new Error("Ce passeport est archivé : réactivez-le avant de le transférer.");
+    throw new Error("Ce téléphone est archivé : réactivez-le avant de le transférer.");
   }
 
   // Politique de transfert par document : on ne conserve que les documents
-  // qui appartiennent réellement à ce passeport et à ce vendeur.
+  // qui appartiennent réellement à ce téléphone et à ce vendeur.
   const { data: documents } = await supabase
     .from("nid_documents")
     .select("id")
@@ -179,7 +179,7 @@ export interface TransferInvitation {
 
 /**
  * Lit une invitation à partir de son jeton, pour la page d'acceptation.
- * Ne renvoie jamais le contenu privé du passeport : uniquement le résumé
+ * Ne renvoie jamais le contenu privé du téléphone : uniquement le résumé
  * enregistré à l'ouverture (marque, modèle, identifiant public).
  */
 export async function getTransferByToken(
@@ -230,7 +230,7 @@ const ACCEPT_MESSAGES: Record<string, string> = {
     "Cette invitation a été envoyée à une autre adresse e-mail. Connectez-vous avec l'adresse destinataire.",
   auto_transfert: "Vous ne pouvez pas accepter un transfert que vous avez vous-même ouvert.",
   vendeur_plus_proprietaire:
-    "Le vendeur n'est plus le propriétaire de ce passeport : la demande a été annulée.",
+    "Le vendeur n'est plus le propriétaire de ce téléphone : la demande a été annulée.",
 };
 
 export function acceptErrorMessage(state: string): string {

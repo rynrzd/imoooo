@@ -8,7 +8,7 @@ import { requireNidSession } from "@/features/nireo-id/server/guards";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Modifier un passeport",
+  title: "Modifier un téléphone",
   robots: { index: false, follow: false },
 };
 
@@ -30,7 +30,7 @@ export default async function EditAssetPage({ params }: { params: Promise<{ id: 
         </Link>
       </p>
 
-      <h1 className="text-2xl font-semibold text-foreground">Réglages du passeport</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Réglages du téléphone</h1>
 
       <AssetSettings asset={detail.asset} />
     </div>

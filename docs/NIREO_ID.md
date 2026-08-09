@@ -1,4 +1,10 @@
-# Nireo ID — mise en service
+# Nireo ID — mise en service (V1)
+
+> **V2 disponible.** Le produit a évolué : espaces (personnel, entreprise,
+> atelier), affectations, bilans périodiques, réparations, offres et quotas.
+> Voir [`NIREO_ID_V2.md`](./NIREO_ID_V2.md) — la migration ci-dessous reste
+> la base du schéma et **n'a pas été modifiée**.
+
 
 Nireo ID est le **second produit** de la marque Nireo : l'identité numérique
 et l'historique transférable des objets (catégorie du MVP : **smartphones**).

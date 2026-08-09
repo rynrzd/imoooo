@@ -10,9 +10,9 @@ import { EXAMPLE_EVENTS, EXAMPLE_PASSPORT } from "@/features/nireo-id/example";
 import { formatEventDate } from "@/features/nireo-id/format";
 
 export const metadata: Metadata = {
-  title: "Exemple de passeport",
+  title: "Exemple de téléphone",
   description:
-    "Démonstration publique d’un passeport Nireo ID : identifiant, historique et niveaux de confiance. Contenu d’illustration.",
+    "Démonstration publique d’un téléphone Nireo ID : identifiant, historique et niveaux de confiance. Contenu d’illustration.",
   alternates: { canonical: "/id/exemple" },
 };
 
@@ -35,7 +35,7 @@ export default function NireoIdExamplePage() {
               <strong>Ceci est un exemple.</strong> Aucune de ces informations
               ne provient d’un appareil réel : ni l’identifiant, ni les
               réparations, ni le professionnel cité. Cette page montre ce que
-              verrait une personne à qui vous partagez un passeport.
+              verrait une personne à qui vous partagez un téléphone.
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export default function NireoIdExamplePage() {
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button size="lg" data-touch render={<Link href={SIGNUP_HREF} />}>
-              Créer mon passeport
+              Créer mon téléphone
               <ArrowRight className="size-4" data-icon="inline-end" />
             </Button>
             <Button variant="outline" size="lg" data-touch render={<Link href="/id#confiance" />}>

@@ -8,18 +8,24 @@
 
 import { z } from "zod";
 import {
+  CHECK_ANSWERS,
+  CHECK_SCOPES,
   CONDITION_GRADES,
   CONDITION_POINTS,
   DISPUTE_REASONS,
   DOCUMENT_KINDS,
   EVENT_TYPES,
+  FLEET_STATUSES,
+  INVITABLE_ROLES,
   OWNER_EVENT_TYPES,
+  PARTS_TYPES,
   PRO_ACTIVITIES,
   PRO_EVENT_TYPES,
   PUBLIC_ID_PATTERN,
   PURCHASE_CONDITIONS,
   SHARE_SECTIONS,
   TRANSFER_POLICIES,
+  WORKSPACE_ROLES,
 } from "./constants";
 
 const trimmed = (max: number) => z.string().trim().max(max);
@@ -42,7 +48,7 @@ export const publicIdSchema = z
   .regex(PUBLIC_ID_PATTERN, "Identifiant Nireo invalide (format NIR-PH-XXXX-XXXX).");
 
 /* ------------------------------------------------------------------ */
-/*  Création d'un passeport                                            */
+/*  Création d'un téléphone                                            */
 /* ------------------------------------------------------------------ */
 
 export const declaredConditionSchema = z.object({
@@ -78,7 +84,7 @@ export const createAssetSchema = z.object({
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 
 /* ------------------------------------------------------------------ */
-/*  Édition d'un passeport                                             */
+/*  Édition d'un téléphone                                             */
 /* ------------------------------------------------------------------ */
 
 export const updateAssetSchema = z.object({
@@ -194,7 +200,7 @@ export const createTransferSchema = z.object({
   document_policies: z.record(z.string().uuid(), z.enum(TRANSFER_POLICIES)).default({}),
   confirm: z
     .boolean()
-    .refine((v) => v === true, "Confirmez que vous cédez ce passeport."),
+    .refine((v) => v === true, "Confirmez que vous cédez ce téléphone."),
 });
 
 /* ------------------------------------------------------------------ */
@@ -268,6 +274,150 @@ export const adminProDecisionSchema = z.object({
   decision: z.enum(["approuve", "refuse", "suspendu"]),
   reason: z.string().trim().min(5, "Motif obligatoire (5 caractères minimum).").max(500),
 });
+
+/* ================================================================== */
+/*  V2 — espaces, parc, bilans, réparations                            */
+/* ================================================================== */
+
+export const createWorkspaceSchema = z.object({
+  kind: z.enum(["entreprise", "atelier"]),
+  name: z.string().trim().min(2, "Nom requis (2 caractères minimum).").max(120),
+});
+
+export const renameWorkspaceSchema = z.object({
+  workspace_id: z.string().uuid(),
+  name: z.string().trim().min(2, "Nom requis (2 caractères minimum).").max(120),
+  timezone: trimmed(60).default("Europe/Paris"),
+});
+
+export const inviteMemberSchema = z.object({
+  workspace_id: z.string().uuid(),
+  email: z.string().trim().toLowerCase().email("Adresse e-mail invalide.").max(160),
+  role: z.enum(INVITABLE_ROLES as [string, ...string[]]),
+  display_name: trimmed(120).default(""),
+});
+
+export const memberRoleSchema = z.object({
+  member_id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  role: z.enum(WORKSPACE_ROLES),
+});
+
+/** Détenteur enregistré par nom et e-mail, sans compte obligatoire. */
+export const assignSchema = z.object({
+  asset_id: z.string().uuid(),
+  workspace_id: z.string().uuid(),
+  holder_user_id: z.string().uuid().nullable().optional(),
+  holder_name: z.string().trim().min(2, "Nom du détenteur requis.").max(120),
+  holder_email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(160)
+    .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Adresse e-mail invalide.")
+    .default(""),
+  kind: z.enum(["affectation", "pret"]).default("affectation"),
+  started_on: isoDate.optional().or(z.literal("")),
+  note: trimmed(500).default(""),
+});
+
+export const endAssignmentSchema = z.object({
+  assignment_id: z.string().uuid(),
+  fleet_status: z.enum(FLEET_STATUSES).default("en_stock"),
+});
+
+export const fleetStatusSchema = z.object({
+  asset_id: z.string().uuid(),
+  fleet_status: z.enum(FLEET_STATUSES),
+  internal_reference: trimmed(60).default(""),
+  warranty_end: isoDate.optional().or(z.literal("")),
+});
+
+export const checkScheduleSchema = z.object({
+  asset_id: z.string().uuid(),
+  frequency_months: z.coerce
+    .number()
+    .int()
+    .min(1, "Fréquence invalide.")
+    .max(12, "Fréquence invalide."),
+  enabled: z.boolean().default(true),
+});
+
+/** Réponse à un bilan : « tout fonctionne » se valide en un clic. */
+export const checkAnswerSchema = z.object({
+  token: z.string().trim().min(20, "Lien invalide.").max(200),
+  answer: z.enum(CHECK_ANSWERS),
+  details: z.record(z.string(), z.string()).default({}),
+  comment: trimmed(1000).default(""),
+});
+
+export const sendCheckSchema = z.object({
+  asset_id: z.string().uuid(),
+  scope: z.enum(CHECK_SCOPES).default("mini"),
+});
+
+export const campaignSchema = z.object({
+  workspace_id: z.string().uuid(),
+  label: trimmed(80).default(""),
+  asset_ids: z
+    .array(z.string().uuid())
+    .min(1, "Sélectionnez au moins un téléphone.")
+    .max(500, "500 téléphones maximum par campagne."),
+  scope: z.enum(CHECK_SCOPES).default("mini"),
+});
+
+export const createRepairSchema = z.object({
+  asset_id: z.string().uuid(),
+  reported_problem: z
+    .string()
+    .trim()
+    .min(5, "Décrivez le problème (5 caractères minimum).")
+    .max(2000),
+});
+
+export const submitRepairSchema = z.object({
+  order_id: z.string().uuid(),
+  visual_state: trimmed(1000).default(""),
+  diagnosis: z.string().trim().min(3, "Diagnostic requis.").max(2000),
+  operation: z.string().trim().min(3, "Décrivez l'opération effectuée.").max(2000),
+  parts: trimmed(500).default(""),
+  parts_type: z.enum(PARTS_TYPES).default("inconnu"),
+  amount_euros: z.number().min(0).max(100000).nullable().optional(),
+  warranty_months: z.number().int().min(0).max(120).nullable().optional(),
+  intervened_on: isoDate.optional().or(z.literal("")),
+  comment: trimmed(1000).default(""),
+});
+
+export const validateRepairSchema = z.object({
+  order_id: z.string().uuid(),
+  decision: z.enum(["valide", "refuse"]),
+  reason: trimmed(500).default(""),
+});
+
+/** Ligne d'import CSV — validée ligne par ligne, jamais en bloc. */
+export const csvRowSchema = z.object({
+  marque: z.string().trim().min(1, "Marque manquante.").max(60),
+  modele: z.string().trim().min(1, "Modèle manquant.").max(80),
+  capacite: trimmed(20).default(""),
+  couleur: trimmed(40).default(""),
+  numero_serie: trimmed(64).default(""),
+  imei: trimmed(32).default(""),
+  reference_interne: trimmed(60).default(""),
+  date_achat: isoDate.optional().or(z.literal("")),
+  prix_euros: z.number().min(0).max(100000).nullable().optional(),
+  type_achat: z.enum(PURCHASE_CONDITIONS).default("inconnu"),
+  fin_garantie: isoDate.optional().or(z.literal("")),
+  detenteur_nom: trimmed(120).default(""),
+  detenteur_email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(160)
+    .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Adresse e-mail invalide.")
+    .default(""),
+});
+
+export type CsvRowInput = z.infer<typeof csvRowSchema>;
 
 export const adminDisputeDecisionSchema = z.object({
   dispute_id: z.string().uuid(),

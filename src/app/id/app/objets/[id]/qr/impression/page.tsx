@@ -54,7 +54,7 @@ export default async function QrPrintPage({ params }: { params: Promise<{ id: st
         />
         <p className="mt-4 font-mono text-sm tracking-wider">{detail.asset.public_id}</p>
         <p className="mt-2 text-xs text-[#667085]">
-          Scannez pour consulter l’aperçu public de ce passeport. Aucune donnée
+          Scannez pour consulter l’aperçu public de ce téléphone. Aucune donnée
           personnelle n’y figure.
         </p>
         <p className="mt-1 text-[10px] break-all text-[#667085]">{target}</p>

@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NidPublicFooter } from "@/components/nireo-id/public-footer";
 import { NidPublicHeader } from "@/components/nireo-id/public-header";
-import { TrustBadge } from "@/components/nireo-id/trust-badge";
+import { SourceBadge, SourceLegend } from "@/components/nireo-id/state-badge";
 import {
   CONDITION_GRADE_LABELS,
   CONDITION_POINTS,
@@ -151,11 +151,17 @@ export default async function SharedPassportPage({
         </p>
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <CalendarClock className="size-3.5" aria-hidden />
-          Expire dans {formatRemaining(share.expires_at)} ({formatDateTime(share.expires_at)})
+          Rapport valide — expire dans {formatRemaining(share.expires_at)} (
+          {formatDateTime(share.expires_at)})
         </p>
       </div>
 
-      <header className="nid-panel nid-topline mt-4 flex flex-col gap-5 rounded-2xl p-6 sm:flex-row sm:items-center">
+      <p className="mt-2 text-xs text-muted-foreground">
+        Ce rapport ne contient ni identifiant complet, ni document non autorisé, ni information sur
+        les personnes qui ont utilisé le téléphone.
+      </p>
+
+      <header className="nid-panel mt-4 flex flex-col gap-5 rounded-2xl p-6 sm:flex-row sm:items-center">
         <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
           {coverUrl ? (
             <Image
@@ -240,7 +246,7 @@ export default async function SharedPassportPage({
           <h2 className="text-lg font-semibold text-foreground">Historique</h2>
           {events.length === 0 ? (
             <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-              Aucun événement n’a encore été enregistré sur ce passeport.
+              Aucun événement n’a encore été enregistré sur ce téléphone.
             </p>
           ) : (
             <ol className="mt-3 space-y-3">
@@ -250,7 +256,20 @@ export default async function SharedPassportPage({
                   <li key={event.id} className="nid-panel rounded-2xl p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-foreground">{event.title}</h3>
-                      <TrustBadge level={event.revoked_at ? 4 : event.trust_level} variant="full" />
+                      {event.revoked_at ? (
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                          Corrigé
+                        </span>
+                      ) : (
+                        <SourceBadge
+                          source={
+                            (event as { source_type?: string }).source_type ??
+                            (event.trust_level === 2
+                              ? "atteste_reparateur"
+                              : "declare_proprietaire")
+                          }
+                        />
+                      )}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {EVENT_TYPE_LABELS[event.type]} · {formatEventDate(event.effective_date)}
@@ -267,6 +286,15 @@ export default async function SharedPassportPage({
               })}
             </ol>
           )}
+
+          <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm font-medium text-foreground">Provenance des informations</p>
+            <SourceLegend className="mt-3" />
+            <p className="mt-3 text-xs text-muted-foreground">
+              Nireo ne vérifie ni ne certifie automatiquement ces informations : chaque ligne
+              indique qui l’a déclarée.
+            </p>
+          </div>
         </section>
       ) : null}
 
@@ -275,7 +303,7 @@ export default async function SharedPassportPage({
           <h2 className="text-lg font-semibold text-foreground">Photos</h2>
           {media.length === 0 ? (
             <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-              Aucune photo n’a été ajoutée à ce passeport.
+              Aucune photo n’a été ajoutée à ce téléphone.
             </p>
           ) : (
             <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -289,7 +317,7 @@ export default async function SharedPassportPage({
                   >
                     <Image
                       src={url}
-                      alt={item.caption || "Photo du smartphone"}
+                      alt={item.caption || "Photo du téléphone"}
                       width={320}
                       height={320}
                       unoptimized
@@ -353,7 +381,7 @@ export default async function SharedPassportPage({
       ) : null}
 
       <p className="mt-8 rounded-2xl border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
-        Ce dossier est partagé par le propriétaire actuel du passeport. Nireo ne
+        Ce dossier est partagé par le propriétaire actuel du téléphone. Nireo ne
         certifie pas l’authenticité des documents fournis et ne réalise aucun
         contrôle d’appareil déclaré volé. Le lien peut être révoqué à tout
         moment ; l’IMEI et le numéro de série complets ne sont jamais partagés.

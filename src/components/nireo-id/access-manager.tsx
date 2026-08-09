@@ -150,7 +150,7 @@ export function AccessManager({
 
         {access.length === 0 ? (
           <p className="mt-3 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
-            Aucun professionnel n’a accès à ce passeport. Un réparateur ne peut
+            Aucun professionnel n’a accès à ce téléphone. Un réparateur ne peut
             jamais y accéder sans votre autorisation explicite.
           </p>
         ) : (
@@ -212,7 +212,7 @@ export function AccessManager({
                             asset_id: assetId,
                           }}
                           label="Révoquer l’accès"
-                          confirmMessage="Retirer l'accès de ce professionnel à ce passeport ?"
+                          confirmMessage="Retirer l'accès de ce professionnel à ce téléphone ?"
                           successMessage="Accès révoqué."
                         />
                       ) : null}

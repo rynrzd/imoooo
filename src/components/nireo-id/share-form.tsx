@@ -93,7 +93,7 @@ export function ShareForm({
             variant="ghost"
             onClick={() => router.push(`/id/app/objets/${assetId}?onglet=acces`)}
           >
-            Voir les accès du passeport
+            Voir les accès du téléphone
           </Button>
         </div>
       </div>

@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Journal d’audit" };
 
 /** Libellés français des actions journalisées. */
 const ACTION_LABELS: Record<string, string> = {
-  "asset.created": "Création d’un passeport",
+  "asset.created": "Création d’un téléphone",
   "event.declared": "Événement déclaré",
   "event.professional_added": "Intervention professionnelle",
   "event.revoked": "Révocation d’un événement",

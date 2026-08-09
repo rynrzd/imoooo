@@ -6,21 +6,31 @@
 import type {
   AssetStatus,
   AuthorRole,
+  CheckAnswer,
+  CheckEmailStatus,
+  CheckScope,
   ConditionGrade,
   ConditionPointKey,
   DisputeReason,
   DisputeStatus,
   DocumentKind,
   EventType,
+  FleetStatus,
+  HealthState,
+  PartsType,
   ProAccessSource,
   ProAccessStatus,
   ProActivity,
   ProStatus,
   PurchaseCondition,
+  RepairStatus,
   ShareSection,
+  SourceType,
   TransferPolicy,
   TransferStatus,
   TrustLevel,
+  WorkspaceKind,
+  WorkspaceRole,
 } from "./constants";
 
 /** Constat d'état déclaré (étape 4 de l'assistant). */
@@ -226,7 +236,7 @@ export interface NidAdminRow {
 /*  Vues applicatives                                                  */
 /* ------------------------------------------------------------------ */
 
-/** Ligne de la liste « Mes smartphones ». */
+/** Ligne de la liste « Mes téléphones ». */
 export interface AssetListItem {
   id: string;
   public_id: string;
@@ -238,6 +248,9 @@ export interface AssetListItem {
   last_event: { title: string; effective_date: string; trust_level: TrustLevel } | null;
   active_shares: number;
   events_count: number;
+  health_state: HealthState;
+  next_check_on: string | null;
+  check_overdue: boolean;
 }
 
 /** Aperçu public minimal (aucune donnée personnelle). */
@@ -314,3 +327,215 @@ export type ShareResolution =
 export type ActionResult<T = undefined> =
   | { ok: true; data: T }
   | { ok: false; error: string; field?: string };
+
+/* ================================================================== */
+/*  V2 — espaces, affectations, bilans, réparations                    */
+/* ================================================================== */
+
+export interface WorkspaceRow {
+  id: string;
+  kind: WorkspaceKind;
+  name: string;
+  owner_user_id: string;
+  timezone: string;
+  plan: string;
+  plan_status: "actif" | "impaye" | "annule";
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkspaceMemberRow {
+  id: string;
+  workspace_id: string;
+  user_id: string | null;
+  display_name: string;
+  email: string;
+  role: WorkspaceRole;
+  status: "actif" | "invite" | "retire";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkspaceInviteRow {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: WorkspaceRole;
+  invited_by: string | null;
+  expires_at: string;
+  accepted_at: string | null;
+  accepted_by: string | null;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+/** Espace + rôle de l'utilisateur courant (sélecteur d'espace). */
+export interface WorkspaceContext {
+  workspace: WorkspaceRow;
+  role: WorkspaceRole;
+}
+
+export interface AssignmentRow {
+  id: string;
+  asset_id: string;
+  workspace_id: string;
+  holder_user_id: string | null;
+  holder_name: string;
+  holder_email: string;
+  kind: "affectation" | "pret";
+  started_on: string;
+  ended_on: string | null;
+  status: "active" | "ended";
+  note: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CheckScheduleRow {
+  id: string;
+  asset_id: string;
+  workspace_id: string | null;
+  frequency_months: number;
+  full_check_every: number;
+  enabled: boolean;
+  next_due_on: string;
+  last_request_at: string | null;
+  last_answer_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Le jeton haché n'est jamais exposé (privilèges colonne côté base). */
+export interface CheckRequestRow {
+  id: string;
+  asset_id: string;
+  workspace_id: string | null;
+  campaign_id: string | null;
+  recipient_user_id: string | null;
+  recipient_name: string;
+  recipient_email: string;
+  scope: CheckScope;
+  due_on: string;
+  expires_at: string;
+  sent_at: string | null;
+  email_status: CheckEmailStatus;
+  email_error: string;
+  first_used_at: string | null;
+  answered_at: string | null;
+  revoked_at: string | null;
+  checkup_id: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CheckupRow {
+  id: string;
+  asset_id: string;
+  request_id: string | null;
+  workspace_id: string | null;
+  responder_user_id: string | null;
+  responder_label: string;
+  answer: CheckAnswer;
+  details: Record<string, unknown>;
+  comment: string;
+  source_type: SourceType;
+  event_id: string | null;
+  answered_at: string;
+  created_at: string;
+}
+
+export interface CheckCampaignRow {
+  id: string;
+  workspace_id: string;
+  label: string;
+  created_by: string | null;
+  status: "en_cours" | "terminee";
+  total: number;
+  sent: number;
+  manual: number;
+  failed: number;
+  created_at: string;
+}
+
+export interface RepairOrderRow {
+  id: string;
+  asset_id: string;
+  workspace_id: string | null;
+  requested_by: string | null;
+  repairer_workspace_id: string | null;
+  professional_id: string | null;
+  repairer_label: string;
+  status: RepairStatus;
+  reported_problem: string;
+  visual_state: string;
+  diagnosis: string;
+  operation: string;
+  parts: string;
+  parts_type: PartsType;
+  amount_cents: number | null;
+  warranty_months: number | null;
+  intervened_on: string | null;
+  comment: string;
+  expires_at: string | null;
+  claimed_at: string | null;
+  submitted_at: string | null;
+  validated_at: string | null;
+  validated_by: string | null;
+  refused_at: string | null;
+  refusal_reason: string;
+  event_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Colonnes V2 ajoutées à `nid_assets`. */
+export interface AssetV2Columns {
+  workspace_id: string | null;
+  fleet_status: FleetStatus;
+  health_state: HealthState;
+  internal_reference: string;
+  warranty_end: string | null;
+  eprel_url: string | null;
+}
+
+/** Ligne du parc d'entreprise. */
+export interface FleetItem {
+  id: string;
+  public_id: string;
+  brand: string;
+  model: string;
+  color: string;
+  internal_reference: string;
+  serial_last4: string;
+  imei_last4: string;
+  fleet_status: FleetStatus;
+  health_state: HealthState;
+  warranty_end: string | null;
+  holder_label: string | null;
+  holder_email: string | null;
+  assignment_id: string | null;
+  last_checkup_at: string | null;
+  next_check_on: string | null;
+  check_overdue: boolean;
+}
+
+/** Réponse d'un bilan ouverte depuis un lien à jeton. */
+export type CheckRequestResolution =
+  | { state: "introuvable" | "revoque" | "expire" }
+  | { state: "deja_repondu"; answer: CheckAnswer | null; answeredAt: string | null }
+  | {
+      state: "valide";
+      request: {
+        id: string;
+        scope: CheckScope;
+        due_on: string;
+        expires_at: string;
+        recipient_name: string;
+        is_company: boolean;
+      };
+      device: { brand: string; model: string; color: string; public_id: string };
+    };

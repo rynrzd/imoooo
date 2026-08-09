@@ -1,385 +1,324 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ArrowRight,
-  EyeOff,
-  FileWarning,
-  KeyRound,
-  Link2Off,
-  Receipt,
-  ShieldCheck,
+  Building2,
+  Check,
+  FileText,
+  RefreshCw,
+  Send,
   Smartphone,
   Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NidPublicFooter } from "@/components/nireo-id/public-footer";
 import { NidPublicHeader } from "@/components/nireo-id/public-header";
-import { PassportPreview } from "@/components/nireo-id/passport-preview";
-import { TrustLegend } from "@/components/nireo-id/trust-badge";
+import { NID_SUBLINE, NID_TAGLINE } from "@/features/nireo-id/constants";
+import { formatNidPrice, NID_PLAN_LIST } from "@/features/nireo-id/plans";
 
 export const metadata: Metadata = {
-  title: "Nireo ID — L’historique suit l’objet, pas le propriétaire",
+  title: "Nireo ID — Le suivi simple de votre téléphone",
   description:
-    "Créez le passeport numérique de votre smartphone, conservez ses documents et transmettez son historique lorsque vous le vendez.",
+    "Ajoutez votre téléphone dès son achat, répondez à un bilan rapide, conservez ses réparations et transmettez son historique.",
   alternates: { canonical: "/id" },
 };
 
 const SIGNUP_HREF = "/inscription?next=%2Fid%2Fapp%2Fobjets%2Fnouveau";
 
-const PROBLEMS = [
-  {
-    icon: Receipt,
-    title: "La facture a disparu",
-    text: "Elle était dans une boîte mail, un tiroir ou un téléphone revendu. Sans elle, plus de garantie ni de preuve d’achat.",
-  },
-  {
-    icon: Wrench,
-    title: "La réparation est invisible",
-    text: "Écran changé, batterie remplacée, appareil ouvert : rien ne le montre sur l’objet lui-même.",
-  },
-  {
-    icon: FileWarning,
-    title: "La garantie ne se transmet pas",
-    text: "L’acheteur reprend un appareil sans savoir ce qui est encore couvert, ni par qui.",
-  },
+const STEPS = [
+  { title: "Ajoutez le téléphone", text: "Dès l’achat : marque, modèle, facture." },
+  { title: "Faites un bilan rapide", text: "Une question par mois, une réponse en un clic." },
+  { title: "Conservez les réparations", text: "Chaque intervention rejoint le même historique." },
+  { title: "Transmettez son historique", text: "À la revente, le suivi part avec l’appareil." },
 ];
 
-const STEPS = [
+const AUDIENCES = [
   {
-    number: "01",
-    title: "Créez l’identité du smartphone",
-    text: "Marque, modèle, photo, et si vous le souhaitez le numéro de série. Nireo génère un identifiant unique et un dossier privé.",
+    id: "particuliers",
+    icon: Smartphone,
+    title: "Pour les particuliers",
+    items: [
+      "Facture et garantie conservées",
+      "État du téléphone à jour",
+      "Rappels réguliers",
+      "Réparations enregistrées",
+      "Partage et transfert",
+    ],
   },
   {
-    number: "02",
-    title: "Enrichissez son historique",
-    text: "Ajoutez la facture, l’état constaté, les réparations. Un réparateur approuvé peut y inscrire son intervention.",
+    id: "entreprises",
+    icon: Building2,
+    title: "Pour les entreprises",
+    items: [
+      "Parc de téléphones",
+      "Affectations aux salariés",
+      "Bilans salariés",
+      "Réparations",
+      "Coûts et historique",
+    ],
   },
   {
-    number: "03",
-    title: "Transférez-le avec son passeport",
-    text: "À la revente, vous transmettez le dossier à l’acheteur. Vous choisissez document par document ce qui suit l’objet.",
+    id: "reparateurs",
+    icon: Wrench,
+    title: "Pour les réparateurs",
+    items: [
+      "Accès par lien ou QR",
+      "Intervention détaillée",
+      "Photos et facture jointes",
+      "Validation par le client",
+    ],
   },
 ];
 
 const PRIVACY = [
   {
-    icon: EyeOff,
-    title: "Privé par défaut",
-    text: "Votre dossier n’est visible de personne tant que vous ne partagez rien.",
+    title: "Données privées",
+    text: "Votre suivi n’est visible de personne tant que vous ne partagez rien.",
   },
   {
-    icon: KeyRound,
-    title: "IMEI et numéro de série masqués",
-    text: "Ils ne sortent jamais d’une page publique. Au maximum les quatre derniers caractères, si vous l’autorisez.",
+    title: "Identifiants masqués",
+    text: "L’IMEI et le numéro de série complets ne sortent jamais d’un rapport partagé.",
   },
   {
-    icon: Link2Off,
-    title: "Liens révocables",
-    text: "Un partage dure 24 h, 7 ou 30 jours, ne contient que les sections choisies, et se coupe en un clic.",
+    title: "Partage contrôlé",
+    text: "Vous choisissez ce que contient le rapport, sa durée, et vous le coupez quand vous voulez.",
   },
   {
-    icon: ShieldCheck,
-    title: "Documents jamais publics",
-    text: "Factures et comptes rendus ne deviennent jamais publics automatiquement — même après un transfert.",
+    title: "Aucune surveillance",
+    text: "Un employeur ne voit ni appels, ni messages, ni position, ni applications : seulement l’état matériel.",
   },
 ];
 
 const FAQ = [
   {
-    question: "Nireo garantit-il que le téléphone n’est pas volé ?",
+    question: "Nireo vérifie-t-il qu’un téléphone n’est pas volé ?",
     answer:
-      "Non. Nireo ID n’est relié à aucun fichier officiel d’appareils déclarés volés et ne réalise aucun contrôle de ce type. Le produit affiche l’historique déclaré par les propriétaires successifs et les interventions enregistrées par des professionnels approuvés — rien de plus.",
+      "Non. Nireo ID n’est relié à aucun fichier officiel. Un téléphone peut être « déclaré volé » par son propriétaire ou son entreprise : c’est une déclaration, pas une vérification.",
   },
   {
-    question: "Qui peut voir mon IMEI et mes factures ?",
+    question: "Nireo lit-il l’IMEI automatiquement ?",
     answer:
-      "Vous seul, tant que vous ne partagez rien. L’aperçu public ne montre jamais l’IMEI complet ni un document. Un dossier partagé n’affiche que les sections et les documents que vous avez explicitement cochés, pour la durée choisie.",
+      "Non. Une application web n’a pas accès à cet identifiant. Vous pouvez le scanner depuis la boîte, l’importer depuis une image ou le saisir : dans tous les cas vous confirmez la valeur.",
   },
   {
-    question: "Que se passe-t-il lorsque je vends mon téléphone ?",
+    question: "Que voit mon employeur sur mon téléphone professionnel ?",
     answer:
-      "Vous ouvrez un transfert vers l’adresse e-mail de l’acheteur. Il doit être connecté avec cette adresse pour accepter. À l’acceptation, la propriété change, l’historique suit l’objet, vos liens de partage sont révoqués, et vous conservez un reçu de transfert.",
+      "L’état matériel que vous déclarez et le besoin de réparation. Rien d’autre : pas d’appels, pas de messages, pas de position, pas de temps d’écran.",
   },
   {
-    question: "Un ancien propriétaire peut-il modifier l’historique ?",
+    question: "Que se passe-t-il quand je revends le téléphone ?",
     answer:
-      "Non. Dès l’acceptation du transfert, il perd tout droit de modification sur le passeport. Les événements déjà inscrits restent, et une correction passe toujours par une révocation motivée, jamais par un effacement silencieux.",
+      "Vous ouvrez un transfert vers l’adresse de l’acheteur, qui doit l’accepter. L’historique suit l’appareil ; vos documents privés, eux, ne partent que si vous le décidez.",
   },
   {
-    question: "Comment une réparation devient-elle validée par un professionnel ?",
+    question: "Une réparation est-elle certifiée par Nireo ?",
     answer:
-      "Le professionnel dépose une candidature, examinée par l’équipe Nireo. Une fois son compte approuvé, il ne peut intervenir que sur les passeports pour lesquels vous lui avez donné accès. Son intervention porte alors son identité et le niveau « Validé par un professionnel ».",
+      "Non. Elle est « attestée par un réparateur » lorsque l’atelier a une identité professionnelle approuvée, sinon elle reste « déclarée par l’atelier ». Nireo ne certifie rien automatiquement.",
+  },
+  {
+    question: "Puis-je utiliser Nireo ID gratuitement ?",
+    answer:
+      "Oui. L’offre personnelle gratuite couvre jusqu’à trois téléphones, avec les bilans, les réparations, le partage et le transfert.",
   },
 ];
+
+/** Fiche d'exemple du hero — visuel sobre, aucune donnée réelle. */
+function ExampleCard() {
+  const timeline = [
+    { icon: FileText, label: "Achat", date: "12 mars 2026" },
+    { icon: RefreshCw, label: "Bilan mensuel", date: "2 août 2026" },
+    { icon: Wrench, label: "Réparation", date: "18 juin 2026" },
+    { icon: Send, label: "Transfert", date: "à la revente" },
+  ];
+
+  return (
+    <div className="nid-panel w-full rounded-2xl p-5" aria-hidden>
+      <div className="flex items-center gap-4">
+        <span className="grid h-16 w-11 shrink-0 place-items-center rounded-lg border border-border bg-secondary">
+          <Smartphone className="size-5 text-muted-foreground" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate font-medium text-foreground">iPhone 16 Pro</p>
+          <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-[var(--nid-success)]">
+            <Check className="size-4" />
+            Bon état
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-4 rounded-xl bg-accent px-3 py-2 text-sm text-accent-foreground">
+        Prochain bilan dans 6 jours
+      </p>
+
+      <ul className="mt-4 space-y-3 border-t border-border pt-4">
+        {timeline.map((item) => (
+          <li key={item.label} className="flex items-center gap-3 text-sm">
+            <item.icon className="size-4 shrink-0 text-muted-foreground" />
+            <span className="flex-1 text-foreground">{item.label}</span>
+            <span className="text-muted-foreground">{item.date}</span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-4 text-xs text-muted-foreground">Exemple d’affichage.</p>
+    </div>
+  );
+}
 
 export default function NireoIdLandingPage() {
   return (
     <div className="flex min-h-svh flex-col">
       <NidPublicHeader />
 
-      <main className="flex-1">
-        {/* ---------------------------------------------------------- */}
-        {/*  Hero                                                       */}
-        {/* ---------------------------------------------------------- */}
-        <section className="relative overflow-hidden border-b border-border">
-          <div
-            aria-hidden
-            className="nid-grid pointer-events-none absolute inset-0 opacity-60 [mask-image:radial-gradient(120%_80%_at_50%_0%,#000_20%,transparent_75%)]"
-          />
-          <div className="relative mx-auto grid w-full max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
-            <div className="nid-in">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-                <Smartphone className="size-3.5 text-primary" aria-hidden />
-                Première catégorie : les smartphones
-              </span>
-
-              <h1 className="mt-5 text-4xl font-semibold text-balance text-foreground sm:text-5xl">
-                L’historique suit l’objet.{" "}
-                <span className="text-[var(--nid-accent-strong)]">Pas le propriétaire.</span>
+      <main id="contenu" className="flex-1">
+        {/* ---------------- Hero ---------------- */}
+        <section className="border-b border-border bg-card">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
+            <div>
+              <h1 className="text-3xl font-semibold text-balance text-foreground sm:text-4xl">
+                {NID_TAGLINE}
               </h1>
-
-              <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-muted-foreground">
-                Créez le passeport numérique de votre smartphone, conservez ses
-                documents et transmettez son historique lorsque vous le vendez.
+              <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+                {NID_SUBLINE}
               </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button size="lg" data-touch render={<Link href={SIGNUP_HREF} />}>
-                  Créer gratuitement mon premier passeport
-                  <ArrowRight className="size-4" data-icon="inline-end" />
-                </Button>
-                <Button variant="outline" size="lg" data-touch render={<Link href="/id/exemple" />}>
-                  Voir un exemple
-                </Button>
-              </div>
-
-              <p className="mt-5 max-w-md text-xs leading-relaxed text-muted-foreground">
-                Nireo ID n’est ni une certification officielle, ni un contrôle
-                anti-vol. Le produit distingue toujours une déclaration
-                personnelle d’une validation professionnelle.
-              </p>
-            </div>
-
-            <PassportPreview className="nid-in lg:justify-self-end lg:max-w-md" />
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Problème                                                   */}
-        {/* ---------------------------------------------------------- */}
-        <section className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <h2 className="max-w-2xl text-3xl font-semibold text-balance text-foreground">
-              Quand le téléphone change de main, son histoire disparaît.
-            </h2>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
-              L’acheteur d’occasion achète un objet dont il ne sait presque
-              rien. Le vendeur, lui, ne sait pas comment transmettre ce qu’il a
-              conservé pendant des années.
-            </p>
-
-            <ul className="mt-10 grid gap-4 md:grid-cols-3">
-              {PROBLEMS.map((problem) => (
-                <li key={problem.title} className="nid-panel rounded-2xl p-5">
-                  <span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground">
-                    <problem.icon className="size-5" aria-hidden />
-                  </span>
-                  <h3 className="mt-4 text-base font-semibold text-foreground">{problem.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {problem.text}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Fonctionnement                                             */}
-        {/* ---------------------------------------------------------- */}
-        <section id="fonctionnement" className="scroll-mt-20 border-b border-border bg-card">
-          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <h2 className="text-3xl font-semibold text-foreground">Comment ça fonctionne</h2>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
-              Trois étapes, sans jargon et sans promesse que le produit ne tient pas.
-            </p>
-
-            <ol className="mt-10 grid gap-4 md:grid-cols-3">
-              {STEPS.map((step) => (
-                <li key={step.number} className="rounded-2xl border border-border bg-background p-5">
-                  <span className="font-mono text-xs font-medium tracking-widest text-primary">
-                    {step.number}
-                  </span>
-                  <h3 className="mt-3 text-base font-semibold text-foreground">{step.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Confiance                                                  */}
-        {/* ---------------------------------------------------------- */}
-        <section id="confiance" className="scroll-mt-20 border-b border-border">
-          <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
-            <div>
-              <h2 className="text-3xl font-semibold text-balance text-foreground">
-                Chaque information dit d’où elle vient.
-              </h2>
-              <p className="mt-3 text-muted-foreground">
-                Nireo ID ne mélange jamais ce que vous déclarez et ce qu’un
-                professionnel a constaté. Quatre niveaux, un vocabulaire fixe,
-                aucune ambiguïté.
-              </p>
-              <p className="mt-4 rounded-xl border border-border bg-muted/60 p-4 text-sm leading-relaxed text-muted-foreground">
-                Nous n’employons jamais la mention « vérifié par Nireo » :
-                aucun protocole de contrôle Nireo n’existe aujourd’hui, et nous
-                n’affichons pas une garantie que nous ne réalisons pas.
-              </p>
-            </div>
-            <div className="nid-panel rounded-2xl p-6">
-              <TrustLegend />
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Professionnels                                             */}
-        {/* ---------------------------------------------------------- */}
-        <section id="professionnels" className="scroll-mt-20 border-b border-border bg-card">
-          <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-20">
-            <div>
-              <h2 className="text-3xl font-semibold text-balance text-foreground">
-                Chaque intervention devient une preuve utile pour votre client.
-              </h2>
-              <p className="mt-4 leading-relaxed text-muted-foreground">
-                Réparateur, reconditionneur ou atelier de diagnostic : votre
-                travail disparaît aujourd’hui avec le ticket de caisse. Avec un
-                compte professionnel approuvé, votre intervention s’inscrit dans
-                le passeport de l’appareil, sous votre nom, et reste visible par
-                tous ses futurs propriétaires.
-              </p>
-              <ul className="mt-6 space-y-2.5 text-sm text-muted-foreground">
-                <li className="flex gap-2.5">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                  Accès uniquement sur autorisation du propriétaire — jamais de
-                  recherche libre dans la base.
-                </li>
-                <li className="flex gap-2.5">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                  Pièces remplacées, origine, garantie d’intervention et photos
-                  avant/après.
-                </li>
-                <li className="flex gap-2.5">
-                  <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                  Correction possible par révocation motivée : l’historique
-                  reste traçable.
-                </li>
-              </ul>
               <div className="mt-8">
-                <Button size="lg" data-touch render={<Link href="/id/pro/candidature" />}>
-                  Demander un compte professionnel
-                  <ArrowRight className="size-4" data-icon="inline-end" />
+                <Button size="lg" data-touch render={<Link href={SIGNUP_HREF} />}>
+                  Ajouter mon téléphone
                 </Button>
+              </div>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Gratuit jusqu’à 3 téléphones. Aucune carte bancaire.
+              </p>
+            </div>
+
+            <div className="md:justify-self-end md:pl-6">
+              <ExampleCard />
+            </div>
+          </div>
+        </section>
+
+        {/* ---------------- Comment ça marche ---------------- */}
+        <section id="fonctionnement" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold text-foreground">Comment ça marche</h2>
+          <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((step, index) => (
+              <li key={step.title} className="nid-panel rounded-2xl p-5">
+                <span className="inline-grid size-8 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+                  {index + 1}
+                </span>
+                <h3 className="mt-4 font-medium text-foreground">{step.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ---------------- Publics ---------------- */}
+        <section className="border-y border-border bg-card">
+          <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-16 sm:px-6 lg:grid-cols-3">
+            {AUDIENCES.map((audience) => (
+              <section
+                key={audience.id}
+                id={audience.id}
+                className="nid-panel scroll-mt-20 rounded-2xl p-6"
+              >
+                <span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+                  <audience.icon className="size-5" aria-hidden />
+                </span>
+                <h2 className="mt-4 text-lg font-semibold text-foreground">{audience.title}</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {audience.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-foreground">
+                      <Check
+                        className="mt-0.5 size-4 shrink-0 text-[var(--nid-success)]"
+                        aria-hidden
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </section>
+
+        {/* ---------------- Confidentialité ---------------- */}
+        <section id="confidentialite" className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold text-foreground">Confidentialité</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {PRIVACY.map((item) => (
+              <div key={item.title} className="nid-panel rounded-2xl p-5">
+                <h3 className="font-medium text-foreground">{item.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ---------------- Tarifs ---------------- */}
+        <section id="tarifs" className="border-y border-border bg-card">
+          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+            <h2 className="text-2xl font-semibold text-foreground">Tarifs</h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              La création d’un téléphone, la consultation de son historique et le transfert
+              restent gratuits. L’abonnement Nireo ID est indépendant de Nireo Immo.
+            </p>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {NID_PLAN_LIST.map((plan) => (
+                <div key={plan.id} className="nid-panel flex flex-col rounded-2xl p-6">
+                  <h3 className="font-medium text-foreground">{plan.label}</h3>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    {formatNidPrice(plan)}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{plan.summary}</p>
+                  <ul className="mt-4 flex-1 space-y-2">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5 text-sm text-foreground">
+                        <Check
+                          className="mt-0.5 size-4 shrink-0 text-[var(--nid-success)]"
+                          aria-hidden
+                        />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              <div className="nid-panel flex flex-col rounded-2xl p-6">
+                <h3 className="font-medium text-foreground">Flotte supérieure</h3>
+                <p className="mt-2 text-2xl font-semibold text-foreground">Sur devis</p>
+                <p className="mt-2 flex-1 text-sm text-muted-foreground">
+                  Au-delà de 150 téléphones, écrivez-nous : nous étudions votre organisation avant
+                  de proposer un tarif.
+                </p>
+                <div className="mt-4">
+                  <Button variant="outline" render={<Link href="/contact" />}>
+                    Nous écrire
+                  </Button>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-background p-6">
-              <h3 className="text-sm font-semibold text-foreground">
-                Comment se déroule la validation
-              </h3>
-              <ol className="mt-4 space-y-4">
-                {[
-                  "Vous déposez votre candidature : nom commercial, SIRET, responsable, activité.",
-                  "L’équipe Nireo l’examine et rend une décision motivée.",
-                  "Une fois approuvé, vous accédez aux passeports pour lesquels un client vous autorise.",
-                  "Vos interventions portent votre identité et le niveau « Validé par un professionnel ».",
-                ].map((line, index) => (
-                  <li key={line} className="flex gap-3">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-accent text-[11px] font-semibold text-accent-foreground">
-                      {index + 1}
-                    </span>
-                    <span className="text-sm leading-relaxed text-muted-foreground">{line}</span>
-                  </li>
-                ))}
-              </ol>
-              <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-                Tant que votre compte n’est pas approuvé, aucune intervention ne
-                peut être enregistrée comme validée : la règle est appliquée par
-                le serveur, pas seulement par l’interface.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Confidentialité                                            */}
-        {/* ---------------------------------------------------------- */}
-        <section className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <h2 className="text-3xl font-semibold text-foreground">Vos données restent les vôtres</h2>
-            <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {PRIVACY.map((item) => (
-                <li key={item.title} className="nid-panel rounded-2xl p-5">
-                  <item.icon className="size-5 text-primary" aria-hidden />
-                  <h3 className="mt-3 text-sm font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  FAQ                                                        */}
-        {/* ---------------------------------------------------------- */}
-        <section id="faq" className="scroll-mt-20 border-b border-border bg-card">
-          <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
-            <h2 className="text-3xl font-semibold text-foreground">Questions fréquentes</h2>
-            <div className="mt-8 divide-y divide-border rounded-2xl border border-border bg-background">
-              {FAQ.map((item) => (
-                <details key={item.question} className="group px-5 py-4">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-1 text-[15px] font-medium text-foreground marker:content-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
-                    {item.question}
-                    <span
-                      aria-hidden
-                      className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform group-open:rotate-45"
-                    >
-                      +
-                    </span>
-                  </summary>
-                  <p className="pt-2 pb-1 text-sm leading-relaxed text-muted-foreground">
-                    {item.answer}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ---------------------------------------------------------- */}
-        {/*  Appel final                                                */}
-        {/* ---------------------------------------------------------- */}
-        <section>
-          <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6 lg:py-20">
-            <h2 className="text-3xl font-semibold text-balance text-foreground">
-              Commencez par un seul smartphone.
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              La création d’un passeport prend quelques minutes. Vous pourrez
-              tout compléter plus tard : documents, état, réparations.
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <div className="mt-8">
               <Button size="lg" data-touch render={<Link href={SIGNUP_HREF} />}>
-                Créer gratuitement mon premier passeport
-              </Button>
-              <Button variant="ghost" size="lg" data-touch render={<Link href="/" />}>
-                Découvrir Nireo Immo
+                Ajouter mon téléphone
               </Button>
             </div>
           </div>
+        </section>
+
+        {/* ---------------- FAQ ---------------- */}
+        <section id="faq" className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold text-foreground">Questions fréquentes</h2>
+          <dl className="mt-8 space-y-4">
+            {FAQ.map((item) => (
+              <div key={item.question} className="nid-panel rounded-2xl p-5">
+                <dt className="font-medium text-foreground">{item.question}</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.answer}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </main>
 

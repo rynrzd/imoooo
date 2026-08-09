@@ -10,7 +10,7 @@ import { requireNidSession } from "@/features/nireo-id/server/guards";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Transférer un passeport",
+  title: "Transférer un téléphone",
   robots: { index: false, follow: false },
 };
 
@@ -35,7 +35,7 @@ export default async function TransferPage({ params }: { params: Promise<{ id: s
       </p>
 
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Transférer ce passeport</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Transférer ce téléphone</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           L’acheteur reçoit l’historique de l’appareil. Vous conservez un reçu
           de transfert, sans accès à ses futures données.
@@ -60,7 +60,7 @@ export default async function TransferPage({ params }: { params: Promise<{ id: s
         </div>
       ) : detail.asset.status === "archived" ? (
         <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-          Ce passeport est archivé. Réactivez-le depuis la page « Modifier »
+          Ce téléphone est archivé. Réactivez-le depuis la page « Modifier »
           avant de le transférer.
         </p>
       ) : (

@@ -1,5 +1,5 @@
 /**
- * Nireo ID — niveau de COMPLÉTUDE d'un passeport.
+ * Nireo ID — niveau de COMPLÉTUDE d'un téléphone.
  *
  * Ce n'est PAS un score de fiabilité : il mesure uniquement ce qui a été
  * renseigné dans le dossier. Les règles sont fixes, publiques et affichées

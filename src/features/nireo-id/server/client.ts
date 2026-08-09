@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Deux clients, deux usages :
  *  • `nidUserClient()` : session de l'utilisateur. La RLS fait le travail
- *    (un utilisateur ne lit que SES passeports). C'est le client par
+ *    (un utilisateur ne lit que SES Téléphones). C'est le client par
  *    défaut pour toutes les lectures du propriétaire.
  *  • `nidService()` : clé secrète. Réservé aux chemins où l'appelant n'est
  *    pas (ou pas encore) le propriétaire : aperçu public, lien de partage,
@@ -66,21 +66,37 @@ export function dbErrorMessage(
   const message = error?.message ?? "";
   if (message.includes("SERIAL_ALREADY_REGISTERED")) {
     return (
-      "Un passeport actif existe déjà avec ce numéro de série. " +
+      "Un téléphone actif existe déjà avec ce numéro de série. " +
       "Si cet appareil est le vôtre, demandez son transfert à son détenteur actuel."
     );
   }
   if (message.includes("IMEI_ALREADY_REGISTERED")) {
     return (
-      "Un passeport actif existe déjà avec cet IMEI. " +
+      "Un téléphone actif existe déjà avec cet IMEI. " +
       "Si cet appareil est le vôtre, demandez son transfert à son détenteur actuel."
     );
   }
+  if (message.includes("QUOTA_REACHED")) {
+    const max = message.match(/QUOTA_REACHED:(\d+)/)?.[1];
+    return max
+      ? `Votre offre Nireo ID est limitée à ${max} téléphones actifs. ` +
+          "Changez d'offre ou archivez un téléphone pour en ajouter un autre."
+      : "Le nombre de téléphones autorisé par votre offre Nireo ID est atteint.";
+  }
+  if (message.includes("WORKSPACE_FORBIDDEN")) {
+    return "Votre rôle dans cet espace ne permet pas d'ajouter un téléphone.";
+  }
+  if (message.includes("nid_assignments_one_active")) {
+    return "Ce téléphone est déjà affecté à une personne dans cet espace.";
+  }
+  if (message.includes("nid_check_requests_dedupe")) {
+    return "Un bilan est déjà en cours pour ce téléphone à cette échéance.";
+  }
   if (message.includes("nid_transfers_one_active")) {
-    return "Un transfert est déjà en cours pour ce passeport.";
+    return "Un transfert est déjà en cours pour ce téléphone.";
   }
   if (message.includes("nid_pro_access_one_live")) {
-    return "Une demande d'accès est déjà en cours pour ce passeport.";
+    return "Une demande d'accès est déjà en cours pour ce téléphone.";
   }
   return fallback;
 }

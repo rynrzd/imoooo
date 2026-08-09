@@ -56,7 +56,7 @@ export default async function SharesPage() {
         <h1 className="text-2xl font-semibold text-foreground">Liens de partage</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Tous les dossiers que vous avez ouverts, sur l’ensemble de vos
-          passeports. Un lien peut être coupé à tout moment.
+          téléphones. Un lien peut être coupé à tout moment.
         </p>
       </header>
 
@@ -68,7 +68,7 @@ export default async function SharesPage() {
 
         {active.length === 0 ? (
           <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-            Aucun lien actif. Vos passeports ne sont consultables par personne
+            Aucun lien actif. Vos téléphones ne sont consultables par personne
             en dehors de leur aperçu public minimal.
           </p>
         ) : (
@@ -86,7 +86,7 @@ export default async function SharesPage() {
                           {share.asset.brand} {share.asset.model}
                         </Link>
                       ) : (
-                        "Passeport"
+                        "Téléphone"
                       )}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -134,7 +134,7 @@ export default async function SharesPage() {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground"
               >
                 <span>
-                  {share.asset ? `${share.asset.brand} ${share.asset.model}` : "Passeport"} —{" "}
+                  {share.asset ? `${share.asset.brand} ${share.asset.model}` : "Téléphone"} —{" "}
                   {share.label || "sans nom"}
                 </span>
                 <span>

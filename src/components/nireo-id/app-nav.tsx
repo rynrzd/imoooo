@@ -3,26 +3,29 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Building2,
-  ScanLine,
+  Activity,
+  CreditCard,
+  Home,
   Settings,
   Share2,
   ShieldCheck,
   Smartphone,
+  User,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Navigation de l'espace Nireo ID.
- * Mobile : barre inférieure, quatre entrées maximum, cibles ≥ 44 px.
- * Ordinateur : barre latérale compacte, cohérente avec l'écosystème Nireo.
+ * Navigation de l'espace personnel Nireo ID.
+ * Ordinateur : Accueil · Mes téléphones · Partages · Paramètres.
+ * Mobile : Accueil · Téléphones · Activité · Profil (cibles ≥ 44 px).
  */
 
 export interface NavCounts {
   transfers: number;
   shares: number;
+  checks: number;
 }
 
 interface NavItem {
@@ -38,25 +41,39 @@ function isActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function primaryItems(counts: NavCounts): NavItem[] {
+function desktopItems(counts: NavCounts): NavItem[] {
   return [
-    { href: "/id/app", label: "Mes objets", icon: Smartphone, exact: true },
-    { href: "/id/app/scanner", label: "Scanner", icon: ScanLine },
+    { href: "/id/app", label: "Accueil", icon: Home, exact: true },
+    { href: "/id/app/telephones", label: "Mes téléphones", icon: Smartphone },
+    { href: "/id/app/partages", label: "Partages", icon: Share2, badge: counts.shares },
+    { href: "/id/app/parametres", label: "Paramètres", icon: Settings },
+  ];
+}
+
+function mobileItems(counts: NavCounts): NavItem[] {
+  return [
+    { href: "/id/app", label: "Accueil", icon: Home, exact: true },
+    { href: "/id/app/telephones", label: "Téléphones", icon: Smartphone },
     {
-      href: "/id/app/transferts",
-      label: "Transferts",
-      icon: Share2,
-      badge: counts.transfers,
+      href: "/id/app/activite",
+      label: "Activité",
+      icon: Activity,
+      badge: counts.transfers + counts.checks,
     },
-    { href: "/id/app/parametres", label: "Profil", icon: Settings },
+    { href: "/id/app/parametres", label: "Profil", icon: User },
   ];
 }
 
 function secondaryItems(counts: NavCounts): NavItem[] {
   return [
-    { href: "/id/app/partages", label: "Liens de partage", icon: ShieldCheck, badge: counts.shares },
-    { href: "/id/pro", label: "Espace professionnel", icon: Wrench },
-    { href: "/", label: "Nireo Immo", icon: Building2, exact: true },
+    {
+      href: "/id/app/activite",
+      label: "Activité et transferts",
+      icon: Activity,
+      badge: counts.transfers + counts.checks,
+    },
+    { href: "/id/app/abonnement", label: "Abonnement", icon: CreditCard },
+    { href: "/id/pro", label: "Espace atelier", icon: Wrench },
   ];
 }
 
@@ -64,7 +81,7 @@ export function NidSidebar({ counts, isAdmin }: { counts: NavCounts; isAdmin: bo
   const pathname = usePathname();
   return (
     <nav aria-label="Navigation Nireo ID" className="flex flex-col gap-1">
-      {primaryItems(counts).map((item) => (
+      {desktopItems(counts).map((item) => (
         <NavLink key={item.href} item={item} active={isActive(pathname, item)} />
       ))}
 
@@ -116,7 +133,7 @@ export function NidBottomNav({ counts }: { counts: NavCounts }) {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="mx-auto flex max-w-lg">
-        {primaryItems(counts).map((item) => {
+        {mobileItems(counts).map((item) => {
           const active = isActive(pathname, item);
           const Icon = item.icon;
           return (
@@ -126,7 +143,7 @@ export function NidBottomNav({ counts }: { counts: NavCounts }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex min-h-[3.5rem] flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] transition-colors",
-                  active ? "text-primary" : "text-muted-foreground"
+                  active ? "font-medium text-primary" : "text-muted-foreground"
                 )}
               >
                 <span className="relative">

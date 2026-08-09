@@ -1,5 +1,5 @@
 /**
- * Passeport de DÉMONSTRATION — contenu d'illustration, jamais des données
+ * Téléphone de DÉMONSTRATION — contenu d'illustration, jamais des données
  * réelles et jamais présenté comme telles.
  *
  * Il sert à deux endroits, toujours accompagné d'une mention « Exemple » :

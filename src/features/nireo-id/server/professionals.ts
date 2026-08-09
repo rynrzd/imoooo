@@ -23,7 +23,7 @@ import { nidSignedUrlMap, removeNidFiles, uploadNidFile } from "./storage";
  *
  * Deux garde-fous permanents :
  *  • un professionnel ne peut JAMAIS parcourir la base — il n'accède à un
- *    passeport que via une autorisation explicite du propriétaire ;
+ *    Téléphone que via une autorisation explicite du propriétaire ;
  *  • un compte non approuvé (brouillon, en attente, refusé, suspendu) ne
  *    peut créer aucun événement « validé par un professionnel » : la
  *    vérification est faite en base, dans `nid_pro_add_event`.
@@ -95,14 +95,14 @@ export async function submitApplication(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Accès aux passeports                                               */
+/*  Accès aux téléphones                                               */
 /* ------------------------------------------------------------------ */
 
 export interface ProAccessItem extends ProfessionalAccessRow {
   asset: Pick<AssetRow, "id" | "public_id" | "brand" | "model" | "color">;
 }
 
-/** Passeports auxquels le professionnel a accès (ou en attente d'accord). */
+/** Téléphones auxquels le professionnel a accès (ou en attente d'accord). */
 export async function listProfessionalAccess(
   professionalId: string
 ): Promise<ProAccessItem[]> {
@@ -188,7 +188,7 @@ export async function decideAccess(
 ): Promise<void> {
   const supabase = await nidUserClient();
 
-  // La RLS ne laisse voir que les accès de SES passeports : si la ligne
+  // La RLS ne laisse voir que les accès de SES Téléphones : si la ligne
   // n'est pas visible ici, l'utilisateur n'a rien à décider.
   const { data: access } = await supabase
     .from("nid_professional_access")
@@ -205,7 +205,7 @@ export async function decideAccess(
     .select("id")
     .eq("id", row.asset_id)
     .maybeSingle();
-  if (!asset) throw new Error("Vous n'êtes pas le propriétaire de ce passeport.");
+  if (!asset) throw new Error("Vous n'êtes pas le propriétaire de ce téléphone.");
 
   const update =
     decision === "revoque"
@@ -228,7 +228,7 @@ export async function decideAccess(
   });
 }
 
-/** Le propriétaire invite un professionnel approuvé sur son passeport. */
+/** Le propriétaire invite un professionnel approuvé sur son téléphone. */
 export async function inviteProfessional(
   userId: string,
   assetId: string,
@@ -240,7 +240,7 @@ export async function inviteProfessional(
     .select("id, brand, model")
     .eq("id", assetId)
     .maybeSingle();
-  if (!asset) throw new Error("Ce passeport est introuvable ou ne vous appartient pas.");
+  if (!asset) throw new Error("Ce téléphone est introuvable ou ne vous appartient pas.");
 
   const service = nidService();
   const { data: professional } = await service
@@ -309,7 +309,7 @@ export async function inviteProfessional(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Vue professionnelle d'un passeport                                 */
+/*  Vue professionnelle d'un téléphone                                 */
 /* ------------------------------------------------------------------ */
 
 export interface ProAssetView {
@@ -332,7 +332,7 @@ export interface ProAssetView {
 }
 
 /**
- * Lecture d'un passeport par un professionnel autorisé.
+ * Lecture d'un téléphone par un professionnel autorisé.
  * Ne renvoie JAMAIS le numéro de série ni l'IMEI complets, ni les
  * documents privés du propriétaire.
  */
@@ -462,7 +462,7 @@ export async function addProfessionalEvent(
     }
     if (result.state === "acces_refuse") {
       throw new Error(
-        "Vous n'avez pas (ou plus) l'autorisation du propriétaire sur ce passeport."
+        "Vous n'avez pas (ou plus) l'autorisation du propriétaire sur ce téléphone."
       );
     }
     return { event_id: result.event_id as string };

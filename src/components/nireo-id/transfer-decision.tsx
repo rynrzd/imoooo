@@ -33,7 +33,7 @@ export function TransferDecision({ token }: { token: string }) {
       router.refresh();
       return;
     }
-    toast.success("Passeport transféré : il figure désormais dans vos objets.");
+    toast.success("Téléphone transféré : il figure désormais dans vos objets.");
     router.push(`/id/app/objets/${result.data.asset_id}`);
     router.refresh();
   };

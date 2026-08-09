@@ -10,10 +10,10 @@ import { Label } from "@/components/ui/label";
 import { requestAccessAction } from "@/features/nireo-id/actions/professional";
 
 /**
- * Demande d'accès à un passeport par identifiant.
+ * Demande d'accès à un téléphone par identifiant.
  *
  * Saisir un identifiant n'ouvre RIEN : une demande est créée et le
- * propriétaire doit l'accorder depuis l'onglet « Accès » de son passeport.
+ * propriétaire doit l'accorder depuis l'onglet « Accès » de son téléphone.
  */
 export function ProAccessRequest() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export function ProAccessRequest() {
   return (
     <form onSubmit={submit} className="nid-panel space-y-4 rounded-2xl p-5">
       <div>
-        <h2 className="text-sm font-semibold text-foreground">Demander l’accès à un passeport</h2>
+        <h2 className="text-sm font-semibold text-foreground">Demander l’accès à un téléphone</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Le client vous communique son identifiant Nireo (ou son QR code).
           Vous n’obtenez l’accès qu’après son accord explicite.

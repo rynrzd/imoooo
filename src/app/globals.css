@@ -572,109 +572,65 @@
 /* ================================================================== */
 /*  NIREO ID — second produit de la marque (scope « .nid »)            */
 /*                                                                    */
-/*  Univers propre : clair par défaut, sombre suivant le thème choisi, */
-/*  accent turquoise réservé aux actions principales et aux éléments   */
-/*  de confiance. Entièrement scopé : Nireo Immo n'est jamais affecté. */
+/*  Design volontairement simple, clair et humain : fond blanc, bleu   */
+/*  principal, bordures fines, ombres discrètes. Aucune texture,       */
+/*  aucun néon, aucun dégradé décoratif, aucun rendu « futuriste ».    */
+/*  Entièrement scopé : Nireo Immo n'est jamais affecté.               */
 /* ================================================================== */
 
 .nid {
-  --background: #f6f8fb;
-  --foreground: #0b1220;
+  --background: #f6f7f9;
+  --foreground: #172033;
   --card: #ffffff;
-  --card-foreground: #0b1220;
+  --card-foreground: #172033;
   --popover: #ffffff;
-  --popover-foreground: #0b1220;
+  --popover-foreground: #172033;
 
-  /* Turquoise Nireo ID — texte foncé dessus pour respecter WCAG AA. */
-  --primary: #0faf9b;
-  --primary-foreground: #04211d;
+  /* Bleu principal — texte blanc dessus (contraste AA vérifié). */
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
 
-  --secondary: #eef2f7;
-  --secondary-foreground: #0b1220;
-  --muted: #eef2f7;
-  --muted-foreground: #667085;
-  --accent: #e6f7f4;
-  --accent-foreground: #087f73;
+  --secondary: #eef1f5;
+  --secondary-foreground: #172033;
+  --muted: #eef1f5;
+  --muted-foreground: #5a6472;
+  --accent: #eaf1ff;
+  --accent-foreground: #1d4ed8;
   --destructive: #b42318;
-  --border: #e3e8ef;
-  --input: #e3e8ef;
-  --ring: #0faf9b;
+  --border: #e3e7ec;
+  --input: #e3e7ec;
+  --ring: #2563eb;
 
-  --radius: 1rem;
+  --radius: 0.875rem; /* 14 px — dans la fourchette 12 à 16 px */
 
-  /* Signature du produit (états de confiance, halos discrets). */
-  --nid-accent-strong: #087f73;
-  --nid-success: #15803d;
+  /* États : vert de confirmation, orange et rouge d'avertissement. */
+  --nid-success: #2f8f5b;
   --nid-warning: #b45309;
   --nid-danger: #b42318;
-  --nid-info: #0369a1;
-  --nid-shadow: 0 1px 2px rgb(11 18 32 / 0.04), 0 12px 32px -20px rgb(11 18 32 / 0.28);
+  --nid-info: #2563eb;
+  --nid-shadow: 0 1px 2px rgb(23 32 51 / 0.05);
 
   background-color: var(--background);
   color: var(--foreground);
+  /*
+   * Interface volontairement claire, y compris lorsque le reste de Nireo
+   * est en thème sombre : la lisibilité immédiate prime sur l'effet.
+   */
   color-scheme: light;
 }
 
-.dark .nid,
-.nid.dark {
-  --background: #081018;
-  --foreground: #f4f7fa;
-  --card: #101923;
-  --card-foreground: #f4f7fa;
-  --popover: #101923;
-  --popover-foreground: #f4f7fa;
-
-  --primary: #2dd4bf;
-  --primary-foreground: #04211d;
-
-  --secondary: #16212d;
-  --secondary-foreground: #f4f7fa;
-  --muted: #16212d;
-  --muted-foreground: #9aa7b5;
-  --accent: #12262a;
-  --accent-foreground: #5eead4;
-  --destructive: #fb7185;
-  --border: #263341;
-  --input: #263341;
-  --ring: #2dd4bf;
-
-  --nid-accent-strong: #5eead4;
-  --nid-success: #4ade80;
-  --nid-warning: #fbbf24;
-  --nid-danger: #fb7185;
-  --nid-info: #7dd3fc;
-  --nid-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -24px rgb(0 0 0 / 0.8);
-
-  color-scheme: dark;
-}
-
-/* Surface principale : bordure nette, ombre très légère. */
+/* Surface principale : bordure fine, ombre très légère. */
 @utility nid-panel {
   background: var(--card);
   border: 1px solid var(--border);
   box-shadow: var(--nid-shadow);
 }
 
-/* Liseré supérieur turquoise discret (cartes clés, en-têtes). */
-@utility nid-topline {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    top: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    opacity: 0.55;
-  }
-}
-
-/* Trame technique très fine — évoque l'objet, jamais le « crypto ». */
-@utility nid-grid {
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px);
-  background-size: 28px 28px;
+/* Bloc d'information secondaire (bleu très clair). */
+@utility nid-note {
+  background: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--foreground);
 }
 
 /* Cibles tactiles confortables : 44 px minimum sur mobile. */
@@ -692,31 +648,44 @@
   }
 }
 
-/* Champs de formulaire plus généreux que dans l'app de gestion. */
+/* Champs de formulaire généreux, utilisables dès 320 px de large. */
 .nid input:not([type="checkbox"]):not([type="radio"]),
 .nid select,
 .nid textarea {
-  min-height: 2.6rem;
+  min-height: 2.75rem;
   border-radius: 0.75rem;
   padding-inline: 0.75rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  background: var(--card);
 }
 
 .nid textarea {
   padding-block: 0.6rem;
 }
 
-/* Titres du produit : compacts, jamais démesurés. */
-.nid h1,
-.nid h2 {
-  letter-spacing: -0.028em;
-  line-height: 1.1;
+/* Focus toujours visible (navigation clavier). */
+.nid :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
-@keyframes nid-fade-up {
+/* Titres compacts, jamais démesurés. */
+.nid h1,
+.nid h2 {
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Le tableau du parc défile horizontalement sans casser la page. */
+@utility nid-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes nid-fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -726,7 +695,6 @@
 
 @utility nid-in {
   @media (prefers-reduced-motion: no-preference) {
-    animation: nid-fade-up 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: nid-fade-in 0.18s ease-out both;
   }
 }
-

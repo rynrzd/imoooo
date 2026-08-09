@@ -1,6 +1,6 @@
 import { logger } from "@/lib/logger";
 import { computeCompleteness, type Completeness } from "../completeness";
-import { MAX_CONDITION_PHOTOS } from "../constants";
+import { MAX_CONDITION_PHOTOS, type HealthState } from "../constants";
 import { fingerprint, last4, normalizeIdentifier } from "../identifiers";
 import type { CreateAssetInput } from "../schemas";
 import type {
@@ -17,10 +17,10 @@ import { dbErrorMessage, isNireoIdConfigured, nidService, nidUserClient } from "
 import { nidSignedUrl, nidSignedUrlMap, removeNidFiles, uploadNidFile } from "./storage";
 
 /**
- * Passeports — lecture et écriture.
+ * Téléphones — lecture et écriture.
  *
  * Les lectures du propriétaire passent par SA session : c'est la RLS qui
- * garantit l'isolation (un utilisateur ne peut pas lire le passeport d'un
+ * garantit l'isolation (un utilisateur ne peut pas lire le téléphone d'un
  * autre, même en changeant l'UUID dans l'URL). La clé secrète n'est
  * utilisée que pour la création atomique et les URL signées.
  */
@@ -36,7 +36,7 @@ export async function listAssets(): Promise<AssetListItem[]> {
   const { data: assets, error } = await supabase
     .from("nid_assets")
     .select(
-      "id, public_id, brand, model, color, status, primary_image_path, created_at"
+      "id, public_id, brand, model, color, status, primary_image_path, created_at, health_state"
     )
     .order("created_at", { ascending: false });
 
@@ -44,13 +44,23 @@ export async function listAssets(): Promise<AssetListItem[]> {
     logger.error("nireo-id/assets list", error);
     return [];
   }
-  const rows = (assets ?? []) as Pick<
+  const rows = (assets ?? []) as (Pick<
     AssetRow,
     "id" | "public_id" | "brand" | "model" | "color" | "status" | "primary_image_path" | "created_at"
-  >[];
+  > & { health_state: HealthState })[];
   if (rows.length === 0) return [];
 
   const ids = rows.map((row) => row.id);
+
+  const { data: schedules } = await supabase
+    .from("nid_check_schedules")
+    .select("asset_id, next_due_on")
+    .in("asset_id", ids);
+  const nextByAsset = new Map<string, string>();
+  for (const item of (schedules ?? []) as { asset_id: string; next_due_on: string }[]) {
+    nextByAsset.set(item.asset_id, item.next_due_on);
+  }
+  const today = new Date().toISOString().slice(0, 10);
 
   const [{ data: events }, { data: shares }] = await Promise.all([
     supabase
@@ -94,18 +104,24 @@ export async function listAssets(): Promise<AssetListItem[]> {
     rows.map((row) => row.primary_image_path).filter((path): path is string => Boolean(path))
   );
 
-  return rows.map((row) => ({
-    id: row.id,
-    public_id: row.public_id,
-    brand: row.brand,
-    model: row.model,
-    color: row.color,
-    status: row.status,
-    photo_url: row.primary_image_path ? (urls.get(row.primary_image_path) ?? null) : null,
-    last_event: lastEvent.get(row.id) ?? null,
-    active_shares: shareCount.get(row.id) ?? 0,
-    events_count: eventCount.get(row.id) ?? 0,
-  }));
+  return rows.map((row) => {
+    const next = nextByAsset.get(row.id) ?? null;
+    return {
+      id: row.id,
+      public_id: row.public_id,
+      brand: row.brand,
+      model: row.model,
+      color: row.color,
+      status: row.status,
+      photo_url: row.primary_image_path ? (urls.get(row.primary_image_path) ?? null) : null,
+      last_event: lastEvent.get(row.id) ?? null,
+      active_shares: shareCount.get(row.id) ?? 0,
+      events_count: eventCount.get(row.id) ?? 0,
+      health_state: row.health_state ?? "bon_etat",
+      next_check_on: next,
+      check_overdue: Boolean(next && next < today),
+    };
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,7 +154,7 @@ export interface AssetDetail {
   completeness: Completeness;
 }
 
-/** Détail complet d'un passeport. `null` = inexistant OU pas à vous. */
+/** Détail complet d'un téléphone. `null` = inexistant OU pas à vous. */
 export async function getAssetDetail(assetId: string): Promise<AssetDetail | null> {
   if (!isNireoIdConfigured) return null;
   const supabase = await nidUserClient();
@@ -287,20 +303,31 @@ export interface CreateAssetFiles {
 export interface CreatedAsset {
   id: string;
   public_id: string;
+  next_check_on?: string;
+}
+
+/** Champs V2 (espace, garantie, référence interne, étiquette officielle). */
+export interface CreateAssetExtras {
+  workspaceId: string | null;
+  warrantyEnd: string | null;
+  internalReference: string;
+  eprelUrl: string | null;
+  checkFrequencyMonths: number;
 }
 
 /**
- * Crée un passeport de bout en bout.
+ * Crée un téléphone de bout en bout.
  *
  * Ordre volontaire : les fichiers sont envoyés AVANT l'écriture en base,
- * sous l'identifiant définitif du passeport. Si la création en base
+ * sous l'identifiant définitif du téléphone. Si la création en base
  * échoue, les fichiers déjà envoyés sont supprimés — aucune ligne
  * orpheline, aucun fichier abandonné dans le cas nominal.
  */
 export async function createAsset(
   userId: string,
   input: CreateAssetInput,
-  files: CreateAssetFiles
+  files: CreateAssetFiles,
+  extras: CreateAssetExtras
 ): Promise<CreatedAsset> {
   const assetId = crypto.randomUUID();
   const supabase = await nidUserClient();
@@ -376,20 +403,31 @@ export async function createAsset(
       primary_image_path: primaryPath,
       media: mediaPayload,
       documents: documentPayload,
+      // Champs V2 appliqués par `nid_create_asset_v2` après la création.
+      internal_reference: extras.internalReference,
+      warranty_end: extras.warrantyEnd ?? "",
+      eprel_url: extras.eprelUrl ?? "",
+      fleet_status: extras.workspaceId ? "en_stock" : "affecte",
+      check_frequency_months: String(extras.checkFrequencyMonths),
     };
 
-    const { data, error } = await nidService().rpc("nid_create_asset", {
+    const { data, error } = await nidService().rpc("nid_create_asset_v2", {
       p_owner_id: userId,
       p_asset_id: assetId,
+      p_workspace_id: extras.workspaceId,
       p_payload: payload,
     });
 
     if (error) {
-      throw new Error(dbErrorMessage(error, "La création du passeport a échoué."));
+      throw new Error(dbErrorMessage(error, "La création du téléphone a échoué."));
     }
 
-    const created = data as { id: string; public_id: string };
-    return { id: created.id, public_id: created.public_id };
+    const created = data as { id: string; public_id: string; next_check_on?: string };
+    return {
+      id: created.id,
+      public_id: created.public_id,
+      next_check_on: created.next_check_on,
+    };
   } catch (error) {
     // Rien n'a été créé en base : on retire les fichiers déjà envoyés.
     await removeNidFiles(uploaded);
@@ -401,7 +439,7 @@ export async function createAsset(
 /*  Modification                                                       */
 /* ------------------------------------------------------------------ */
 
-/** Caractéristiques du passeport (colonnes autorisées uniquement). */
+/** Caractéristiques du téléphone (colonnes autorisées uniquement). */
 export async function updateAsset(
   assetId: string,
   values: {
@@ -422,7 +460,7 @@ export async function updateAsset(
     .select("id");
   if (error) throw new Error(dbErrorMessage(error, "La mise à jour a échoué."));
   if (((data ?? []) as unknown[]).length === 0) {
-    throw new Error("Ce passeport ne vous appartient pas.");
+    throw new Error("Ce téléphone ne vous appartient pas.");
   }
 }
 
@@ -443,7 +481,7 @@ export async function updatePublicVisibility(
     .select("id");
   if (error) throw new Error(dbErrorMessage(error, "La mise à jour a échoué."));
   if (((data ?? []) as unknown[]).length === 0) {
-    throw new Error("Ce passeport ne vous appartient pas.");
+    throw new Error("Ce téléphone ne vous appartient pas.");
   }
 }
 
@@ -465,10 +503,10 @@ export async function setAssetArchived(
     .maybeSingle();
   const row = asset as { status: string; current_owner_id: string | null } | null;
   if (!row || row.current_owner_id !== userId) {
-    throw new Error("Ce passeport ne vous appartient pas.");
+    throw new Error("Ce téléphone ne vous appartient pas.");
   }
   if (row.status === "transfer_pending") {
-    throw new Error("Annulez le transfert en cours avant d'archiver ce passeport.");
+    throw new Error("Annulez le transfert en cours avant d'archiver ce téléphone.");
   }
 
   const { error } = await service
@@ -479,7 +517,7 @@ export async function setAssetArchived(
   if (error) throw new Error(dbErrorMessage(error, "L'opération a échoué."));
 
   if (archived) {
-    // Un passeport archivé ne doit plus être consultable par un lien actif.
+    // Un téléphone archivé ne doit plus être consultable par un lien actif.
     await service
       .from("nid_share_links")
       .update({ revoked_at: new Date().toISOString(), revoked_by: userId })
@@ -489,7 +527,7 @@ export async function setAssetArchived(
 }
 
 /**
- * Suppression définitive — refusée si le passeport a déjà changé de mains :
+ * Suppression définitive — refusée si le téléphone a déjà changé de mains :
  * on n'efface jamais un historique transmis à un autre propriétaire.
  */
 export async function deleteAsset(userId: string, assetId: string): Promise<void> {
@@ -501,10 +539,10 @@ export async function deleteAsset(userId: string, assetId: string): Promise<void
     .maybeSingle();
   const row = asset as { current_owner_id: string | null; status: string } | null;
   if (!row || row.current_owner_id !== userId) {
-    throw new Error("Ce passeport ne vous appartient pas.");
+    throw new Error("Ce téléphone ne vous appartient pas.");
   }
   if (row.status === "transfer_pending") {
-    throw new Error("Annulez le transfert en cours avant de supprimer ce passeport.");
+    throw new Error("Annulez le transfert en cours avant de supprimer ce téléphone.");
   }
 
   const { count } = await service
@@ -513,7 +551,7 @@ export async function deleteAsset(userId: string, assetId: string): Promise<void
     .eq("asset_id", assetId);
   if ((count ?? 0) > 1) {
     throw new Error(
-      "Ce passeport a déjà changé de propriétaire : son historique ne peut pas être effacé. " +
+      "Ce téléphone a déjà changé de propriétaire : son historique ne peut pas être effacé. " +
         "Vous pouvez l'archiver."
     );
   }

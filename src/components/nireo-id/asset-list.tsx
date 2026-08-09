@@ -9,10 +9,10 @@ import { ASSET_STATUS_LABELS } from "@/features/nireo-id/constants";
 import { formatEventDate } from "@/features/nireo-id/format";
 import type { AssetListItem } from "@/features/nireo-id/types";
 import { cn } from "@/lib/utils";
-import { TrustBadge } from "./trust-badge";
+import { HealthBadge } from "./state-badge";
 
 /**
- * Liste des passeports du propriétaire avec recherche locale (marque,
+ * Liste des téléphones du propriétaire avec recherche locale (marque,
  * modèle, identifiant Nireo). Aucun compteur inventé : tout provient de
  * requêtes réelles passées en props.
  */
@@ -43,7 +43,7 @@ export function AssetList({ items }: { items: AssetListItem[] }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Rechercher une marque, un modèle ou un identifiant"
-            aria-label="Rechercher parmi mes smartphones"
+            aria-label="Rechercher parmi mes téléphones"
             className="pl-9"
           />
         </div>
@@ -51,7 +51,7 @@ export function AssetList({ items }: { items: AssetListItem[] }) {
 
       {filtered.length === 0 ? (
         <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-          Aucun passeport ne correspond à « {query} ».
+          Aucun téléphone ne correspond à « {query} ».
         </p>
       ) : (
         <ul className="space-y-3">
@@ -100,18 +100,20 @@ export function AssetList({ items }: { items: AssetListItem[] }) {
                   </span>
 
                   <span className="mt-1.5 flex flex-wrap items-center gap-2">
-                    {item.last_event ? (
-                      <>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {item.last_event.title} · {formatEventDate(item.last_event.effective_date)}
-                        </span>
-                        <TrustBadge level={item.last_event.trust_level} />
-                      </>
-                    ) : (
+                    <HealthBadge state={item.health_state} />
+                    {item.check_overdue ? (
+                      <span className="text-xs text-[var(--nid-warning)]">Bilan en retard</span>
+                    ) : item.next_check_on ? (
                       <span className="text-xs text-muted-foreground">
-                        Aucun événement enregistré
+                        Prochain bilan le{" "}
+                        {new Date(`${item.next_check_on}T00:00:00`).toLocaleDateString("fr-FR")}
                       </span>
-                    )}
+                    ) : null}
+                    {item.last_event ? (
+                      <span className="truncate text-xs text-muted-foreground">
+                        {item.last_event.title} · {formatEventDate(item.last_event.effective_date)}
+                      </span>
+                    ) : null}
                   </span>
                 </span>
 

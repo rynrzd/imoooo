@@ -147,12 +147,12 @@ export function TransferForm({
         <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
           <li>· Les caractéristiques du {deviceLabel} et son identifiant Nireo.</li>
           <li>· L’historique complet : événements déclarés et interventions professionnelles.</li>
-          <li>· L’état déclaré et les photos du passeport.</li>
+          <li>· L’état déclaré et les photos du téléphone.</li>
           <li>· Un événement « Changement de propriétaire » ajouté à l’historique.</li>
         </ul>
         <p className="mt-2 text-sm text-muted-foreground">
           Vos liens de partage actifs seront révoqués, et vous perdrez tout
-          droit de modification sur ce passeport.
+          droit de modification sur ce téléphone.
         </p>
       </section>
 
@@ -213,7 +213,7 @@ export function TransferForm({
         />
         <span className="text-muted-foreground">
           Je comprends qu’après acceptation je ne serai plus propriétaire de ce
-          passeport et que je ne pourrai plus le modifier.
+          téléphone et que je ne pourrai plus le modifier.
         </span>
       </label>
 

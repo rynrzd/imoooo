@@ -21,7 +21,7 @@ import {
 import type { AssetRow } from "@/features/nireo-id/types";
 
 /**
- * Réglages d'un passeport : caractéristiques, visibilité publique,
+ * Réglages d'un téléphone : caractéristiques, visibilité publique,
  * archivage et suppression. Chaque bouton déclenche une opération réelle
  * vérifiée côté serveur.
  */
@@ -86,7 +86,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
     if (
       archived &&
       !window.confirm(
-        "Archiver ce passeport ? Il sortira de votre liste active, ses liens de partage seront révoqués et son aperçu public ne sera plus consultable."
+        "Archiver ce téléphone ? Il sortira de votre liste active, ses liens de partage seront révoqués et son aperçu public ne sera plus consultable."
       )
     ) {
       return;
@@ -101,7 +101,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
       toast.error(result.error);
       return;
     }
-    toast.success(archived ? "Passeport archivé." : "Passeport réactivé.");
+    toast.success(archived ? "Téléphone archivé." : "Téléphone réactivé.");
     router.refresh();
   };
 
@@ -109,7 +109,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
     if (busy) return;
     if (
       !window.confirm(
-        "Supprimer définitivement ce passeport, son historique, ses photos et ses documents ? Cette action est irréversible."
+        "Supprimer définitivement ce téléphone, son historique, ses photos et ses documents ? Cette action est irréversible."
       )
     ) {
       return;
@@ -123,7 +123,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
       toast.error(result.error);
       return;
     }
-    toast.success("Passeport supprimé.");
+    toast.success("Téléphone supprimé.");
     router.push("/id/app");
     router.refresh();
   };
@@ -295,7 +295,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
         <div>
           <h2 className="text-sm font-semibold text-foreground">Archivage et suppression</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Un passeport déjà transmis à un autre propriétaire ne peut plus
+            Un téléphone déjà transmis à un autre propriétaire ne peut plus
             être supprimé : son historique appartient désormais à l’objet.
           </p>
         </div>

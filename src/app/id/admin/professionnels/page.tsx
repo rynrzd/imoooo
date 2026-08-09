@@ -127,7 +127,7 @@ export default async function AdminProfessionalsPage({
                     label: "Suspendre",
                     variant: "destructive",
                     confirm:
-                      "Suspendre ce compte ? Tous ses accès aux passeports seront immédiatement révoqués.",
+                      "Suspendre ce compte ? Tous ses accès aux téléphones seront immédiatement révoqués.",
                   },
                 ]}
               />

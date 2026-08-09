@@ -11,7 +11,7 @@ import { SITE_URL } from "@/lib/supabase/config";
  * copiable — jamais « e-mail envoyé ».
  */
 
-const ACCENT = "#0FAF9B";
+const ACCENT = "#2563EB";
 
 function esc(value: string | number): string {
   return String(value)
@@ -47,7 +47,7 @@ function layout(title: string, body: string, cta?: { label: string; url: string 
           ${button}
         </td></tr>
         <tr><td style="padding:18px 28px;border-top:1px solid #EEF1F6;font:400 11px/1.7 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#667085">
-          Nireo ID — l'historique suit l'objet, pas le propriétaire.<br>
+          Nireo ID — le suivi simple de votre téléphone.<br>
           <a href="${SITE_URL}/confidentialite" style="color:#667085;text-decoration:underline">Confidentialité</a>
           &nbsp;·&nbsp;
           <a href="${SITE_URL}/cgu" style="color:#667085;text-decoration:underline">CGU</a>
@@ -59,7 +59,7 @@ function layout(title: string, body: string, cta?: { label: string; url: string 
 }
 
 /**
- * Invitation à reprendre un passeport. Retourne `true` UNIQUEMENT si le
+ * Invitation à reprendre un téléphone. Retourne `true` UNIQUEMENT si le
  * fournisseur a accepté l'envoi.
  */
 export async function notifyTransferInvitation(options: {
@@ -72,11 +72,11 @@ export async function notifyTransferInvitation(options: {
   try {
     await sendEmail({
       to: options.to,
-      subject: `Un passeport Nireo ID vous est transmis — ${options.deviceLabel}`,
+      subject: `Un téléphone Nireo ID vous est transmis — ${options.deviceLabel}`,
       html: layout(
-        "Un smartphone vous est transmis",
+        "Un téléphone vous est transmis",
         `<p style="margin:0 0 12px">Le propriétaire actuel d'un <strong>${esc(options.deviceLabel)}</strong>
-          vous propose de reprendre son passeport Nireo ID : historique, état déclaré et documents
+          vous propose de reprendre son téléphone Nireo ID : historique, état déclaré et documents
           explicitement transmis.</p>
          <p style="margin:0 0 12px">Vous devez être connecté avec <strong>cette adresse e-mail</strong>
           pour accepter. La demande expire le ${esc(options.expiresLabel)}.</p>
@@ -92,7 +92,7 @@ export async function notifyTransferInvitation(options: {
   }
 }
 
-/** Informe un professionnel qu'un propriétaire lui ouvre un passeport. */
+/** Informe un professionnel qu'un propriétaire lui ouvre un téléphone. */
 export async function notifyProfessionalInvitation(options: {
   to: string;
   deviceLabel: string;
@@ -102,10 +102,10 @@ export async function notifyProfessionalInvitation(options: {
   try {
     await sendEmail({
       to: options.to,
-      subject: "Un client vous donne accès à un passeport Nireo ID",
+      subject: "Un client vous donne accès à un téléphone Nireo ID",
       html: layout(
-        "Accès à un passeport Nireo ID",
-        `<p style="margin:0 0 12px">Un client vous autorise à consulter le passeport d'un
+        "Accès à un téléphone Nireo ID",
+        `<p style="margin:0 0 12px">Un client vous autorise à consulter le téléphone d'un
           <strong>${esc(options.deviceLabel)}</strong> et à y enregistrer votre intervention.</p>
          <p style="margin:0;color:#667085;font-size:13px">Cet accès est limité dans le temps et
           révocable à tout moment par le propriétaire.</p>`,
@@ -115,6 +115,204 @@ export async function notifyProfessionalInvitation(options: {
     return true;
   } catch (error) {
     logger.error("nireo-id/email pro-invite", error);
+    return false;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  V2 — bilans, invitations, réparations, garantie                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Bilan périodique. Les quatre réponses sont des liens directs vers la
+ * page à jeton : un clic suffit pour « tout va bien ».
+ */
+export async function notifyCheckRequest(options: {
+  to: string;
+  deviceLabel: string;
+  url: string;
+  companyName?: string | null;
+  recipientName?: string;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  const intro = options.companyName
+    ? `<p style="margin:0 0 12px">${esc(options.companyName)} suit l'état des téléphones professionnels
+        avec Nireo ID. Ce message ne concerne que l'état matériel de l'appareil :
+        aucune donnée d'usage personnel n'est consultée.</p>`
+    : "";
+  const answers: [string, string][] = [
+    ["Oui, tout va bien", "tout_fonctionne"],
+    ["J'ai remarqué un problème", "probleme"],
+    ["Il a été réparé", "repare"],
+    ["Je ne possède plus ce téléphone", "plus_detenu"],
+  ];
+  const list = answers
+    .map(
+      ([label, value]) =>
+        `<p style="margin:0 0 8px"><a href="${escUrl(`${options.url}?reponse=${value}`)}" style="color:${ACCENT};text-decoration:underline">${esc(label)}</a></p>`
+    )
+    .join("");
+
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: "Un rapide point sur votre téléphone",
+      html: layout(
+        "Un rapide point sur votre téléphone",
+        `${intro}
+         <p style="margin:0 0 16px">Depuis votre dernier bilan, tout fonctionne normalement sur votre
+          <strong>${esc(options.deviceLabel)}</strong> ?</p>
+         ${list}
+         <p style="margin:16px 0 0;color:#667085;font-size:13px">Ce lien est personnel et limité à ce téléphone.
+          Il expire automatiquement.</p>`,
+        { label: "Répondre au bilan", url: options.url }
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email checkup", error);
+    return false;
+  }
+}
+
+/** Invitation à rejoindre un espace entreprise ou atelier. */
+export async function notifyWorkspaceInvitation(options: {
+  to: string;
+  workspaceName: string;
+  url: string;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: `Rejoindre ${options.workspaceName} sur Nireo ID`,
+      html: layout(
+        "Vous êtes invité à rejoindre un espace",
+        `<p style="margin:0 0 12px"><strong>${esc(options.workspaceName)}</strong> vous invite à rejoindre
+          son espace Nireo ID.</p>
+         <p style="margin:0;color:#667085;font-size:13px">Vous devez accepter avec cette adresse e-mail.
+          L'invitation expire automatiquement.</p>`,
+        { label: "Accepter l'invitation", url: options.url }
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email invite", error);
+    return false;
+  }
+}
+
+/** Lien remis à l'atelier pour compléter une intervention. */
+export async function notifyRepairInvitation(options: {
+  to: string;
+  deviceLabel: string;
+  url: string;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: "Une intervention vous est confiée — Nireo ID",
+      html: layout(
+        "Une intervention vous est confiée",
+        `<p style="margin:0 0 12px">Un client vous confie la réparation d'un
+          <strong>${esc(options.deviceLabel)}</strong> et vous autorise à compléter son historique.</p>
+         <p style="margin:0;color:#667085;font-size:13px">Cet accès est limité à cette intervention
+          et expire automatiquement.</p>`,
+        { label: "Ouvrir l'intervention", url: options.url }
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email repair-invite", error);
+    return false;
+  }
+}
+
+/** Le client doit valider l'intervention soumise par l'atelier. */
+export async function notifyRepairSubmitted(options: {
+  to: string;
+  deviceLabel: string;
+  repairerLabel: string;
+  url: string;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: "Une réparation attend votre validation",
+      html: layout(
+        "Une réparation attend votre validation",
+        `<p style="margin:0 0 12px"><strong>${esc(options.repairerLabel)}</strong> a enregistré une
+          intervention sur votre <strong>${esc(options.deviceLabel)}</strong>.</p>
+         <p style="margin:0 0 12px">Vérifiez le détail, puis validez pour l'ajouter à l'historique.</p>`,
+        { label: "Voir l'intervention", url: options.url }
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email repair-submitted", error);
+    return false;
+  }
+}
+
+/** L'atelier est informé de la validation du client. */
+export async function notifyRepairValidated(options: {
+  to: string;
+  deviceLabel: string;
+  attested: boolean;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: "Intervention validée par le client — Nireo ID",
+      html: layout(
+        "Intervention validée",
+        `<p style="margin:0 0 12px">Le client a validé votre intervention sur un
+          <strong>${esc(options.deviceLabel)}</strong>.</p>
+         <p style="margin:0;color:#667085;font-size:13px">${
+           options.attested
+             ? "Elle apparaît comme « Attestée par un réparateur » dans l'historique."
+             : "Elle apparaît comme « Intervention déclarée par l'atelier » : faites approuver votre identité professionnelle pour qu'elle soit attestée."
+         }</p>`
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email repair-validated", error);
+    return false;
+  }
+}
+
+/** Un problème a été déclaré lors d'un bilan. */
+export async function notifyProblemDeclared(options: {
+  to: string;
+  deviceLabel: string;
+  holderLabel: string;
+  comment: string;
+  url: string;
+}): Promise<boolean> {
+  if (!isEmailProviderConfigured) return false;
+  try {
+    await sendEmail({
+      to: options.to,
+      subject: `Problème déclaré sur un téléphone — ${options.deviceLabel}`,
+      html: layout(
+        "Un problème a été déclaré",
+        `<p style="margin:0 0 12px"><strong>${esc(options.holderLabel)}</strong> signale un problème sur un
+          <strong>${esc(options.deviceLabel)}</strong>.</p>
+         ${
+           options.comment
+             ? `<p style="margin:0 0 12px;padding:12px 14px;background:#F6F7F9;border-radius:10px">${esc(options.comment)}</p>`
+             : ""
+         }`,
+        { label: "Voir le téléphone", url: options.url }
+      ),
+    });
+    return true;
+  } catch (error) {
+    logger.error("nireo-id/email problem", error);
     return false;
   }
 }

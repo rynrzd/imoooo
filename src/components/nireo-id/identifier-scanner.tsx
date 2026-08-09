@@ -11,7 +11,7 @@ import { resolveIdentifierAction } from "@/features/nireo-id/actions/owner";
 import { PUBLIC_ID_PATTERN } from "@/features/nireo-id/constants";
 
 /**
- * Recherche d'un passeport par identifiant Nireo.
+ * Recherche d'un téléphone par identifiant Nireo.
  *
  * Le scan par caméra n'est proposé QUE si le navigateur expose réellement
  * `BarcodeDetector` : pas de bouton trompeur là où la fonction n'existe
@@ -166,7 +166,7 @@ export function IdentifierScanner() {
           ) : (
             <>
               <Search className="size-4" data-icon="inline-start" />
-              Ouvrir le passeport
+              Ouvrir le téléphone
             </>
           )}
         </Button>
@@ -177,7 +177,7 @@ export function IdentifierScanner() {
         {supported ? (
           <>
             <p className="text-sm text-muted-foreground">
-              Pointez la caméra vers le QR code d’un passeport Nireo ID.
+              Pointez la caméra vers le QR code d’un téléphone Nireo ID.
             </p>
             <div className={scanning ? "block" : "hidden"}>
               <video
@@ -205,7 +205,7 @@ export function IdentifierScanner() {
           <p className="text-sm text-muted-foreground">
             Votre navigateur ne permet pas le scan de QR code depuis la page.
             Utilisez l’appareil photo de votre téléphone : il ouvrira
-            directement l’aperçu public du passeport.
+            directement l’aperçu public du téléphone.
           </p>
         )}
       </div>

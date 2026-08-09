@@ -11,7 +11,7 @@ import { getPublicPreview } from "@/features/nireo-id/server/sharing";
 import { nidSignedUrl } from "@/features/nireo-id/server/storage";
 
 /**
- * APERÇU PUBLIC d'un passeport (permanent, minimal).
+ * APERÇU PUBLIC d'un téléphone (permanent, minimal).
  *
  * Tout ce qui est affiché ici provient de `nid_public_preview`, une
  * fonction SQL qui ne renvoie que des champs explicitement listés. Aucun
@@ -22,7 +22,7 @@ import { nidSignedUrl } from "@/features/nireo-id/server/storage";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Aperçu public d’un passeport",
+  title: "Aperçu public d’un téléphone",
   robots: { index: false, follow: false },
 };
 
@@ -45,10 +45,10 @@ function NotFoundState({ publicId }: { publicId: string }) {
         <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
           <SearchX className="size-6" aria-hidden />
         </span>
-        <h1 className="mt-4 text-xl font-semibold text-foreground">Aucun passeport trouvé</h1>
+        <h1 className="mt-4 text-xl font-semibold text-foreground">Aucun téléphone trouvé</h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           L’identifiant <span className="font-mono">{publicId}</span> ne
-          correspond à aucun passeport actif. Vérifiez la saisie : un
+          correspond à aucun téléphone actif. Vérifiez la saisie : un
           identifiant Nireo a la forme <span className="font-mono">NIR-PH-XXXX-XXXX</span>.
         </p>
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
@@ -81,7 +81,7 @@ export default async function PublicPassportPage({
 
   return (
     <Shell>
-      <div className="nid-panel nid-topline overflow-hidden rounded-2xl">
+      <div className="nid-panel overflow-hidden rounded-2xl">
         <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
           <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
             {photoUrl ? (
@@ -124,7 +124,7 @@ export default async function PublicPassportPage({
               aria-hidden
             />
             <p className="text-sm text-foreground">
-              Une information de ce passeport est actuellement contestée. Elle
+              Une information de ce téléphone est actuellement contestée. Elle
               ne doit pas être considérée comme fiable.
             </p>
           </div>
@@ -147,7 +147,7 @@ export default async function PublicPassportPage({
         </dl>
 
         <p className="border-t border-border px-6 py-3 text-xs text-muted-foreground">
-          Passeport créé le {formatShortDate(preview.created_at)}.
+          téléphone créé le {formatShortDate(preview.created_at)}.
         </p>
       </div>
 
@@ -165,7 +165,7 @@ export default async function PublicPassportPage({
         <div className="text-sm leading-relaxed text-muted-foreground">
           <p>
             <strong className="text-foreground">Portée de cet aperçu.</strong>{" "}
-            Il indique seulement qu’un passeport existe et combien
+            Il indique seulement qu’un téléphone existe et combien
             d’événements y figurent. Il ne prouve ni l’identité du vendeur, ni
             l’origine de l’appareil, et Nireo ne vérifie pas si un appareil est
             déclaré volé.

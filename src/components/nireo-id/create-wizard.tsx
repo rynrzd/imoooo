@@ -17,10 +17,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createAssetAction } from "@/features/nireo-id/actions/owner";
+import { BoxScanner } from "./box-scanner";
 import {
+  ADD_METHODS,
+  ADD_METHOD_HINTS,
+  ADD_METHOD_LABELS,
   ALLOWED_DOCUMENT_MIME,
   ALLOWED_IMAGE_MIME,
+  CHECK_FREQUENCIES,
   CONDITION_GRADES,
+  EPREL_HOSTS,
+  type AddMethod,
   CONDITION_GRADE_LABELS,
   CONDITION_POINTS,
   MAX_CONDITION_PHOTOS,
@@ -35,20 +42,20 @@ import { formatFileSize } from "@/features/nireo-id/format";
 import { cn } from "@/lib/utils";
 
 /**
- * Assistant de création d'un passeport — 5 étapes, mobile d'abord.
+ * Ajout d'un téléphone — quatre étapes, mobile d'abord.
  *
- * Les saisies (texte et fichiers) sont conservées d'une étape à l'autre :
- * revenir en arrière ne perd rien. RIEN n'est écrit en base avant
- * l'étape 5 : la création est atomique côté serveur, et un échec ne laisse
- * ni passeport partiel ni fichier orphelin.
+ * Objectif : moins de 90 secondes lorsque l'utilisateur a la boîte ou la
+ * facture. Les saisies (texte et fichiers) sont conservées d'une étape à
+ * l'autre. RIEN n'est écrit en base avant la dernière étape : la création
+ * est atomique côté serveur, et un échec ne laisse ni fiche partielle ni
+ * fichier orphelin.
  */
 
 const STEPS = [
-  { title: "Identité", hint: "L'appareil" },
-  { title: "Identifiants", hint: "Privés" },
-  { title: "Achat", hint: "Provenance" },
-  { title: "État", hint: "Constat" },
-  { title: "Vérification", hint: "Création" },
+  { title: "Méthode", hint: "Comment ajouter" },
+  { title: "Informations", hint: "L'appareil" },
+  { title: "État initial", hint: "Constat" },
+  { title: "Confirmation", hint: "Création" },
 ] as const;
 
 interface Draft {
@@ -61,6 +68,10 @@ interface Draft {
   purchase_date: string;
   purchase_source: string;
   purchase_condition: PurchaseCondition;
+  warranty_end: string;
+  internal_reference: string;
+  eprel_url: string;
+  check_frequency_months: string;
   condition: Partial<Record<string, ConditionGrade>>;
   battery_health: string;
   condition_comment: string;
@@ -76,14 +87,25 @@ const EMPTY_DRAFT: Draft = {
   purchase_date: "",
   purchase_source: "",
   purchase_condition: "inconnu",
+  warranty_end: "",
+  internal_reference: "",
+  eprel_url: "",
+  check_frequency_months: "1",
   condition: {},
   battery_health: "",
   condition_comment: "",
 };
 
-export function CreateWizard() {
+export function CreateWizard({
+  workspaceId = null,
+  workspaceName = null,
+}: {
+  workspaceId?: string | null;
+  workspaceName?: string | null;
+} = {}) {
   const router = useRouter();
   const [step, setStep] = React.useState(0);
+  const [method, setMethod] = React.useState<AddMethod | null>(null);
   const [draft, setDraft] = React.useState<Draft>(EMPTY_DRAFT);
   const [primaryPhoto, setPrimaryPhoto] = React.useState<File | null>(null);
   const [conditionPhotos, setConditionPhotos] = React.useState<File[]>([]);
@@ -91,13 +113,57 @@ export function CreateWizard() {
   const [consent, setConsent] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [created, setCreated] = React.useState<{
+    id: string;
+    public_id: string;
+    next_check_on?: string;
+  } | null>(null);
 
   const update = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
 
+  /**
+   * Valeur lue par la caméra : on ne préremplit QUE ce qui est réellement
+   * reconnu. Aucune caractéristique n'est inventée à partir d'un lien.
+   */
+  const applyScan = (raw: string) => {
+    const value = raw.trim();
+    const digits = value.replace(/\D/g, "");
+
+    if (/^https?:\/\//i.test(value)) {
+      try {
+        const url = new URL(value);
+        if ((EPREL_HOSTS as readonly string[]).includes(url.hostname)) {
+          update("eprel_url", url.toString());
+          toast.info(
+            "Étiquette européenne reconnue. Ouvrez la fiche officielle et confirmez les informations."
+          );
+          return;
+        }
+      } catch {
+        // Lien illisible : on retombe sur la saisie manuelle.
+      }
+      toast.error("Ce code ne correspond pas à une étiquette officielle. Saisissez les informations.");
+      return;
+    }
+
+    if (digits.length === 15) {
+      update("imei", digits);
+      toast.success("IMEI détecté. Vérifiez-le avant de continuer.");
+      return;
+    }
+    if (value.length >= 5) {
+      update("serial_number", value);
+      toast.success("Numéro de série détecté. Vérifiez-le avant de continuer.");
+      return;
+    }
+    toast.error("Code illisible. Saisissez les informations manuellement.");
+  };
+
   const canContinue = () => {
-    if (step === 0) return draft.brand.trim().length > 0 && draft.model.trim().length > 0;
-    if (step === 4) return consent;
+    if (step === 0) return method !== null;
+    if (step === 1) return draft.brand.trim().length > 0 && draft.model.trim().length > 0;
+    if (step === 3) return consent;
     return true;
   };
 
@@ -105,8 +171,10 @@ export function CreateWizard() {
     if (!canContinue()) {
       setError(
         step === 0
-          ? "Renseignez au minimum la marque et le modèle."
-          : "Confirmez l'exactitude des informations déclarées."
+          ? "Choisissez une méthode d’ajout."
+          : step === 1
+            ? "Renseignez au minimum la marque et le modèle."
+            : "Confirmez l'exactitude des informations déclarées."
       );
       return;
     }
@@ -174,6 +242,11 @@ export function CreateWizard() {
     form.set("purchase_date", draft.purchase_date);
     form.set("purchase_source", draft.purchase_source);
     form.set("purchase_condition", draft.purchase_condition);
+    form.set("warranty_end", draft.warranty_end);
+    form.set("internal_reference", draft.internal_reference);
+    form.set("eprel_url", draft.eprel_url);
+    form.set("check_frequency_months", draft.check_frequency_months);
+    if (workspaceId) form.set("workspace_id", workspaceId);
     form.set("consent_accuracy", "true");
     for (const point of CONDITION_POINTS) {
       const grade = draft.condition[point.key];
@@ -193,18 +266,57 @@ export function CreateWizard() {
       toast.error(result.error);
       return;
     }
-    toast.success(`Passeport créé — ${result.data.public_id}`);
-    router.push(`/id/app/objets/${result.data.id}`);
+    // Écran de confirmation : la fiche n'est proposée qu'APRÈS écriture
+    // réelle en base (identifiant public renvoyé par le serveur).
+    setCreated(result.data);
     router.refresh();
   };
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
+  /* ---------------- Étape 4 : confirmation ---------------- */
+  if (created) {
+    return (
+      <div className="space-y-6">
+        <div className="nid-panel rounded-2xl p-6 text-center">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent">
+            <Check className="size-6 text-[var(--nid-success)]" aria-hidden />
+          </span>
+          <h1 className="mt-4 text-xl font-semibold text-foreground">
+            Votre téléphone a bien été ajouté.
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {draft.brand} {draft.model} — identifiant{" "}
+            <span className="font-mono">{created.public_id}</span>
+          </p>
+          {created.next_check_on ? (
+            <p className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm text-accent-foreground">
+              Premier bilan prévu le{" "}
+              {new Date(`${created.next_check_on}T00:00:00`).toLocaleDateString("fr-FR")}
+            </p>
+          ) : null}
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <Button data-touch render={<Link href={`/id/app/objets/${created.id}`} />}>
+              Voir mon téléphone
+            </Button>
+            <Button
+              variant="outline"
+              data-touch
+              render={<Link href={workspaceId ? `/id/entreprise/${workspaceId}/parc` : "/id/app"} />}
+            >
+              {workspaceId ? "Revenir au parc" : "Revenir à l’accueil"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <div className="flex items-baseline justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-foreground">Nouveau passeport</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Ajouter mon téléphone</h1>
           <p className="text-sm text-muted-foreground tabular-nums">
             Étape {step + 1} / {STEPS.length}
           </p>
@@ -226,11 +338,93 @@ export function CreateWizard() {
       </div>
 
       <div className="nid-panel rounded-2xl p-5 sm:p-6">
+        {/* ---------------- Étape 1 : méthode ---------------- */}
         {step === 0 ? (
+          <fieldset className="space-y-4">
+            <legend className="text-sm font-medium text-foreground">
+              Comment souhaitez-vous ajouter ce téléphone ?
+            </legend>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ADD_METHODS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setMethod(value)}
+                  aria-pressed={method === value}
+                  className={cn(
+                    "rounded-xl border p-4 text-left transition-colors",
+                    method === value
+                      ? "border-primary bg-accent"
+                      : "border-border bg-card hover:bg-muted"
+                  )}
+                >
+                  <span className="block text-sm font-medium text-foreground">
+                    {ADD_METHOD_LABELS[value]}
+                  </span>
+                  <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                    {ADD_METHOD_HINTS[value]}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {method === "scan" || method === "etiquette" ? (
+              <BoxScanner
+                onDetected={applyScan}
+                label={method === "scan" ? "Scanner la boîte" : "Scanner l’étiquette"}
+              />
+            ) : null}
+
+            {method === "etiquette" && draft.eprel_url ? (
+              <p className="nid-note rounded-xl p-3 text-xs">
+                Étiquette officielle reconnue.{" "}
+                <a
+                  href={draft.eprel_url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="underline underline-offset-2"
+                >
+                  Ouvrir la fiche officielle
+                </a>{" "}
+                puis confirmez les informations à l’étape suivante. Nireo ne préremplit aucune
+                caractéristique qu’elle n’a pas réellement récupérée.
+              </p>
+            ) : null}
+
+            {method === "facture" ? (
+              <>
+                <FilePicker
+                  id="purchase-proof-first"
+                  label="Facture ou preuve d’achat"
+                  hint={`PDF ou image — ${formatFileSize(MAX_DOCUMENT_BYTES)} maximum. Document privé par défaut.`}
+                  accept={ALLOWED_DOCUMENT_MIME.join(",")}
+                  file={purchaseProof}
+                  onPick={pickProof}
+                  onClear={() => setPurchaseProof(null)}
+                />
+                <p className="rounded-xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  Le document est conservé dans votre espace privé. Aucune lecture automatique
+                  n’est effectuée : vous saisissez les informations à l’étape suivante.
+                </p>
+              </>
+            ) : null}
+
+            {method === "manuel" ? (
+              <p className="rounded-xl border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+                Vous saisirez la marque, le modèle et les informations dont vous disposez à
+                l’étape suivante. Rien n’est obligatoire en dehors de la marque et du modèle.
+              </p>
+            ) : null}
+          </fieldset>
+        ) : null}
+
+        {/* ---------------- Étape 2 : informations ---------------- */}
+        {step === 1 ? (
           <fieldset className="space-y-4">
             <legend className="sr-only">Identité de l’appareil</legend>
             <p className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
-              Catégorie : <strong className="text-foreground">Smartphone</strong> — seule
+              Catégorie : <strong className="text-foreground">téléphone</strong> — seule
               catégorie disponible aujourd’hui.
             </p>
             <Field label="Marque" htmlFor="brand" required>
@@ -285,7 +479,7 @@ export function CreateWizard() {
         ) : null}
 
         {step === 1 ? (
-          <fieldset className="space-y-4">
+          <fieldset className="mt-6 space-y-4">
             <legend className="sr-only">Identifiants privés</legend>
             <p className="flex items-start gap-2.5 rounded-xl border border-border bg-muted px-3 py-3 text-xs leading-relaxed text-muted-foreground">
               <Lock className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
@@ -321,8 +515,8 @@ export function CreateWizard() {
           </fieldset>
         ) : null}
 
-        {step === 2 ? (
-          <fieldset className="space-y-4">
+        {step === 1 ? (
+          <fieldset className="mt-6 space-y-4">
             <legend className="sr-only">Achat et propriété</legend>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Date d’achat (facultatif)" htmlFor="purchase-date">
@@ -361,6 +555,42 @@ export function CreateWizard() {
               </select>
             </Field>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Fin de garantie (facultatif)" htmlFor="warranty-end">
+                <Input
+                  id="warranty-end"
+                  type="date"
+                  value={draft.warranty_end}
+                  onChange={(event) => update("warranty_end", event.target.value)}
+                />
+              </Field>
+              <Field label="Fréquence des bilans" htmlFor="check-frequency">
+                <select
+                  id="check-frequency"
+                  value={draft.check_frequency_months}
+                  onChange={(event) => update("check_frequency_months", event.target.value)}
+                  className="w-full rounded-xl border border-input bg-transparent text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  {CHECK_FREQUENCIES.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+
+            {workspaceId ? (
+              <Field label="Référence interne (facultatif)" htmlFor="internal-reference">
+                <Input
+                  id="internal-reference"
+                  value={draft.internal_reference}
+                  onChange={(event) => update("internal_reference", event.target.value)}
+                  placeholder="PARC-001"
+                />
+              </Field>
+            ) : null}
+
             <FilePicker
               id="purchase-proof"
               label="Preuve d’achat (facultatif)"
@@ -373,7 +603,8 @@ export function CreateWizard() {
           </fieldset>
         ) : null}
 
-        {step === 3 ? (
+        {/* ---------------- Étape 3 : état initial ---------------- */}
+        {step === 2 ? (
           <fieldset className="space-y-5">
             <legend className="sr-only">État déclaré</legend>
             <p className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
@@ -486,9 +717,16 @@ export function CreateWizard() {
           </fieldset>
         ) : null}
 
-        {step === 4 ? (
+        {/* ---------------- Étape 4 : vérification ---------------- */}
+        {step === 3 ? (
           <div className="space-y-5">
             <h2 className="text-base font-semibold text-foreground">Vérification</h2>
+            {workspaceName ? (
+              <p className="rounded-xl bg-accent px-3 py-2 text-xs text-accent-foreground">
+                Ce téléphone sera enregistré dans l’espace{" "}
+                <strong>{workspaceName}</strong>.
+              </p>
+            ) : null}
             <dl className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
               <Summary label="Appareil" value={`${draft.brand} ${draft.model}`.trim() || "—"} />
               <Summary
@@ -577,7 +815,7 @@ export function CreateWizard() {
             ) : (
               <>
                 <Check className="size-4" data-icon="inline-start" />
-                Créer le Nireo ID
+                Ajouter mon téléphone
               </>
             )}
           </Button>

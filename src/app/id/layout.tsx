@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: "%s · Nireo ID",
   },
   description:
-    "Créez le passeport numérique de votre smartphone : documents, état, réparations et transmission de l’historique lors de la revente.",
+    "Créez le téléphone numérique de votre téléphone : documents, état, réparations et transmission de l’historique lors de la revente.",
 };
 
 export default function NireoIdLayout({

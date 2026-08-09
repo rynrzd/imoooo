@@ -7,7 +7,7 @@ import { recordNidAudit } from "./audit";
 import { nidSignedUrl, removeNidFiles, uploadNidFile } from "./storage";
 
 /**
- * Historique d'un passeport : événements déclarés, documents, signalements.
+ * Historique d'un téléphone : événements déclarés, documents, signalements.
  *
  * Un événement déclaré par le propriétaire porte TOUJOURS le niveau
  * « Déclaré » (0). Seul le serveur peut poser « Validé par un
@@ -82,7 +82,7 @@ export async function addOwnerEvent(
     if (error) throw new Error(dbErrorMessage(error, "L'ajout de l'événement a échoué."));
     const result = data as { state: string; event_id?: string };
     if (result.state === "non_proprietaire") {
-      throw new Error("Ce passeport ne vous appartient pas.");
+      throw new Error("Ce téléphone ne vous appartient pas.");
     }
     return { event_id: result.event_id as string };
   } catch (error) {
@@ -98,7 +98,7 @@ export async function revokeEventAsOwner(
   reason: string
 ): Promise<void> {
   const supabase = await nidUserClient();
-  // La RLS ne laisse lire que les événements des passeports de l'utilisateur.
+  // La RLS ne laisse lire que les événements des téléphones de l'utilisateur.
   const { data: event } = await supabase
     .from("nid_events")
     .select("id, asset_id, author_role, revoked_at")
@@ -265,7 +265,7 @@ export async function deleteDocument(userId: string, documentId: string): Promis
 
 /**
  * Un signalement peut être déposé par toute personne connectée ayant eu
- * accès au passeport (propriétaire, acheteur, professionnel). Il n'ouvre
+ * accès au téléphone (propriétaire, acheteur, professionnel). Il n'ouvre
  * aucun droit de lecture supplémentaire.
  */
 export async function reportDispute(userId: string, input: DisputeInput): Promise<void> {
@@ -275,7 +275,7 @@ export async function reportDispute(userId: string, input: DisputeInput): Promis
     .select("id")
     .eq("id", input.asset_id)
     .maybeSingle();
-  if (!asset) throw new Error("Ce passeport est introuvable.");
+  if (!asset) throw new Error("Ce téléphone est introuvable.");
 
   const { error } = await service.from("nid_disputes").insert({
     asset_id: input.asset_id,

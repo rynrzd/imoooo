@@ -6,16 +6,16 @@ import { cn } from "@/lib/utils";
 import { TrustBadge } from "./trust-badge";
 
 /**
- * Composition d'illustration du passeport, construite avec les mêmes
+ * Composition d'illustration du téléphone, construite avec les mêmes
  * briques que le produit réel (identifiant, timeline, niveaux de
  * confiance). Toujours accompagnée d'une mention « Exemple » : ce n'est
  * jamais une capture présentée comme un dossier réel.
  */
 export function PassportPreview({ className }: { className?: string }) {
   return (
-    <figure className={cn("nid-panel nid-topline rounded-2xl p-5 sm:p-6", className)}>
+    <figure className={cn("nid-panel rounded-2xl p-5 sm:p-6", className)}>
       <figcaption className="sr-only">
-        Exemple de passeport Nireo ID : identifiant, appareil et trois
+        Exemple de téléphone Nireo ID : identifiant, appareil et trois
         événements d’historique avec leur niveau de confiance.
       </figcaption>
 

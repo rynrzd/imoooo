@@ -27,11 +27,11 @@ export default async function AddEventPage({ params }: { params: Promise<{ id: s
             href={`/id/app/objets/${id}`}
             className="text-muted-foreground underline-offset-2 hover:underline"
           >
-            ← Retour au passeport
+            ← Retour au téléphone
           </Link>
         </p>
         <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
-          Ce passeport est archivé : réactivez-le depuis la page « Modifier »
+          Ce téléphone est archivé : réactivez-le depuis la page « Modifier »
           pour enrichir son historique.
         </p>
       </div>

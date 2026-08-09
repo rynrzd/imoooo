@@ -26,7 +26,7 @@ import { formatFileSize, formatShortDate } from "@/features/nireo-id/format";
 import type { DocumentRow } from "@/features/nireo-id/types";
 
 /**
- * Documents privés d'un passeport : ajout réel (bucket privé), politique
+ * Documents privés d'un téléphone : ajout réel (bucket privé), politique
  * de transfert par document, ouverture par URL signée de courte durée,
  * suppression. Aucun lien public n'est jamais produit.
  */

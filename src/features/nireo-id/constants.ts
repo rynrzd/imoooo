@@ -131,7 +131,7 @@ export const AUTHOR_ROLES = ["proprietaire", "professionnel", "systeme"] as cons
 export type AuthorRole = (typeof AUTHOR_ROLES)[number];
 
 /* ------------------------------------------------------------------ */
-/*  Passeport                                                          */
+/*  Téléphone                                                          */
 /* ------------------------------------------------------------------ */
 
 export const ASSET_STATUSES = ["active", "transfer_pending", "archived", "disputed"] as const;
@@ -303,7 +303,7 @@ export const PRO_ACCESS_STATUS_LABELS: Record<ProAccessStatus, string> = {
 export const PRO_ACCESS_SOURCES = ["lien_partage", "invitation", "demande_identifiant"] as const;
 export type ProAccessSource = (typeof PRO_ACCESS_SOURCES)[number];
 
-/** Durée d'un accès professionnel accordé sur un passeport. */
+/** Durée d'un accès professionnel accordé sur un téléphone. */
 export const PRO_ACCESS_DAYS = 30;
 
 /* ------------------------------------------------------------------ */
@@ -345,3 +345,320 @@ export const PUBLIC_ID_PATTERN = /^NIR-PH-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{4}-[
 export function isPublicId(value: string): boolean {
   return PUBLIC_ID_PATTERN.test(value.trim().toUpperCase());
 }
+
+/* ================================================================== */
+/*  V2 — espaces, affectations, bilans, réparations, provenance        */
+/* ================================================================== */
+
+/* ------------------------------------------------------------------ */
+/*  Promesse produit                                                   */
+/* ------------------------------------------------------------------ */
+
+export const NID_TAGLINE = "Le suivi simple de votre téléphone.";
+export const NID_SUBLINE = "Facture, état et réparations au même endroit.";
+
+/* ------------------------------------------------------------------ */
+/*  Espaces                                                            */
+/* ------------------------------------------------------------------ */
+
+export const WORKSPACE_KINDS = ["personnel", "entreprise", "atelier"] as const;
+export type WorkspaceKind = (typeof WORKSPACE_KINDS)[number];
+
+export const WORKSPACE_KIND_LABELS: Record<WorkspaceKind, string> = {
+  personnel: "Espace personnel",
+  entreprise: "Entreprise",
+  atelier: "Atelier de réparation",
+};
+
+export const WORKSPACE_ROLES = ["owner", "admin", "manager", "member", "viewer"] as const;
+export type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
+
+export const WORKSPACE_ROLE_LABELS: Record<WorkspaceRole, string> = {
+  owner: "Propriétaire de l'espace",
+  admin: "Administration complète",
+  manager: "Gestion du parc",
+  member: "Accès à son téléphone",
+  viewer: "Lecture seule",
+};
+
+export const WORKSPACE_ROLE_HINTS: Record<WorkspaceRole, string> = {
+  owner: "Tous les droits, y compris l'abonnement et la suppression de l'espace.",
+  admin: "Gère l'entreprise, les collaborateurs et le parc.",
+  manager: "Gère le parc, les affectations, les bilans et les réparations.",
+  member: "Voit uniquement le téléphone qui lui est affecté.",
+  viewer: "Consulte le parc sans rien modifier.",
+};
+
+/** Rôles autorisés à gérer le parc (vérifié aussi par la RLS). */
+export const MANAGING_ROLES: WorkspaceRole[] = ["owner", "admin", "manager"];
+/** Rôles autorisés à voir l'ensemble du parc. */
+export const FLEET_READ_ROLES: WorkspaceRole[] = ["owner", "admin", "manager", "viewer"];
+
+/** Rôles proposables lors d'une invitation (le rôle owner ne s'invite pas). */
+export const INVITABLE_ROLES: WorkspaceRole[] = ["admin", "manager", "member", "viewer"];
+
+/* ------------------------------------------------------------------ */
+/*  États du parc                                                      */
+/* ------------------------------------------------------------------ */
+
+export const FLEET_STATUSES = [
+  "en_stock",
+  "affecte",
+  "prete",
+  "en_reparation",
+  "retourne",
+  "pret_a_vendre",
+  "vendu",
+  "recycle",
+  "perdu",
+  "declare_vole",
+] as const;
+
+export type FleetStatus = (typeof FLEET_STATUSES)[number];
+
+export const FLEET_STATUS_LABELS: Record<FleetStatus, string> = {
+  en_stock: "En stock",
+  affecte: "Affecté",
+  prete: "Prêté",
+  en_reparation: "En réparation",
+  retourne: "Retourné",
+  pret_a_vendre: "Prêt à vendre",
+  vendu: "Vendu ou transféré",
+  recycle: "Recyclé",
+  perdu: "Perdu",
+  declare_vole: "Déclaré volé",
+};
+
+/**
+ * « Déclaré volé » est une déclaration de l'utilisateur ou de l'entreprise.
+ * Nireo n'interroge AUCUNE base officielle : ce libellé ne doit jamais être
+ * présenté comme une vérification.
+ */
+export const FLEET_STATUS_NOTE: Partial<Record<FleetStatus, string>> = {
+  declare_vole:
+    "Déclaré par vous. Nireo n'interroge aucun fichier officiel des téléphones volés.",
+};
+
+/* ------------------------------------------------------------------ */
+/*  État de santé affiché (jamais de score sur 100)                    */
+/* ------------------------------------------------------------------ */
+
+export const HEALTH_STATES = [
+  "bon_etat",
+  "a_surveiller",
+  "probleme_declare",
+  "en_reparation",
+] as const;
+
+export type HealthState = (typeof HEALTH_STATES)[number];
+
+export const HEALTH_STATE_LABELS: Record<HealthState, string> = {
+  bon_etat: "Bon état",
+  a_surveiller: "À surveiller",
+  probleme_declare: "Problème déclaré",
+  en_reparation: "En réparation",
+};
+
+export const HEALTH_STATE_TONES: Record<HealthState, "success" | "warning" | "danger" | "info"> = {
+  bon_etat: "success",
+  a_surveiller: "warning",
+  probleme_declare: "danger",
+  en_reparation: "info",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Provenance des informations                                        */
+/* ------------------------------------------------------------------ */
+
+export const SOURCE_TYPES = [
+  "declare_proprietaire",
+  "declare_detenteur",
+  "document_fourni",
+  "atteste_reparateur",
+  "importe",
+  "mesure_diagnostic",
+] as const;
+
+export type SourceType = (typeof SOURCE_TYPES)[number];
+
+/**
+ * Libellés STRICTS. « Vérifié / certifié / authentifié par Nireo » est
+ * interdit : Nireo n'effectue aucun contrôle automatique.
+ */
+export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
+  declare_proprietaire: "Déclaré par le propriétaire",
+  declare_detenteur: "Déclaré par le détenteur",
+  document_fourni: "Document fourni",
+  atteste_reparateur: "Attesté par un réparateur",
+  importe: "Importé depuis un système",
+  mesure_diagnostic: "Mesuré par un diagnostic",
+};
+
+export const SOURCE_TYPE_MEANINGS: Record<SourceType, string> = {
+  declare_proprietaire: "Information saisie par le propriétaire du téléphone.",
+  declare_detenteur: "Information saisie par la personne qui utilise le téléphone.",
+  document_fourni: "Un document a été joint. Son authenticité n'est pas contrôlée automatiquement.",
+  atteste_reparateur:
+    "Intervention enregistrée par un atelier dont l'identité professionnelle est approuvée par Nireo.",
+  importe: "Information reprise d'un fichier ou d'un système externe.",
+  mesure_diagnostic: "Valeur issue d'un diagnostic réellement exécuté.",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Bilans                                                             */
+/* ------------------------------------------------------------------ */
+
+export const CHECK_ANSWERS = [
+  "tout_fonctionne",
+  "probleme",
+  "repare",
+  "plus_detenu",
+] as const;
+
+export type CheckAnswer = (typeof CHECK_ANSWERS)[number];
+
+export const CHECK_ANSWER_LABELS: Record<CheckAnswer, string> = {
+  tout_fonctionne: "Oui, tout va bien",
+  probleme: "J'ai remarqué un problème",
+  repare: "Il a été réparé",
+  plus_detenu: "Je ne possède plus ce téléphone",
+};
+
+export const CHECK_ANSWER_SHORT: Record<CheckAnswer, string> = {
+  tout_fonctionne: "Tout fonctionne",
+  probleme: "Problème constaté",
+  repare: "Téléphone réparé",
+  plus_detenu: "Plus détenu",
+};
+
+/** Détails demandés uniquement lorsqu'ils sont utiles (réponse « problème »). */
+export const CHECK_DETAIL_POINTS = [
+  { key: "ecran", label: "Écran" },
+  { key: "chassis", label: "Châssis ou coque" },
+  { key: "autonomie", label: "Autonomie ressentie" },
+  { key: "camera", label: "Caméra" },
+  { key: "son", label: "Son et microphone" },
+  { key: "charge", label: "Charge" },
+  { key: "boutons", label: "Boutons et tactile" },
+  { key: "chute_eau", label: "Chute ou contact avec l'eau" },
+] as const;
+
+export type CheckDetailKey = (typeof CHECK_DETAIL_POINTS)[number]["key"];
+
+export const CHECK_SCOPES = ["mini", "complet"] as const;
+export type CheckScope = (typeof CHECK_SCOPES)[number];
+
+export const CHECK_SCOPE_LABELS: Record<CheckScope, string> = {
+  mini: "Bilan rapide",
+  complet: "Bilan complet",
+};
+
+export const CHECK_EMAIL_STATUSES = ["en_attente", "envoye", "echec", "manuel"] as const;
+export type CheckEmailStatus = (typeof CHECK_EMAIL_STATUSES)[number];
+
+export const CHECK_EMAIL_STATUS_LABELS: Record<CheckEmailStatus, string> = {
+  en_attente: "À envoyer",
+  envoye: "E-mail envoyé",
+  echec: "Envoi impossible",
+  manuel: "Lien à transmettre",
+};
+
+/** Fréquences proposées (modifiables par l'utilisateur). */
+export const CHECK_FREQUENCIES = [
+  { value: 1, label: "Tous les mois" },
+  { value: 3, label: "Tous les 3 mois" },
+  { value: 6, label: "Tous les 6 mois" },
+  { value: 12, label: "Une fois par an" },
+] as const;
+
+/** Durée de validité d'un lien de bilan. */
+export const CHECK_REQUEST_DAYS = 45;
+
+/* ------------------------------------------------------------------ */
+/*  Réparations                                                        */
+/* ------------------------------------------------------------------ */
+
+export const REPAIR_STATUSES = [
+  "a_diagnostiquer",
+  "en_cours",
+  "en_attente_validation",
+  "termine",
+  "annule",
+] as const;
+
+export type RepairStatus = (typeof REPAIR_STATUSES)[number];
+
+export const REPAIR_STATUS_LABELS: Record<RepairStatus, string> = {
+  a_diagnostiquer: "À diagnostiquer",
+  en_cours: "En cours",
+  en_attente_validation: "En attente de validation",
+  termine: "Terminée",
+  annule: "Annulée",
+};
+
+export const PARTS_TYPES = ["origine", "compatible", "reconditionne", "inconnu"] as const;
+export type PartsType = (typeof PARTS_TYPES)[number];
+
+export const PARTS_TYPE_LABELS: Record<PartsType, string> = {
+  origine: "Pièces d'origine",
+  compatible: "Pièces compatibles",
+  reconditionne: "Pièces reconditionnées",
+  inconnu: "Type non précisé",
+};
+
+/** Durée de validité du lien remis à l'atelier. */
+export const REPAIR_LINK_DAYS = 30;
+
+/* ------------------------------------------------------------------ */
+/*  Invitations                                                        */
+/* ------------------------------------------------------------------ */
+
+export const INVITE_DAYS = 14;
+
+/* ------------------------------------------------------------------ */
+/*  Ajout d'un téléphone                                               */
+/* ------------------------------------------------------------------ */
+
+export const ADD_METHODS = ["scan", "facture", "etiquette", "manuel"] as const;
+export type AddMethod = (typeof ADD_METHODS)[number];
+
+export const ADD_METHOD_LABELS: Record<AddMethod, string> = {
+  scan: "Scanner la boîte",
+  facture: "Ajouter une facture",
+  etiquette: "Scanner l'étiquette européenne",
+  manuel: "Saisir manuellement",
+};
+
+export const ADD_METHOD_HINTS: Record<AddMethod, string> = {
+  scan: "Lisez le code-barres ou le QR code de la boîte avec la caméra.",
+  facture: "Ajoutez la facture, puis complétez les informations à côté du document.",
+  etiquette: "Lisez le QR code de l'étiquette énergie ; le lien officiel est conservé.",
+  manuel: "Saisissez la marque, le modèle et les informations que vous avez.",
+};
+
+/** Domaines officiels de l'étiquette énergétique européenne (EPREL). */
+export const EPREL_HOSTS = ["eprel.ec.europa.eu", "ec.europa.eu"] as const;
+
+/* ------------------------------------------------------------------ */
+/*  Import CSV (entreprise)                                            */
+/* ------------------------------------------------------------------ */
+
+export const CSV_COLUMNS = [
+  "marque",
+  "modele",
+  "capacite",
+  "couleur",
+  "numero_serie",
+  "imei",
+  "reference_interne",
+  "date_achat",
+  "prix_euros",
+  "type_achat",
+  "fin_garantie",
+  "detenteur_nom",
+  "detenteur_email",
+] as const;
+
+export const CSV_TEMPLATE_HEADER = CSV_COLUMNS.join(";");
+
+export const MAX_CSV_ROWS = 500;

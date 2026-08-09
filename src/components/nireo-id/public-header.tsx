@@ -6,14 +6,19 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NidLogo } from "./nid-logo";
 
+/**
+ * En-tête de la vitrine Nireo ID.
+ * Quatre entrées, deux actions. Nireo Immo n'apparaît pas ici : le lien
+ * discret se trouve dans le pied de page (une seule promesse par page).
+ */
+
 const LINKS = [
-  { href: "/id#fonctionnement", label: "Fonctionnement" },
-  { href: "/id#professionnels", label: "Pour les réparateurs" },
-  { href: "/id#confiance", label: "Confiance" },
-  { href: "/id#faq", label: "FAQ" },
+  { href: "/id#fonctionnement", label: "Comment ça marche" },
+  { href: "/id#entreprises", label: "Entreprises" },
+  { href: "/id#reparateurs", label: "Réparateurs" },
+  { href: "/id#tarifs", label: "Tarifs" },
 ];
 
-/** Destination d'inscription : le visiteur revient créer son passeport. */
 const SIGNUP_HREF = "/inscription?next=%2Fid%2Fapp%2Fobjets%2Fnouveau";
 const LOGIN_HREF = "/connexion?next=%2Fid%2Fapp";
 
@@ -30,7 +35,7 @@ export function NidPublicHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--background)_88%,transparent)] backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-card">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <NidLogo />
 
@@ -47,12 +52,10 @@ export function NidPublicHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Button variant="ghost" size="lg" render={<Link href={LOGIN_HREF} />}>
+          <Button variant="ghost" render={<Link href={LOGIN_HREF} />}>
             Se connecter
           </Button>
-          <Button size="lg" render={<Link href={SIGNUP_HREF} />}>
-            Créer un Nireo ID
-          </Button>
+          <Button render={<Link href={SIGNUP_HREF} />}>Ajouter mon téléphone</Button>
         </div>
 
         <button
@@ -61,9 +64,9 @@ export function NidPublicHeader() {
           aria-expanded={open}
           aria-controls="nid-mobile-menu"
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-          className="grid size-11 place-items-center rounded-xl border border-border text-foreground transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none md:hidden"
+          className="grid size-11 place-items-center rounded-xl border border-border text-foreground transition-colors hover:bg-muted md:hidden"
         >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
         </button>
       </div>
 
@@ -83,18 +86,16 @@ export function NidPublicHeader() {
             <div className="mt-2 grid gap-2 border-t border-border pt-3">
               <Button
                 variant="outline"
-                size="lg"
                 data-touch
                 render={<Link href={LOGIN_HREF} onClick={() => setOpen(false)} />}
               >
                 Se connecter
               </Button>
               <Button
-                size="lg"
                 data-touch
                 render={<Link href={SIGNUP_HREF} onClick={() => setOpen(false)} />}
               >
-                Créer un Nireo ID
+                Ajouter mon téléphone
               </Button>
             </div>
           </nav>
