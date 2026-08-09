@@ -120,7 +120,7 @@ export function MembersManager({
 
   return (
     <div className="space-y-6">
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">Inviter une personne</h2>
         <form onSubmit={invite} className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -174,7 +174,7 @@ export function MembersManager({
         ) : null}
       </section>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">Membres</h2>
         <ul className="mt-3 divide-y divide-border">
           {members.map((member) => (
@@ -220,7 +220,7 @@ export function MembersManager({
       </section>
 
       {pendingInvites.length > 0 ? (
-        <section className="nid-panel rounded-2xl p-5">
+        <section className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">Invitations en attente</h2>
           <ul className="mt-3 divide-y divide-border">
             {pendingInvites.map((item) => (

@@ -52,12 +52,10 @@ export default async function WelcomePage() {
           <li key={choice.href}>
             <Link
               href={choice.href}
-              className="nid-panel flex h-full flex-col rounded-2xl p-5 transition-colors hover:bg-muted/50"
+              className="nid-panel flex h-full flex-col rounded-lg p-5 transition-colors hover:bg-muted/50"
             >
-              <span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
-                <choice.icon className="size-5" aria-hidden />
-              </span>
-              <span className="mt-4 font-medium text-foreground">{choice.title}</span>
+              <choice.icon className="size-5 text-primary" aria-hidden />
+              <span className="mt-4 text-[17px] font-medium text-foreground">{choice.title}</span>
               <span className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                 {choice.text}
               </span>

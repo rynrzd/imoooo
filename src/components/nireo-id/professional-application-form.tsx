@@ -71,7 +71,7 @@ export function ProfessionalApplicationForm({
   };
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-5 rounded-2xl p-5 sm:p-6" noValidate>
+    <form onSubmit={submit} className="nid-panel space-y-5 rounded-lg p-5 sm:p-6" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="trade_name">Nom commercial *</Label>

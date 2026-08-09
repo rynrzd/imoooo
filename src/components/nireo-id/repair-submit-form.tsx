@@ -52,7 +52,7 @@ export function RepairSubmitForm({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-4 rounded-2xl p-5" noValidate>
+    <form onSubmit={submit} className="nid-panel space-y-4 rounded-lg p-5" noValidate>
       <div>
         <Label htmlFor="visual_state">État visuel avant intervention</Label>
         <textarea

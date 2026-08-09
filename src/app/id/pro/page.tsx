@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Clock, ShieldCheck, Wrench } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProAccessRequest } from "@/components/nireo-id/pro-access-request";
 import {
@@ -63,11 +63,8 @@ export default async function ProfessionalHomePage() {
       </header>
 
       {!atelier && !profile ? (
-        <div className="nid-panel rounded-2xl p-6">
-          <span className="grid size-12 place-items-center rounded-2xl bg-accent text-accent-foreground">
-            <Wrench className="size-6" aria-hidden />
-          </span>
-          <h2 className="mt-4 text-lg font-semibold text-foreground">
+        <div className="nid-panel rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-foreground">
             Créez votre espace atelier
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
@@ -91,14 +88,14 @@ export default async function ProfessionalHomePage() {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-foreground">Interventions</h2>
         {orders.length === 0 ? (
-          <p className="nid-panel rounded-2xl p-5 text-sm text-muted-foreground">
+          <p className="nid-panel rounded-lg p-5 text-sm text-muted-foreground">
             Aucune intervention pour le moment. Vos clients vous transmettent un lien ou un QR
             depuis la fiche de leur téléphone.
           </p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {REPAIR_STATUSES.filter((status) => status !== "annule").map((status) => (
-              <div key={status} className="nid-panel rounded-2xl p-4">
+              <div key={status} className="nid-panel rounded-lg p-4">
                 <h3 className="text-sm font-medium text-foreground">
                   {REPAIR_STATUS_LABELS[status]}{" "}
                   <span className="text-muted-foreground">({groups[status].length})</span>
@@ -129,7 +126,7 @@ export default async function ProfessionalHomePage() {
       </section>
 
       {profile && !approved ? (
-        <div className="nid-panel rounded-2xl p-5">
+        <div className="nid-panel rounded-lg p-5">
           <p className="flex items-start gap-2.5 text-sm text-foreground">
             <AlertTriangle
               className="mt-0.5 size-4 shrink-0 text-[var(--nid-warning)]"
@@ -161,7 +158,7 @@ export default async function ProfessionalHomePage() {
       ) : null}
 
       {atelier && !profile ? (
-        <div className="nid-note rounded-2xl p-4 text-sm">
+        <div className="nid-note rounded-lg p-4 text-sm">
           Vos interventions apparaîtront comme « Intervention déclarée par l’atelier ».{" "}
           <Link href="/id/pro/candidature" className="underline underline-offset-2">
             Déposez votre identité professionnelle
@@ -177,7 +174,7 @@ export default async function ProfessionalHomePage() {
         </>
       ) : null}
 
-      <p className="rounded-2xl border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
+      <p className="rounded-lg border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
         Un atelier ne peut jamais parcourir la base Nireo ID. L’accès à un téléphone suppose
         toujours une autorisation explicite de son propriétaire, limitée dans le temps et
         révocable. Une intervention erronée se corrige par une révocation motivée, jamais par une
@@ -200,7 +197,7 @@ async function ProfessionalAccessSection({ professionalId }: { professionalId: s
           Téléphones accessibles ({granted.length})
         </h2>
         {granted.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
             Aucun téléphone ouvert. Demandez l’accès avec l’identifiant que votre client vous
             communique, ou attendez qu’il vous invite depuis son espace.
           </p>
@@ -210,7 +207,7 @@ async function ProfessionalAccessSection({ professionalId }: { professionalId: s
               <li key={item.id}>
                 <Link
                   href={`/id/pro/objets/${item.asset_id}`}
-                  className="nid-panel flex items-center justify-between gap-3 rounded-2xl p-4 transition-colors hover:bg-muted/50"
+                  className="nid-panel flex items-center justify-between gap-3 rounded-lg p-4 transition-colors hover:bg-muted/50"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium text-foreground">
@@ -240,7 +237,7 @@ async function ProfessionalAccessSection({ professionalId }: { professionalId: s
             {waiting.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm"
               >
                 <span className="text-foreground">
                   {item.asset?.brand} {item.asset?.model}{" "}

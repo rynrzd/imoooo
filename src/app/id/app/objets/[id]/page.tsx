@@ -120,9 +120,9 @@ export default async function PassportPage({
       {/* ------------------------------------------------------------ */}
       {/*  En-tête                                                      */}
       {/* ------------------------------------------------------------ */}
-      <header className="nid-panel rounded-2xl p-5 sm:p-6">
+      <header className="nid-panel rounded-lg p-5 sm:p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-          <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
+          <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
             {detail.photo_url ? (
               <Image
                 src={detail.photo_url}
@@ -325,7 +325,7 @@ export default async function PassportPage({
 
           <section>
             <h2 className="text-sm font-semibold text-foreground">Caractéristiques</h2>
-            <dl className="mt-3 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+            <dl className="mt-3 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
               {[
                 { label: "Marque", value: asset.brand },
                 { label: "Modèle", value: asset.model },
@@ -349,7 +349,7 @@ export default async function PassportPage({
 
           <section>
             <h2 className="text-sm font-semibold text-foreground">Identifiants privés</h2>
-            <div className="mt-3 space-y-2 rounded-2xl border border-border bg-card p-4">
+            <div className="mt-3 space-y-2 rounded-lg border border-border bg-card p-4">
               <p className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">Numéro de série</span>
                 <span className="font-mono text-foreground">
@@ -376,7 +376,7 @@ export default async function PassportPage({
                 État déclaré
                 <SourceBadge source="declare_proprietaire" />
               </h2>
-              <div className="mt-3 rounded-2xl border border-border bg-card p-4">
+              <div className="mt-3 rounded-lg border border-border bg-card p-4">
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {conditionEntries.map((entry) => (
                     <li key={entry.label} className="flex items-center justify-between gap-3 text-sm">
@@ -405,7 +405,7 @@ export default async function PassportPage({
           ) : null}
 
           <section className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <p className="text-xs text-muted-foreground">Garantie</p>
               <p className="mt-1 text-sm font-medium text-foreground">
                 {warrantyEvent ? warrantyEvent.title : "Aucune garantie enregistrée"}
@@ -416,7 +416,7 @@ export default async function PassportPage({
                 </p>
               ) : null}
             </div>
-            <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="rounded-lg border border-border bg-card p-4">
               <p className="text-xs text-muted-foreground">Dernier contrôle professionnel</p>
               <p className="mt-1 text-sm font-medium text-foreground">
                 {lastProfessionalEvent
@@ -465,7 +465,7 @@ export default async function PassportPage({
       {tab === "historique" ? (
         <section>
           {events.length === 0 ? (
-            <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
               Aucun événement enregistré. Ajoutez une réparation, un contrôle
               d’état ou une garantie pour construire l’historique.
             </p>
@@ -477,7 +477,7 @@ export default async function PassportPage({
                 const partsOrigin = (event.metadata?.parts_origin as string | undefined) ?? "";
                 const warranty = event.metadata?.warranty_months as number | null | undefined;
                 return (
-                  <li key={event.id} className="nid-panel rounded-2xl p-5">
+                  <li key={event.id} className="nid-panel rounded-lg p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-foreground">{event.title}</h3>
                       {event.revoked_at ? (

@@ -35,7 +35,7 @@ export default async function CompanyImportPage({
       {allowed ? (
         <CsvImport workspaceId={id} />
       ) : (
-        <div className="nid-panel rounded-2xl p-5">
+        <div className="nid-panel rounded-lg p-5">
           <p className="text-sm text-foreground">
             L’import CSV est inclus à partir de l’offre Entreprise Équipe.
           </p>

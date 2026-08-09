@@ -30,7 +30,7 @@ export default async function InvitePage({
         <NidLogo href="/id" />
       </div>
 
-      <div className="nid-panel rounded-2xl p-6">
+      <div className="nid-panel rounded-lg p-6">
         <h1 className="text-xl font-semibold text-foreground">Rejoindre un espace Nireo ID</h1>
 
         {session ? (

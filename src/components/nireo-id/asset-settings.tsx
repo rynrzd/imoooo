@@ -130,7 +130,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={saveInfo} className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6">
+      <form onSubmit={saveInfo} className="nid-panel space-y-4 rounded-lg p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-foreground">Caractéristiques</h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -233,7 +233,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
         </Button>
       </form>
 
-      <section className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6">
+      <section className="nid-panel space-y-4 rounded-lg p-5 sm:p-6">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Aperçu public</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -291,7 +291,7 @@ export function AssetSettings({ asset }: { asset: AssetRow }) {
         </Button>
       </section>
 
-      <section className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6">
+      <section className="nid-panel space-y-4 rounded-lg p-5 sm:p-6">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Archivage et suppression</h2>
           <p className="mt-1 text-sm text-muted-foreground">

@@ -115,7 +115,7 @@ export function RepairPanel({
   };
 
   return (
-    <section className="nid-panel rounded-2xl p-5">
+    <section className="nid-panel rounded-lg p-5">
       <h2 className="font-medium text-foreground">Réparations</h2>
 
       {orders.length === 0 ? (

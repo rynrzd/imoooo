@@ -57,13 +57,13 @@ export default async function NireoIdActivityPage() {
       </header>
 
       {pending > 0 ? (
-        <section className="nid-panel rounded-2xl p-5">
+        <section className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">À traiter</h2>
           <ul className="mt-3 space-y-2">
             {checks.map((check) => (
               <li
                 key={check.request_id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4 text-sm"
               >
                 <span className="flex items-center gap-3 text-foreground">
                   <ClipboardCheck className="size-4 shrink-0 text-accent-foreground" aria-hidden />
@@ -77,7 +77,7 @@ export default async function NireoIdActivityPage() {
             {repairs.map((repair) => (
               <li
                 key={repair.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4 text-sm"
               >
                 <span className="flex items-center gap-3 text-foreground">
                   <Wrench className="size-4 shrink-0 text-accent-foreground" aria-hidden />
@@ -91,7 +91,7 @@ export default async function NireoIdActivityPage() {
             {incoming.map((transfer) => (
               <li
                 key={transfer.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4 text-sm"
               >
                 <span className="flex items-center gap-3 text-foreground">
                   <Inbox className="size-4 shrink-0 text-accent-foreground" aria-hidden />
@@ -106,7 +106,7 @@ export default async function NireoIdActivityPage() {
         </section>
       ) : null}
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">Derniers événements</h2>
         {recent.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">

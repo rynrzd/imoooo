@@ -27,7 +27,7 @@ export default async function CompanyMembersPage({
   // et les Server Actions appliquent la même règle.
   if (!canAdminister(context.role)) {
     return (
-      <div className="nid-panel rounded-2xl p-5">
+      <div className="nid-panel rounded-lg p-5">
         <h1 className="font-medium text-foreground">Accès réservé</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Seuls le propriétaire et les administrateurs de cet espace peuvent gérer les

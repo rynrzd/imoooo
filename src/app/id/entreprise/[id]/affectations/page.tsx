@@ -48,7 +48,7 @@ export default async function CompanyAssignmentsPage({
         canRunCampaign={canManage && planHasEntitlement(context.workspace.plan, "campagnes")}
       />
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">Historique des affectations</h2>
         {history.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">Aucune affectation terminée.</p>

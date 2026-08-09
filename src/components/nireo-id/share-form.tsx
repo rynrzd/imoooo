@@ -101,7 +101,7 @@ export function ShareForm({
   }
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-5 rounded-2xl p-5 sm:p-6">
+    <form onSubmit={submit} className="nid-panel space-y-5 rounded-lg p-5 sm:p-6">
       <div className="space-y-1.5">
         <Label htmlFor="share-label">Nom du lien (facultatif)</Label>
         <Input

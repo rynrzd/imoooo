@@ -61,13 +61,13 @@ export default async function AdminProfessionalsPage({
       </nav>
 
       {applications.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Aucune candidature{filter ? ` au statut « ${PRO_STATUS_LABELS[filter]} »` : ""}.
         </p>
       ) : (
         <ul className="space-y-3">
           {applications.map((application) => (
-            <li key={application.id} className="nid-panel rounded-2xl p-5">
+            <li key={application.id} className="nid-panel rounded-lg p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-[15px] font-semibold text-foreground">
@@ -106,7 +106,7 @@ export default async function AdminProfessionalsPage({
               </dl>
 
               {application.decision_reason ? (
-                <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+                <p className="mt-3 border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
                   Décision précédente : {application.decision_reason}
                   {application.decided_at ? ` (${formatDateTime(application.decided_at)})` : ""}
                 </p>

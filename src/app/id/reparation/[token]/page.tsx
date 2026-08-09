@@ -31,7 +31,7 @@ export default async function RepairLinkPage({
         <NidLogo href="/id" />
       </div>
 
-      <div className="nid-panel rounded-2xl p-6">
+      <div className="nid-panel rounded-lg p-6">
         <h1 className="text-xl font-semibold text-foreground">Une intervention vous est confiée</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Ce lien donne accès à une seule intervention, pendant une durée limitée. Vous ne voyez ni

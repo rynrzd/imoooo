@@ -572,44 +572,56 @@
 /* ================================================================== */
 /*  NIREO ID — second produit de la marque (scope « .nid »)            */
 /*                                                                    */
-/*  Design volontairement simple, clair et humain : fond blanc, bleu   */
-/*  principal, bordures fines, ombres discrètes. Aucune texture,       */
-/*  aucun néon, aucun dégradé décoratif, aucun rendu « futuriste ».    */
+/*  Direction : chaleureuse et humaine. Fond crème, encre presque      */
+/*  noire, un seul accent vert profond, typographie humaniste, filets  */
+/*  nets et AUCUNE ombre. Pas de carte flottante, pas de pastille      */
+/*  d'icône colorée, pas de dégradé : l'information porte la page.     */
 /*  Entièrement scopé : Nireo Immo n'est jamais affecté.               */
 /* ================================================================== */
 
 .nid {
-  --background: #f6f7f9;
-  --foreground: #172033;
-  --card: #ffffff;
-  --card-foreground: #172033;
-  --popover: #ffffff;
-  --popover-foreground: #172033;
+  /* Papier crème, encre chaude. */
+  --background: #faf7f2;
+  --foreground: #191713;
+  --card: #fffdfa;
+  --card-foreground: #191713;
+  --popover: #fffdfa;
+  --popover-foreground: #191713;
 
-  /* Bleu principal — texte blanc dessus (contraste AA vérifié). */
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
+  /* Accent unique : vert profond, texte crème dessus (contraste AA). */
+  --primary: #1f5c43;
+  --primary-foreground: #fffdfa;
 
-  --secondary: #eef1f5;
-  --secondary-foreground: #172033;
-  --muted: #eef1f5;
-  --muted-foreground: #5a6472;
-  --accent: #eaf1ff;
-  --accent-foreground: #1d4ed8;
-  --destructive: #b42318;
-  --border: #e3e7ec;
-  --input: #e3e7ec;
-  --ring: #2563eb;
+  --secondary: #f0ebe2;
+  --secondary-foreground: #191713;
+  --muted: #f2ede4;
+  --muted-foreground: #6b6459;
+  --accent: #eef2ec;
+  --accent-foreground: #1f5c43;
+  --destructive: #9c3324;
+  --border: #ded6c9;
+  --input: #ded6c9;
+  --ring: #1f5c43;
 
-  --radius: 0.875rem; /* 14 px — dans la fourchette 12 à 16 px */
+  --radius: 0.75rem;
 
-  /* États : vert de confirmation, orange et rouge d'avertissement. */
-  --nid-success: #2f8f5b;
-  --nid-warning: #b45309;
-  --nid-danger: #b42318;
-  --nid-info: #2563eb;
-  --nid-shadow: 0 1px 2px rgb(23 32 51 / 0.05);
+  /* États : jamais portés par la seule couleur, toujours écrits. */
+  --nid-success: #1f5c43;
+  --nid-warning: #8a5a12;
+  --nid-danger: #9c3324;
+  --nid-info: #3f5f7a;
 
+  /*
+   * Typographie humaniste, disponible sans téléchargement : Seravek sur
+   * macOS, Calibri sur Windows, Ubuntu ou DejaVu Sans sous Linux. Formes
+   * ouvertes et chaleureuses, très loin d'une grotesque d'interface.
+   */
+  --font-sans:
+    Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", source-sans-pro,
+    -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-sans);
+
+  font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
   /*
@@ -619,18 +631,36 @@
   color-scheme: light;
 }
 
-/* Surface principale : bordure fine, ombre très légère. */
+/* Bloc de contenu : filet net, aucune ombre, fond papier. */
 @utility nid-panel {
   background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: var(--nid-shadow);
+  box-shadow: none;
 }
 
-/* Bloc d'information secondaire (bleu très clair). */
+/*
+ * Bloc d'information secondaire : filet accentué à gauche, pas de pavé
+ * coloré. Le rembourrage reste à la charge de l'appelant (classes
+ * utilitaires) pour éviter tout conflit d'ordre CSS.
+ */
 @utility nid-note {
-  background: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  background: transparent;
+  border-left: 3px solid var(--primary);
+  border-radius: 0;
   color: var(--foreground);
+}
+
+/* Filet de section — sépare sans encadrer. */
+@utility nid-rule {
+  border-top: 1px solid var(--border);
+}
+
+/* Numéro d'étape : chiffre à l'encre, jamais une pastille colorée. */
+@utility nid-step {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
 }
 
 /* Cibles tactiles confortables : 44 px minimum sur mobile. */
@@ -648,15 +678,16 @@
   }
 }
 
-/* Champs de formulaire généreux, utilisables dès 320 px de large. */
+/* Champs : filet net sur fond papier, utilisables dès 320 px. */
 .nid input:not([type="checkbox"]):not([type="radio"]),
 .nid select,
 .nid textarea {
   min-height: 2.75rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   padding-inline: 0.75rem;
   font-size: 1rem;
   background: var(--card);
+  border-color: var(--border);
 }
 
 .nid textarea {
@@ -669,11 +700,16 @@
   outline-offset: 2px;
 }
 
-/* Titres compacts, jamais démesurés. */
+/* Titres : humanistes, serrés, jamais démesurés. */
 .nid h1,
-.nid h2 {
-  letter-spacing: -0.02em;
+.nid h2,
+.nid h3 {
+  letter-spacing: -0.012em;
   line-height: 1.15;
+}
+
+.nid h1 {
+  font-weight: 600;
 }
 
 /* Le tableau du parc défile horizontalement sans casser la page. */

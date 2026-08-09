@@ -11,7 +11,9 @@ import { SITE_URL } from "@/lib/supabase/config";
  * copiable — jamais « e-mail envoyé ».
  */
 
-const ACCENT = "#2563EB";
+const ACCENT = "#1F5C43";
+const PAPER = "#FAF7F2";
+const INK = "#191713";
 
 function esc(value: string | number): string {
   return String(value)
@@ -26,31 +28,36 @@ function escUrl(url: string): string {
   return /^https?:\/\//i.test(url) ? esc(url) : "#";
 }
 
+/**
+ * Gabarit d'e-mail Nireo ID — papier crème, encre chaude, un seul accent
+ * vert. Pile humaniste (Calibri / Seravek), aucune image, aucune ombre.
+ */
 function layout(title: string, body: string, cta?: { label: string; url: string }): string {
+  const font = "Seravek,'Gill Sans Nova',Calibri,'Segoe UI',Ubuntu,Arial,sans-serif";
   const button = cta
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0"><tr><td style="border-radius:12px;background:${ACCENT}">
-         <a href="${escUrl(cta.url)}" style="display:inline-block;padding:12px 22px;font:600 14px/1 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#04211d;text-decoration:none">${esc(cta.label)}</a>
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0"><tr><td style="border-radius:8px;background:${ACCENT}">
+         <a href="${escUrl(cta.url)}" style="display:inline-block;padding:12px 22px;font:600 15px/1 ${font};color:${PAPER};text-decoration:none">${esc(cta.label)}</a>
        </td></tr></table>`
     : "";
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title></head>
-<body style="margin:0;padding:0;background:#F6F8FB">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F8FB;padding:24px 12px">
+<body style="margin:0;padding:0;background:${PAPER}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER};padding:28px 12px">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #E3E8EF;border-radius:16px;overflow:hidden">
-        <tr><td style="padding:22px 28px;border-bottom:1px solid #EEF1F6">
-          <span style="vertical-align:middle;font:600 16px/1 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#0B1220">Nireo</span>
-          <span style="display:inline-block;vertical-align:middle;margin-left:7px;padding:3px 7px;border-radius:6px;background:#E6F7F4;color:#087F73;font:600 11px/1 Arial,sans-serif">ID</span>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFDFA;border:1px solid #DED6C9;border-radius:10px;overflow:hidden">
+        <tr><td style="padding:22px 28px;border-bottom:1px solid #DED6C9">
+          <span style="font:600 17px/1 ${font};color:${INK}">Nireo</span>
+          <span style="margin-left:7px;font:500 11px/1 ${font};letter-spacing:.16em;color:${ACCENT}">ID</span>
         </td></tr>
-        <tr><td style="padding:28px;font:400 14px/1.65 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#3D4A5C">
-          <h1 style="margin:0 0 14px;font-size:19px;line-height:1.35;color:#0B1220">${esc(title)}</h1>
+        <tr><td style="padding:28px;font:400 15px/1.65 ${font};color:#6B6459">
+          <h1 style="margin:0 0 14px;font:600 21px/1.25 ${font};color:${INK}">${esc(title)}</h1>
           ${body}
           ${button}
         </td></tr>
-        <tr><td style="padding:18px 28px;border-top:1px solid #EEF1F6;font:400 11px/1.7 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#667085">
+        <tr><td style="padding:18px 28px;border-top:1px solid #DED6C9;font:400 12px/1.7 ${font};color:#6B6459">
           Nireo ID — le suivi simple de votre téléphone.<br>
-          <a href="${SITE_URL}/confidentialite" style="color:#667085;text-decoration:underline">Confidentialité</a>
+          <a href="${SITE_URL}/confidentialite" style="color:#6B6459;text-decoration:underline">Confidentialité</a>
           &nbsp;·&nbsp;
-          <a href="${SITE_URL}/cgu" style="color:#667085;text-decoration:underline">CGU</a>
+          <a href="${SITE_URL}/cgu" style="color:#6B6459;text-decoration:underline">CGU</a>
         </td></tr>
       </table>
     </td></tr>
@@ -80,7 +87,7 @@ export async function notifyTransferInvitation(options: {
           explicitement transmis.</p>
          <p style="margin:0 0 12px">Vous devez être connecté avec <strong>cette adresse e-mail</strong>
           pour accepter. La demande expire le ${esc(options.expiresLabel)}.</p>
-         <p style="margin:0;color:#667085;font-size:13px">Si vous n'attendiez pas ce transfert, ignorez ce message :
+         <p style="margin:0;color:#6B6459;font-size:13px">Si vous n'attendiez pas ce transfert, ignorez ce message :
           rien ne sera transféré sans votre acceptation.</p>`,
         { label: "Voir la demande de transfert", url: options.url }
       ),
@@ -107,7 +114,7 @@ export async function notifyProfessionalInvitation(options: {
         "Accès à un téléphone Nireo ID",
         `<p style="margin:0 0 12px">Un client vous autorise à consulter le téléphone d'un
           <strong>${esc(options.deviceLabel)}</strong> et à y enregistrer votre intervention.</p>
-         <p style="margin:0;color:#667085;font-size:13px">Cet accès est limité dans le temps et
+         <p style="margin:0;color:#6B6459;font-size:13px">Cet accès est limité dans le temps et
           révocable à tout moment par le propriétaire.</p>`,
         { label: "Ouvrir l'espace professionnel", url: options.url }
       ),
@@ -163,7 +170,7 @@ export async function notifyCheckRequest(options: {
          <p style="margin:0 0 16px">Depuis votre dernier bilan, tout fonctionne normalement sur votre
           <strong>${esc(options.deviceLabel)}</strong> ?</p>
          ${list}
-         <p style="margin:16px 0 0;color:#667085;font-size:13px">Ce lien est personnel et limité à ce téléphone.
+         <p style="margin:16px 0 0;color:#6B6459;font-size:13px">Ce lien est personnel et limité à ce téléphone.
           Il expire automatiquement.</p>`,
         { label: "Répondre au bilan", url: options.url }
       ),
@@ -190,7 +197,7 @@ export async function notifyWorkspaceInvitation(options: {
         "Vous êtes invité à rejoindre un espace",
         `<p style="margin:0 0 12px"><strong>${esc(options.workspaceName)}</strong> vous invite à rejoindre
           son espace Nireo ID.</p>
-         <p style="margin:0;color:#667085;font-size:13px">Vous devez accepter avec cette adresse e-mail.
+         <p style="margin:0;color:#6B6459;font-size:13px">Vous devez accepter avec cette adresse e-mail.
           L'invitation expire automatiquement.</p>`,
         { label: "Accepter l'invitation", url: options.url }
       ),
@@ -217,7 +224,7 @@ export async function notifyRepairInvitation(options: {
         "Une intervention vous est confiée",
         `<p style="margin:0 0 12px">Un client vous confie la réparation d'un
           <strong>${esc(options.deviceLabel)}</strong> et vous autorise à compléter son historique.</p>
-         <p style="margin:0;color:#667085;font-size:13px">Cet accès est limité à cette intervention
+         <p style="margin:0;color:#6B6459;font-size:13px">Cet accès est limité à cette intervention
           et expire automatiquement.</p>`,
         { label: "Ouvrir l'intervention", url: options.url }
       ),
@@ -271,7 +278,7 @@ export async function notifyRepairValidated(options: {
         "Intervention validée",
         `<p style="margin:0 0 12px">Le client a validé votre intervention sur un
           <strong>${esc(options.deviceLabel)}</strong>.</p>
-         <p style="margin:0;color:#667085;font-size:13px">${
+         <p style="margin:0;color:#6B6459;font-size:13px">${
            options.attested
              ? "Elle apparaît comme « Attestée par un réparateur » dans l'historique."
              : "Elle apparaît comme « Intervention déclarée par l'atelier » : faites approuver votre identité professionnelle pour qu'elle soit attestée."
@@ -304,7 +311,7 @@ export async function notifyProblemDeclared(options: {
           <strong>${esc(options.deviceLabel)}</strong>.</p>
          ${
            options.comment
-             ? `<p style="margin:0 0 12px;padding:12px 14px;background:#F6F7F9;border-radius:10px">${esc(options.comment)}</p>`
+             ? `<p style="margin:0 0 12px;padding:12px 14px;background:#F2EDE4;border-radius:8px">${esc(options.comment)}</p>`
              : ""
          }`,
         { label: "Voir le téléphone", url: options.url }
@@ -336,7 +343,7 @@ export async function notifyProfessionalDecision(options: {
       html: layout(
         titles[options.decision],
         `<p style="margin:0 0 12px">Motif communiqué par l'équipe Nireo :</p>
-         <p style="margin:0 0 12px;padding:12px 14px;background:#F6F8FB;border-radius:10px">${esc(options.reason)}</p>`,
+         <p style="margin:0 0 12px;padding:12px 14px;background:#F2EDE4;border-radius:8px">${esc(options.reason)}</p>`,
         options.decision === "approuve"
           ? { label: "Ouvrir l'espace professionnel", url: `${SITE_URL}/id/pro` }
           : undefined

@@ -50,7 +50,7 @@ export function AssetList({ items }: { items: AssetListItem[] }) {
       ) : null}
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Aucun téléphone ne correspond à « {query} ».
         </p>
       ) : (
@@ -59,7 +59,7 @@ export function AssetList({ items }: { items: AssetListItem[] }) {
             <li key={item.id}>
               <Link
                 href={`/id/app/objets/${item.id}`}
-                className="nid-panel flex items-center gap-4 rounded-2xl p-4 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="nid-panel flex items-center gap-4 rounded-lg p-4 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-muted">
                   {item.photo_url ? (

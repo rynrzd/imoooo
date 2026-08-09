@@ -68,14 +68,14 @@ export function AccessManager({
         <h3 className="text-sm font-semibold text-foreground">Liens de partage</h3>
 
         {activeShares.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
             Aucun lien actif. Un lien de partage donne accès aux sections que
             vous choisissez, pour 24 h, 7 ou 30 jours, et reste révocable.
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
             {activeShares.map((share) => (
-              <li key={share.id} className="nid-panel rounded-2xl p-4">
+              <li key={share.id} className="nid-panel rounded-lg p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
@@ -149,14 +149,14 @@ export function AccessManager({
         <h3 className="text-sm font-semibold text-foreground">Accès professionnels</h3>
 
         {access.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
             Aucun professionnel n’a accès à ce téléphone. Un réparateur ne peut
             jamais y accéder sans votre autorisation explicite.
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
             {access.map((item) => (
-              <li key={item.id} className="nid-panel rounded-2xl p-4">
+              <li key={item.id} className="nid-panel rounded-lg p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -225,7 +225,7 @@ export function AccessManager({
         )}
 
         {canEdit ? (
-          <div className="nid-panel mt-4 space-y-3 rounded-2xl p-4">
+          <div className="nid-panel mt-4 space-y-3 rounded-lg p-4">
             <h4 className="text-sm font-semibold text-foreground">
               Inviter un réparateur approuvé
             </h4>
@@ -284,7 +284,7 @@ export function ShareResultCard({ url, expiresAt }: { url: string; expiresAt: st
   };
 
   return (
-    <div className="nid-panel space-y-3 rounded-2xl p-4">
+    <div className="nid-panel space-y-3 rounded-lg p-4">
       <p className="text-sm font-medium text-foreground">Lien créé</p>
       <p className="text-xs text-muted-foreground">
         Ce lien n’est affiché qu’une seule fois : Nireo n’en conserve que

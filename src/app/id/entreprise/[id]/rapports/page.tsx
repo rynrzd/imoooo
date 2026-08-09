@@ -66,7 +66,7 @@ export default async function CompanyReportsPage({
       </header>
 
       {/* État du parc */}
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-foreground">État du parc ({fleet.length})</h2>
           {canExport ? (
@@ -136,7 +136,7 @@ export default async function CompanyReportsPage({
       </section>
 
       {/* Sans bilan récent */}
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           Téléphones sans bilan récent ({noRecentCheck.length})
         </h2>
@@ -161,7 +161,7 @@ export default async function CompanyReportsPage({
       </section>
 
       {/* Réparations et coûts */}
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-foreground">
             Réparations et coûts ({finished.length}) — {formatMoneyFromCents(totalCost) || "0 €"}
@@ -201,7 +201,7 @@ export default async function CompanyReportsPage({
       </section>
 
       {/* Garanties */}
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           Garanties proches de la fin ({warrantyEnding.length})
         </h2>
@@ -226,7 +226,7 @@ export default async function CompanyReportsPage({
       </section>
 
       {/* Historique d'affectation */}
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-medium text-foreground">
             Historique d’affectation ({assignments.length})

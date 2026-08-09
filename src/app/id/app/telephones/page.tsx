@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, Smartphone } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AssetList } from "@/components/nireo-id/asset-list";
 import { listAssets } from "@/features/nireo-id/server/assets";
@@ -34,11 +34,8 @@ export default async function NireoIdPhonesPage() {
       </header>
 
       {assets.length === 0 ? (
-        <section className="nid-panel rounded-2xl px-6 py-12 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
-            <Smartphone className="size-7" aria-hidden />
-          </span>
-          <h2 className="mt-5 text-lg font-semibold text-foreground">
+        <section className="nid-panel rounded-lg px-6 py-12 text-center">
+          <h2 className="text-lg font-semibold text-foreground">
             Ajoutez votre premier téléphone
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">

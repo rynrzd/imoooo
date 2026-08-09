@@ -85,7 +85,7 @@ export function CsvImport({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="nid-panel rounded-2xl p-5">
+      <div className="nid-panel rounded-lg p-5">
         <Label htmlFor="csv-file">Fichier CSV</Label>
         <input
           id="csv-file"
@@ -121,7 +121,7 @@ export function CsvImport({ workspaceId }: { workspaceId: string }) {
       </div>
 
       {preview ? (
-        <div className="nid-panel rounded-2xl p-5">
+        <div className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">Aperçu de l’import</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {preview.valid} ligne{preview.valid > 1 ? "s" : ""} valide
@@ -191,7 +191,7 @@ export function CsvImport({ workspaceId }: { workspaceId: string }) {
       ) : null}
 
       {result ? (
-        <div className="nid-panel rounded-2xl p-5">
+        <div className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">Import terminé</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {result.created} téléphone{result.created > 1 ? "s" : ""} ajouté

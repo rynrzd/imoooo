@@ -82,7 +82,7 @@ export function TransferForm({
 
   if (created) {
     return (
-      <div className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6">
+      <div className="nid-panel space-y-4 rounded-lg p-5 sm:p-6">
         <h2 className="text-base font-semibold text-foreground">Transfert ouvert</h2>
 
         {created.email_sent ? (
@@ -124,7 +124,7 @@ export function TransferForm({
   }
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-5 rounded-2xl p-5 sm:p-6">
+    <form onSubmit={submit} className="nid-panel space-y-5 rounded-lg p-5 sm:p-6">
       <div className="space-y-1.5">
         <Label htmlFor="recipient">Adresse e-mail de l’acheteur</Label>
         <Input

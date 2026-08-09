@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, Smartphone } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TransferDecision } from "@/components/nireo-id/transfer-decision";
 import { TRANSFER_STATUS_LABELS } from "@/features/nireo-id/constants";
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 
 function Message({ title, text }: { title: string; text: string }) {
   return (
-    <div className="nid-panel rounded-2xl p-6 text-center">
-      <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+    <div className="nid-panel rounded-lg p-6 text-center">
+      <span className="mx-auto grid size-12 place-items-center rounded-lg bg-muted text-muted-foreground">
         <AlertTriangle className="size-6" aria-hidden />
       </span>
       <h1 className="mt-4 text-xl font-semibold text-foreground">{title}</h1>
@@ -92,11 +92,9 @@ export default async function TransferInvitationPage({
         </Link>
       </p>
 
-      <div className="nid-panel rounded-2xl p-5 sm:p-6">
+      <div className="nid-panel rounded-lg p-5 sm:p-6">
         <div className="flex items-center gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-accent text-accent-foreground">
-            <Smartphone className="size-6" aria-hidden />
-          </span>
+          <span className="hidden" aria-hidden />
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">
               {transfer.asset_summary.brand} {transfer.asset_summary.model}

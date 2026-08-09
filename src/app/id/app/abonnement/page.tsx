@@ -27,7 +27,7 @@ export default async function SubscriptionPage({
 
   if (!active) {
     return (
-      <div className="nid-panel rounded-2xl p-5">
+      <div className="nid-panel rounded-lg p-5">
         <h1 className="font-medium text-foreground">Abonnement</h1>
         <p className="mt-2 text-sm text-muted-foreground">Aucun espace actif.</p>
       </div>
@@ -62,18 +62,18 @@ export default async function SubscriptionPage({
       </header>
 
       {paiement === "ok" ? (
-        <p className="nid-note rounded-2xl p-4 text-sm">
+        <p className="nid-note rounded-lg p-4 text-sm">
           Paiement transmis à Stripe. Votre offre sera mise à jour dès la confirmation du
           paiement — cette page reflétera alors le nouveau plan.
         </p>
       ) : null}
       {paiement === "annule" ? (
-        <p className="nid-note rounded-2xl p-4 text-sm">
+        <p className="nid-note rounded-lg p-4 text-sm">
           Paiement annulé. Rien n’a été débité et votre offre est inchangée.
         </p>
       ) : null}
       {active.workspace.plan_status === "impaye" ? (
-        <p className="rounded-2xl border border-[color-mix(in_srgb,var(--nid-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--nid-warning)_10%,transparent)] p-4 text-sm text-foreground">
+        <p className="rounded-lg border border-[color-mix(in_srgb,var(--nid-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--nid-warning)_10%,transparent)] p-4 text-sm text-foreground">
           Un paiement n’a pas abouti. Régularisez depuis votre espace de facturation Stripe pour
           conserver l’offre en cours.
         </p>

@@ -59,7 +59,7 @@ export default async function NidSettingsPage() {
         </p>
       </header>
 
-      <section className="nid-panel space-y-3 rounded-2xl p-5">
+      <section className="nid-panel space-y-3 rounded-lg p-5">
         <h2 className="text-sm font-semibold text-foreground">Compte</h2>
         <p className="text-sm text-muted-foreground">
           Connecté avec <span className="font-medium text-foreground">{session.email}</span>
@@ -70,7 +70,7 @@ export default async function NidSettingsPage() {
         </Button>
       </section>
 
-      <section className="nid-panel space-y-4 rounded-2xl p-5">
+      <section className="nid-panel space-y-4 rounded-lg p-5">
         <h2 className="text-sm font-semibold text-foreground">Mes données Nireo ID</h2>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
@@ -98,7 +98,7 @@ export default async function NidSettingsPage() {
         </p>
       </section>
 
-      <section className="nid-panel space-y-3 rounded-2xl p-5">
+      <section className="nid-panel space-y-3 rounded-lg p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <Wrench className="size-4 text-primary" aria-hidden />
           Compte professionnel
@@ -112,7 +112,7 @@ export default async function NidSettingsPage() {
               </span>
             </p>
             {professional.decision_reason ? (
-              <p className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+              <p className="border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
                 {professional.decision_reason}
               </p>
             ) : null}
@@ -135,7 +135,7 @@ export default async function NidSettingsPage() {
       </section>
 
       {admin ? (
-        <section className="nid-panel space-y-3 rounded-2xl p-5">
+        <section className="nid-panel space-y-3 rounded-lg p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <ShieldCheck className="size-4 text-primary" aria-hidden />
             Administration Nireo ID
@@ -150,7 +150,7 @@ export default async function NidSettingsPage() {
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Ce que Nireo ID ne fait pas</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li>· Aucune vérification qu’un appareil est déclaré volé.</li>

@@ -70,8 +70,8 @@ function StateCard({
 }) {
   return (
     <Shell>
-      <div className="nid-panel rounded-2xl p-8 text-center">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+      <div className="nid-panel rounded-lg p-8 text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg bg-muted text-muted-foreground">
           <Icon className="size-6" aria-hidden />
         </span>
         <h1 className="mt-4 text-xl font-semibold text-foreground">{title}</h1>
@@ -144,7 +144,7 @@ export default async function SharedPassportPage({
 
   return (
     <Shell>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Lock className="size-4 text-primary" aria-hidden />
           Dossier partagé par le propriétaire
@@ -161,8 +161,8 @@ export default async function SharedPassportPage({
         les personnes qui ont utilisé le téléphone.
       </p>
 
-      <header className="nid-panel mt-4 flex flex-col gap-5 rounded-2xl p-6 sm:flex-row sm:items-center">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
+      <header className="nid-panel mt-4 flex flex-col gap-5 rounded-lg p-6 sm:flex-row sm:items-center">
+        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
           {coverUrl ? (
             <Image
               src={coverUrl}
@@ -190,7 +190,7 @@ export default async function SharedPassportPage({
       {showCharacteristics ? (
         <section className="mt-6">
           <h2 className="text-lg font-semibold text-foreground">Caractéristiques</h2>
-          <dl className="mt-3 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+          <dl className="mt-3 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
             {[
               { label: "Couleur", value: asset.color || "—" },
               { label: "Stockage", value: asset.storage_capacity || "—" },
@@ -211,7 +211,7 @@ export default async function SharedPassportPage({
           </dl>
 
           {conditionEntries.length > 0 ? (
-            <div className="mt-3 rounded-2xl border border-border bg-card p-4">
+            <div className="mt-3 rounded-lg border border-border bg-card p-4">
               <p className="text-xs font-medium text-muted-foreground">
                 État déclaré par le propriétaire
               </p>
@@ -245,7 +245,7 @@ export default async function SharedPassportPage({
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-foreground">Historique</h2>
           {events.length === 0 ? (
-            <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
               Aucun événement n’a encore été enregistré sur ce téléphone.
             </p>
           ) : (
@@ -253,7 +253,7 @@ export default async function SharedPassportPage({
               {events.map((event) => {
                 const cost = formatMoneyFromCents(event.cost_cents);
                 return (
-                  <li key={event.id} className="nid-panel rounded-2xl p-5">
+                  <li key={event.id} className="nid-panel rounded-lg p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-[15px] font-semibold text-foreground">{event.title}</h3>
                       {event.revoked_at ? (
@@ -287,7 +287,7 @@ export default async function SharedPassportPage({
             </ol>
           )}
 
-          <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+          <div className="mt-4 rounded-lg border border-border bg-card p-4">
             <p className="text-sm font-medium text-foreground">Provenance des informations</p>
             <SourceLegend className="mt-3" />
             <p className="mt-3 text-xs text-muted-foreground">
@@ -302,7 +302,7 @@ export default async function SharedPassportPage({
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-foreground">Photos</h2>
           {media.length === 0 ? (
-            <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
               Aucune photo n’a été ajoutée à ce téléphone.
             </p>
           ) : (
@@ -313,7 +313,7 @@ export default async function SharedPassportPage({
                 return (
                   <li
                     key={item.id}
-                    className="overflow-hidden rounded-2xl border border-border bg-muted"
+                    className="overflow-hidden rounded-lg border border-border bg-muted"
                   >
                     <Image
                       src={url}
@@ -335,7 +335,7 @@ export default async function SharedPassportPage({
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-foreground">Documents</h2>
           {documents.length === 0 ? (
-            <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+            <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
               Le propriétaire n’a partagé aucun document.
             </p>
           ) : (
@@ -345,7 +345,7 @@ export default async function SharedPassportPage({
                 return (
                   <li
                     key={document.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
                   >
                     <span className="flex min-w-0 items-center gap-3">
                       <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -380,7 +380,7 @@ export default async function SharedPassportPage({
         </section>
       ) : null}
 
-      <p className="mt-8 rounded-2xl border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
+      <p className="mt-8 rounded-lg border border-border bg-card p-5 text-xs leading-relaxed text-muted-foreground">
         Ce dossier est partagé par le propriétaire actuel du téléphone. Nireo ne
         certifie pas l’authenticité des documents fournis et ne réalise aucun
         contrôle d’appareil déclaré volé. Le lien peut être révoqué à tout

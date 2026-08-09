@@ -57,7 +57,7 @@ export function SubscriptionPanel({
           <li
             key={plan.id}
             className={cn(
-              "nid-panel flex flex-col rounded-2xl p-5",
+              "nid-panel flex flex-col rounded-lg p-5",
               current ? "border-primary" : ""
             )}
           >

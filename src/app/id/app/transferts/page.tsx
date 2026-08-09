@@ -39,7 +39,7 @@ export default async function TransfersPage() {
         </h2>
 
         {pendingReceived.length === 0 && historyReceived.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
             Aucun transfert reçu. Lorsqu’un vendeur vous transmet un téléphone,
             il apparaît ici — et vous recevez un e-mail si le service d’envoi
             est configuré.
@@ -49,7 +49,7 @@ export default async function TransfersPage() {
         {pendingReceived.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {pendingReceived.map((transfer) => (
-              <li key={transfer.id} className="nid-panel rounded-2xl p-5">
+              <li key={transfer.id} className="nid-panel rounded-lg p-5">
                 <p className="text-[15px] font-semibold text-foreground">
                   {transfer.asset_summary.brand} {transfer.asset_summary.model}
                 </p>
@@ -74,7 +74,7 @@ export default async function TransfersPage() {
             {historyReceived.map((transfer) => (
               <li
                 key={transfer.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-foreground">
@@ -98,7 +98,7 @@ export default async function TransfersPage() {
         </h2>
 
         {sent.length === 0 ? (
-          <div className="mt-3 rounded-2xl border border-border bg-card p-5">
+          <div className="mt-3 rounded-lg border border-border bg-card p-5">
             <p className="text-sm text-muted-foreground">
               Vous n’avez encore transmis aucun téléphone. Le transfert
               s’ouvre depuis la fiche d’un téléphone.
@@ -111,7 +111,7 @@ export default async function TransfersPage() {
         ) : (
           <ul className="mt-3 space-y-2">
             {sent.map((transfer) => (
-              <li key={transfer.id} className="nid-panel rounded-2xl p-4">
+              <li key={transfer.id} className="nid-panel rounded-lg p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
@@ -141,7 +141,7 @@ export default async function TransfersPage() {
                 </div>
 
                 {transfer.status === "accepte" ? (
-                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  <p className="mt-3 border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
                     Reçu de transfert — vous n’êtes plus propriétaire de ce
                     téléphone et vous n’avez pas accès aux données ajoutées
                     depuis par son nouveau propriétaire.

@@ -110,7 +110,7 @@ export function InterventionForm({ assetId }: { assetId: string }) {
   };
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6" noValidate>
+    <form onSubmit={submit} className="nid-panel space-y-4 rounded-lg p-5 sm:p-6" noValidate>
       <h2 className="text-sm font-semibold text-foreground">Enregistrer une intervention</h2>
 
       <div className="grid gap-4 sm:grid-cols-2">

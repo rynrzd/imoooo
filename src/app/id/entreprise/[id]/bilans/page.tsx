@@ -46,7 +46,7 @@ export default async function CompanyChecksPage({
         </p>
       </header>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           En retard <span className="text-muted-foreground">({board.overdue.length})</span>
         </h2>
@@ -70,7 +70,7 @@ export default async function CompanyChecksPage({
         )}
       </section>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           Envoyés, en attente de réponse{" "}
           <span className="text-muted-foreground">({board.upcoming.length})</span>
@@ -95,7 +95,7 @@ export default async function CompanyChecksPage({
         )}
       </section>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           Problèmes déclarés <span className="text-muted-foreground">({board.problems.length})</span>
         </h2>
@@ -125,7 +125,7 @@ export default async function CompanyChecksPage({
         )}
       </section>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">
           Réponses reçues <span className="text-muted-foreground">({board.answered.length})</span>
         </h2>
@@ -149,7 +149,7 @@ export default async function CompanyChecksPage({
       </section>
 
       {campaigns.length > 0 ? (
-        <section className="nid-panel rounded-2xl p-5">
+        <section className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">Campagnes</h2>
           <ul className="mt-3 divide-y divide-border text-sm">
             {campaigns.map((campaign) => (

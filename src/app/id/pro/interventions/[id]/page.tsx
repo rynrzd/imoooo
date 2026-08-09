@@ -50,7 +50,7 @@ export default async function InterventionPage({
         </Link>
       </p>
 
-      <header className="nid-panel rounded-2xl p-5">
+      <header className="nid-panel rounded-lg p-5">
         <h1 className="text-xl font-semibold text-foreground">{order.device}</h1>
         <p className="mt-1 font-mono text-xs text-muted-foreground">{order.public_id}</p>
         <p className="mt-3 text-sm text-foreground">
@@ -75,7 +75,7 @@ export default async function InterventionPage({
       </header>
 
       {order.status === "termine" ? (
-        <section className="nid-panel rounded-2xl p-5">
+        <section className="nid-panel rounded-lg p-5">
           <h2 className="font-medium text-foreground">Intervention validée par le client</h2>
           <dl className="mt-3 space-y-1 text-sm">
             <div className="flex gap-2">
@@ -95,11 +95,11 @@ export default async function InterventionPage({
           </dl>
         </section>
       ) : expired ? (
-        <p className="nid-panel rounded-2xl p-5 text-sm text-muted-foreground">
+        <p className="nid-panel rounded-lg p-5 text-sm text-muted-foreground">
           Cet accès a expiré. Demandez au client un nouveau lien pour compléter l’intervention.
         </p>
       ) : order.status === "en_attente_validation" ? (
-        <p className="nid-panel rounded-2xl p-5 text-sm text-muted-foreground">
+        <p className="nid-panel rounded-lg p-5 text-sm text-muted-foreground">
           Intervention transmise. Le client doit la valider avant qu’elle rejoigne l’historique du
           téléphone. Vous pouvez encore la corriger tant qu’elle n’est pas validée.
         </p>

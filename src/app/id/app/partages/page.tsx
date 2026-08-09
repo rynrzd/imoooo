@@ -67,14 +67,14 @@ export default async function SharesPage() {
         </h2>
 
         {active.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
             Aucun lien actif. Vos téléphones ne sont consultables par personne
             en dehors de leur aperçu public minimal.
           </p>
         ) : (
           <ul className="mt-3 space-y-2">
             {active.map((share) => (
-              <li key={share.id} className="nid-panel rounded-2xl p-4">
+              <li key={share.id} className="nid-panel rounded-lg p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">

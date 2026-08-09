@@ -57,14 +57,14 @@ export default async function CompanyOverviewPage({
 
       <section aria-label="Indicateurs" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="nid-panel rounded-2xl p-4">
+          <div key={stat.label} className="nid-panel rounded-lg p-4">
             <p className="text-sm text-muted-foreground">{stat.label}</p>
             <p className="mt-1 text-2xl font-semibold text-foreground tabular-nums">{stat.value}</p>
           </div>
         ))}
       </section>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="font-medium text-foreground">Actions demandant votre attention</h2>
 
         {toValidate.length === 0 &&
@@ -77,7 +77,7 @@ export default async function CompanyOverviewPage({
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
             {toValidate.length > 0 ? (
-              <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3">
+              <li className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4">
                 <span className="text-foreground">
                   {toValidate.length} intervention{toValidate.length > 1 ? "s" : ""} en attente de
                   validation
@@ -89,7 +89,7 @@ export default async function CompanyOverviewPage({
             ) : null}
 
             {board.overdue.length > 0 ? (
-              <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3">
+              <li className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4">
                 <span className="text-foreground">
                   {board.overdue.length} bilan{board.overdue.length > 1 ? "s" : ""} en retard
                 </span>
@@ -100,7 +100,7 @@ export default async function CompanyOverviewPage({
             ) : null}
 
             {summary.problems > 0 ? (
-              <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3">
+              <li className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4">
                 <span className="text-foreground">
                   {summary.problems} téléphone{summary.problems > 1 ? "s" : ""} avec un problème
                   déclaré
@@ -112,7 +112,7 @@ export default async function CompanyOverviewPage({
             ) : null}
 
             {unassigned.length > 0 ? (
-              <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3">
+              <li className="flex flex-wrap items-center justify-between gap-3 border-l-2 border-primary py-2.5 pl-4">
                 <span className="text-foreground">
                   {unassigned.length} téléphone{unassigned.length > 1 ? "s" : ""} en stock, sans
                   détenteur
@@ -127,7 +127,7 @@ export default async function CompanyOverviewPage({
       </section>
 
       {summary.warranty_soon > 0 ? (
-        <p className="nid-note rounded-2xl p-4 text-sm">
+        <p className="nid-note rounded-lg p-4 text-sm">
           {summary.warranty_soon} garantie{summary.warranty_soon > 1 ? "s" : ""} arrive
           {summary.warranty_soon > 1 ? "nt" : ""} à échéance dans moins de 60 jours —{" "}
           <Link href={`/id/entreprise/${id}/rapports`} className="underline underline-offset-2">

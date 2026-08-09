@@ -37,7 +37,7 @@ export default async function ProfessionalApplicationPage() {
       </header>
 
       {profile ? (
-        <p className="rounded-2xl border border-border bg-card p-4 text-sm">
+        <p className="rounded-lg border border-border bg-card p-4 text-sm">
           <span className="text-muted-foreground">Statut actuel : </span>
           <span className="font-medium text-foreground">
             {PRO_STATUS_LABELS[profile.status]}
@@ -49,7 +49,7 @@ export default async function ProfessionalApplicationPage() {
       ) : null}
 
       {locked ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Votre compte professionnel est {PRO_STATUS_LABELS[profile.status].toLowerCase()} :
           il n’est plus modifiable ici. Contactez l’équipe Nireo pour toute
           mise à jour de vos informations.

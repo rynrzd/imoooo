@@ -41,8 +41,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 function NotFoundState({ publicId }: { publicId: string }) {
   return (
     <Shell>
-      <div className="nid-panel rounded-2xl p-8 text-center">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+      <div className="nid-panel rounded-lg p-8 text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg bg-muted text-muted-foreground">
           <SearchX className="size-6" aria-hidden />
         </span>
         <h1 className="mt-4 text-xl font-semibold text-foreground">Aucun téléphone trouvé</h1>
@@ -81,9 +81,9 @@ export default async function PublicPassportPage({
 
   return (
     <Shell>
-      <div className="nid-panel overflow-hidden rounded-2xl">
+      <div className="nid-panel overflow-hidden rounded-lg">
         <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
-          <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
+          <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
             {photoUrl ? (
               <Image
                 src={photoUrl}
@@ -160,7 +160,7 @@ export default async function PublicPassportPage({
         </p>
       ) : null}
 
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-border bg-card p-5">
+      <div className="mt-6 flex items-start gap-3 rounded-lg border border-border bg-card p-5">
         <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
         <div className="text-sm leading-relaxed text-muted-foreground">
           <p>

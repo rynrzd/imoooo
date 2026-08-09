@@ -278,10 +278,8 @@ export function CreateWizard({
   if (created) {
     return (
       <div className="space-y-6">
-        <div className="nid-panel rounded-2xl p-6 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent">
-            <Check className="size-6 text-[var(--nid-success)]" aria-hidden />
-          </span>
+        <div className="nid-panel rounded-lg p-6 text-center">
+          <Check className="mx-auto size-7 text-[var(--nid-success)]" aria-hidden />
           <h1 className="mt-4 text-xl font-semibold text-foreground">
             Votre téléphone a bien été ajouté.
           </h1>
@@ -290,7 +288,7 @@ export function CreateWizard({
             <span className="font-mono">{created.public_id}</span>
           </p>
           {created.next_check_on ? (
-            <p className="mt-3 rounded-xl bg-accent px-4 py-2 text-sm text-accent-foreground">
+            <p className="mt-3 border-l-2 border-primary py-2 pl-4 text-sm text-foreground">
               Premier bilan prévu le{" "}
               {new Date(`${created.next_check_on}T00:00:00`).toLocaleDateString("fr-FR")}
             </p>
@@ -337,7 +335,7 @@ export function CreateWizard({
         <p className="mt-2 text-sm font-medium text-foreground">{STEPS[step].title}</p>
       </div>
 
-      <div className="nid-panel rounded-2xl p-5 sm:p-6">
+      <div className="nid-panel rounded-lg p-5 sm:p-6">
         {/* ---------------- Étape 1 : méthode ---------------- */}
         {step === 0 ? (
           <fieldset className="space-y-4">
@@ -423,7 +421,7 @@ export function CreateWizard({
         {step === 1 ? (
           <fieldset className="space-y-4">
             <legend className="sr-only">Identité de l’appareil</legend>
-            <p className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+            <p className="border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
               Catégorie : <strong className="text-foreground">téléphone</strong> — seule
               catégorie disponible aujourd’hui.
             </p>
@@ -607,7 +605,7 @@ export function CreateWizard({
         {step === 2 ? (
           <fieldset className="space-y-5">
             <legend className="sr-only">État déclaré</legend>
-            <p className="rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+            <p className="border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
               Tout ce que vous saisissez ici sera marqué{" "}
               <strong className="text-foreground">« Déclaré par le propriétaire »</strong>.
             </p>
@@ -722,12 +720,12 @@ export function CreateWizard({
           <div className="space-y-5">
             <h2 className="text-base font-semibold text-foreground">Vérification</h2>
             {workspaceName ? (
-              <p className="rounded-xl bg-accent px-3 py-2 text-xs text-accent-foreground">
+              <p className="border-l-2 border-border py-1.5 pl-3 text-xs text-muted-foreground">
                 Ce téléphone sera enregistré dans l’espace{" "}
                 <strong>{workspaceName}</strong>.
               </p>
             ) : null}
-            <dl className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+            <dl className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
               <Summary label="Appareil" value={`${draft.brand} ${draft.model}`.trim() || "—"} />
               <Summary
                 label="Couleur / stockage"

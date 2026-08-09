@@ -41,7 +41,7 @@ export default async function QrPrintPage({ params }: { params: Promise<{ id: st
         <PrintButton label="Imprimer l’étiquette" />
       </div>
 
-      <article className="mx-auto w-full max-w-md rounded-2xl border border-border bg-white p-8 text-center text-[#0B1220] print:border-0 print:p-0 print:shadow-none">
+      <article className="mx-auto w-full max-w-md rounded-lg border border-border bg-white p-8 text-center text-[#0B1220] print:border-0 print:p-0 print:shadow-none">
         <p className="text-sm font-semibold tracking-tight">
           Nireo <span className="rounded bg-[#E6F7F4] px-1.5 py-0.5 text-[11px] text-[#087F73]">ID</span>
         </p>

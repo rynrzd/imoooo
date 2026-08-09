@@ -97,7 +97,7 @@ export function EventForm({ assetId }: { assetId: string }) {
   };
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-4 rounded-2xl p-5 sm:p-6" noValidate>
+    <form onSubmit={submit} className="nid-panel space-y-4 rounded-lg p-5 sm:p-6" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="event-type">Type d’événement</Label>

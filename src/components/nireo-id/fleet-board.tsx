@@ -177,7 +177,7 @@ export function FleetBoard({
   return (
     <div className="space-y-4">
       {/* Filtres */}
-      <div className="nid-panel flex flex-wrap items-end gap-3 rounded-2xl p-4">
+      <div className="nid-panel flex flex-wrap items-end gap-3 rounded-lg p-4">
         <div className="min-w-48 flex-1">
           <Label htmlFor="fleet-search">Rechercher</Label>
           <Input
@@ -235,7 +235,7 @@ export function FleetBoard({
       </div>
 
       {canRunCampaign && selected.length > 0 ? (
-        <div className="nid-note flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+        <div className="nid-note flex flex-wrap items-center justify-between gap-3 rounded-lg p-4">
           <p className="text-sm text-foreground">
             {selected.length} téléphone{selected.length > 1 ? "s" : ""} sélectionné
             {selected.length > 1 ? "s" : ""}
@@ -256,7 +256,7 @@ export function FleetBoard({
 
       {/* Liste */}
       {filtered.length === 0 ? (
-        <p className="nid-panel rounded-2xl p-5 text-sm text-muted-foreground">
+        <p className="nid-panel rounded-lg p-5 text-sm text-muted-foreground">
           {items.length === 0
             ? "Aucun téléphone dans ce parc. Ajoutez-en un ou importez un fichier."
             : "Aucun téléphone ne correspond à ces filtres."}
@@ -264,7 +264,7 @@ export function FleetBoard({
       ) : (
         <ul className="space-y-3">
           {filtered.map((item) => (
-            <li key={item.id} className="nid-panel rounded-2xl p-4">
+            <li key={item.id} className="nid-panel rounded-lg p-4">
               <div className="flex flex-wrap items-start gap-3">
                 {canRunCampaign ? (
                   <input
@@ -377,7 +377,7 @@ export function FleetBoard({
 
       {/* Formulaire d'affectation */}
       {assignFor ? (
-        <form onSubmit={assign} className="nid-panel space-y-3 rounded-2xl p-5">
+        <form onSubmit={assign} className="nid-panel space-y-3 rounded-lg p-5">
           <h3 className="font-medium text-foreground">
             Affecter {assignFor.brand} {assignFor.model}
           </h3>
@@ -435,7 +435,7 @@ export function FleetBoard({
       ) : null}
 
       {manualLinks.length > 0 ? (
-        <div className="nid-note rounded-2xl p-4">
+        <div className="nid-note rounded-lg p-4">
           <p className="text-sm text-foreground">
             Aucun e-mail n’a pu être envoyé pour ces téléphones. Transmettez les liens :
           </p>

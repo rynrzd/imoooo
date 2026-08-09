@@ -49,7 +49,7 @@ export default async function QrPage({ params }: { params: Promise<{ id: string 
         </p>
       </div>
 
-      <section className="nid-panel rounded-2xl p-5 sm:p-6">
+      <section className="nid-panel rounded-lg p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-foreground">Aperçu public permanent</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Ce QR pointe vers la page publique du téléphone. Elle affiche
@@ -59,7 +59,7 @@ export default async function QrPage({ params }: { params: Promise<{ id: string 
 
         <div className="mt-5 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           <div
-            className="rounded-2xl border border-border bg-white p-3 [&_svg]:size-52"
+            className="rounded-lg border border-border bg-white p-3 [&_svg]:size-52"
             // Contenu produit par la bibliothèque QR à partir d'une URL
             // construite par le serveur : aucune entrée utilisateur.
             dangerouslySetInnerHTML={{ __html: svg }}
@@ -102,7 +102,7 @@ export default async function QrPage({ params }: { params: Promise<{ id: string 
         </div>
       </section>
 
-      <section className="nid-panel rounded-2xl p-5 sm:p-6">
+      <section className="nid-panel rounded-lg p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-foreground">Dossier partagé temporaire</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Pour montrer l’état, l’historique ou une facture à un acheteur,

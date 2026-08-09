@@ -6,7 +6,7 @@ export default function NireoIdAppLoading() {
       <div className="h-8 w-52 rounded-lg bg-muted" />
       <div className="space-y-3">
         {[0, 1, 2].map((index) => (
-          <div key={index} className="nid-panel flex items-center gap-4 rounded-2xl p-4">
+          <div key={index} className="nid-panel flex items-center gap-4 rounded-lg p-4">
             <div className="size-14 shrink-0 rounded-xl bg-muted" />
             <div className="flex-1 space-y-2">
               <div className="h-4 w-40 rounded bg-muted" />

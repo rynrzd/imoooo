@@ -117,14 +117,14 @@ export function DocumentManager({
   return (
     <div className="space-y-5">
       {documents.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Aucun document dans ce dossier. Ajoutez la facture d’achat : elle
           reste privée et vous choisirez plus tard si elle suit l’appareil.
         </p>
       ) : (
         <ul className="space-y-2">
           {documents.map((document) => (
-            <li key={document.id} className="nid-panel rounded-2xl p-4">
+            <li key={document.id} className="nid-panel rounded-lg p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
                   <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -193,7 +193,7 @@ export function DocumentManager({
       )}
 
       {canEdit ? (
-        <div className="nid-panel space-y-3 rounded-2xl p-4">
+        <div className="nid-panel space-y-3 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-foreground">Ajouter un document</h3>
 
           <div className="grid gap-3 sm:grid-cols-2">

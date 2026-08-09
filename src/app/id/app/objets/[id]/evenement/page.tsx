@@ -30,7 +30,7 @@ export default async function AddEventPage({ params }: { params: Promise<{ id: s
             ← Retour au téléphone
           </Link>
         </p>
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Ce téléphone est archivé : réactivez-le depuis la page « Modifier »
           pour enrichir son historique.
         </p>

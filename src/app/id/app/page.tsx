@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ClipboardCheck, Inbox, Plus, Smartphone, Wrench } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HealthBadge, SourceBadge } from "@/components/nireo-id/state-badge";
 import { formatEventDate, formatRemaining } from "@/features/nireo-id/format";
@@ -40,33 +40,28 @@ export default async function NireoIdHomePage() {
   /* ---------------- Écran vide ---------------- */
   if (assets.length === 0) {
     return (
-      <div className="space-y-6">
-        <section className="nid-panel rounded-2xl px-6 py-12 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-accent-foreground">
-            <Smartphone className="size-7" aria-hidden />
-          </span>
-          <h1 className="mt-5 text-xl font-semibold text-foreground">
-            Ajoutez votre premier téléphone
-          </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Conservez sa facture, suivez son état et retrouvez ses réparations.
-          </p>
-          <div className="mt-6">
-            <Button size="lg" data-touch render={<Link href="/id/app/objets/nouveau" />}>
-              Ajouter mon téléphone
-              <ArrowRight className="size-4" data-icon="inline-end" />
-            </Button>
-          </div>
-          {isNireoIdConfigured ? null : (
-            <p className="mx-auto mt-6 max-w-md text-xs text-muted-foreground">
-              {NID_SCHEMA_MISSING}
-            </p>
-          )}
-        </section>
+      <div className="max-w-xl">
+        <h1 className="text-2xl font-semibold text-foreground">
+          Ajoutez votre premier téléphone
+        </h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+          Conservez sa facture, suivez son état et retrouvez ses réparations.
+        </p>
+        <div className="mt-7">
+          <Button size="lg" data-touch render={<Link href="/id/app/objets/nouveau" />}>
+            Ajouter mon téléphone
+            <ArrowRight className="size-4" data-icon="inline-end" />
+          </Button>
+        </div>
+        {isNireoIdConfigured ? null : (
+          <p className="nid-note mt-7 py-1 pl-4 text-sm">{NID_SCHEMA_MISSING}</p>
+        )}
 
-        <section className="nid-panel rounded-2xl p-5">
-          <h2 className="font-medium text-foreground">Vous gérez plusieurs téléphones ?</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+        <div className="nid-rule mt-12 pt-7">
+          <h2 className="text-[17px] font-medium text-foreground">
+            Vous gérez plusieurs téléphones ?
+          </h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
             Créez un espace entreprise pour suivre un parc et affecter les téléphones à vos
             salariés, ou un espace atelier si vous réparez des appareils.
           </p>
@@ -75,7 +70,7 @@ export default async function NireoIdHomePage() {
               Créer un espace
             </Button>
           </div>
-        </section>
+        </div>
       </div>
     );
   }
@@ -97,18 +92,17 @@ export default async function NireoIdHomePage() {
       </header>
 
       {actionsCount > 0 ? (
-        <section aria-labelledby="actions" className="nid-panel rounded-2xl p-5">
-          <h2 id="actions" className="font-medium text-foreground">
+        <section aria-labelledby="actions" className="nid-rule pt-7">
+          <h2 id="actions" className="text-[17px] font-medium text-foreground">
             Actions demandées
           </h2>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-4">
             {checks.map((check) => (
               <li
                 key={check.request_id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3"
+                className="nid-rule flex flex-wrap items-center justify-between gap-3 py-3.5 first:border-0 first:pt-0"
               >
-                <span className="flex items-center gap-3 text-sm text-foreground">
-                  <ClipboardCheck className="size-4 shrink-0 text-accent-foreground" aria-hidden />
+                <span className="text-[15px] text-foreground">
                   Bilan à faire pour votre {check.brand} {check.model}.
                 </span>
                 <Button size="sm" render={<Link href={`/id/app/objets/${check.asset_id}`} />}>
@@ -120,10 +114,9 @@ export default async function NireoIdHomePage() {
             {repairs.map((repair) => (
               <li
                 key={repair.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3"
+                className="nid-rule flex flex-wrap items-center justify-between gap-3 py-3.5 first:border-0 first:pt-0"
               >
-                <span className="flex items-center gap-3 text-sm text-foreground">
-                  <Wrench className="size-4 shrink-0 text-accent-foreground" aria-hidden />
+                <span className="text-[15px] text-foreground">
                   {repair.repairer_label || "Un atelier"} attend votre validation pour le{" "}
                   {repair.device}.
                 </span>
@@ -136,10 +129,9 @@ export default async function NireoIdHomePage() {
             {incoming.map((transfer) => (
               <li
                 key={transfer.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-accent px-4 py-3"
+                className="nid-rule flex flex-wrap items-center justify-between gap-3 py-3.5 first:border-0 first:pt-0"
               >
-                <span className="flex items-center gap-3 text-sm text-foreground">
-                  <Inbox className="size-4 shrink-0 text-accent-foreground" aria-hidden />
+                <span className="text-[15px] text-foreground">
                   Un {transfer.asset_summary.brand} {transfer.asset_summary.model} vous est
                   transmis — expire dans {formatRemaining(transfer.expires_at)}.
                 </span>
@@ -153,40 +145,36 @@ export default async function NireoIdHomePage() {
       ) : null}
 
       {main ? (
-        <section aria-labelledby="principal" className="nid-panel rounded-2xl p-5">
+        <section aria-labelledby="principal" className="nid-rule pt-7">
           <h2 id="principal" className="sr-only">
-            téléphone principal
+            Téléphone principal
           </h2>
           <div className="flex items-start gap-4">
-            <span className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-secondary">
-              {main.photo_url ? (
-                <Image
-                  src={main.photo_url}
-                  alt=""
-                  width={64}
-                  height={64}
-                  unoptimized
-                  className="size-full object-cover"
-                />
-              ) : (
-                <Smartphone className="size-6 text-muted-foreground" aria-hidden />
-              )}
-            </span>
+            {main.photo_url ? (
+              <Image
+                src={main.photo_url}
+                alt=""
+                width={64}
+                height={64}
+                unoptimized
+                className="size-16 shrink-0 rounded-md border border-border object-cover"
+              />
+            ) : null}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-lg font-semibold text-foreground">
+              <p className="truncate text-xl font-medium text-foreground">
                 {main.brand} {main.model}
               </p>
-              <p className="mt-1 font-mono text-[11px] text-muted-foreground">{main.public_id}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="mt-1 text-sm text-foreground">
                 <HealthBadge state={main.health_state} />
-                <span className="text-xs text-muted-foreground">
+                <span className="ml-2 text-muted-foreground">
                   {main.next_check_on
                     ? main.check_overdue
-                      ? `Bilan en retard depuis le ${formatDate(main.next_check_on)}`
-                      : `Prochain bilan le ${formatDate(main.next_check_on)}`
-                    : "Aucun bilan planifié"}
+                      ? `bilan en retard depuis le ${formatDate(main.next_check_on)}`
+                      : `prochain bilan le ${formatDate(main.next_check_on)}`
+                    : "aucun bilan planifié"}
                 </span>
-              </div>
+              </p>
+              <p className="mt-1 font-mono text-[11px] text-muted-foreground">{main.public_id}</p>
             </div>
           </div>
 
@@ -206,13 +194,16 @@ export default async function NireoIdHomePage() {
       ) : null}
 
       {detail && detail.events.length > 0 ? (
-        <section aria-labelledby="derniers" className="nid-panel rounded-2xl p-5">
-          <h2 id="derniers" className="font-medium text-foreground">
+        <section aria-labelledby="derniers" className="nid-rule pt-7">
+          <h2 id="derniers" className="text-[17px] font-medium text-foreground">
             Derniers événements
           </h2>
-          <ul className="mt-3 divide-y divide-border">
+          <ul className="mt-4">
             {detail.events.slice(0, 5).map((event) => (
-              <li key={event.id} className="flex flex-wrap items-center gap-2 py-3 text-sm">
+              <li
+                key={event.id}
+                className="nid-rule flex flex-wrap items-center gap-2 py-3 text-[15px] first:border-0 first:pt-0"
+              >
                 <span className="min-w-0 flex-1 truncate text-foreground">{event.title}</span>
                 <SourceBadge
                   source={(event as { source_type?: string }).source_type ?? "declare_proprietaire"}

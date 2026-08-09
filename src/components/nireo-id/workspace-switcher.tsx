@@ -99,7 +99,7 @@ export function WorkspaceSwitcher({
       {open ? (
         <div
           role="menu"
-          className="absolute z-50 mt-1 w-full min-w-56 rounded-xl border border-border bg-card p-1 shadow-md"
+          className="absolute z-50 mt-1 w-full min-w-56 rounded-lg border border-border bg-card p-1"
         >
           {items.map((item) => {
             const Icon = ICONS[item.kind];

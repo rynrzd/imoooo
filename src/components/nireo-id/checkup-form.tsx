@@ -68,10 +68,8 @@ export function CheckupForm({
 
   if (done) {
     return (
-      <div className="nid-panel rounded-2xl p-6 text-center">
-        <span className="mx-auto grid size-12 place-items-center rounded-full bg-accent">
-          <Check className="size-6 text-[var(--nid-success)]" aria-hidden />
-        </span>
+      <div className="nid-panel rounded-lg p-6 text-center">
+        <Check className="mx-auto size-7 text-[var(--nid-success)]" aria-hidden />
         <h2 className="mt-4 text-lg font-semibold text-foreground">Merci.</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           L’état du {new Date().toLocaleDateString("fr-FR")} a été ajouté à l’historique.
@@ -116,7 +114,7 @@ export function CheckupForm({
       </fieldset>
 
       {answer && answer !== "tout_fonctionne" ? (
-        <div className="nid-panel space-y-4 rounded-2xl p-4">
+        <div className="nid-panel space-y-4 rounded-lg p-4">
           {answer === "probleme" ? (
             <fieldset>
               <legend className="text-sm font-medium text-foreground">Ce qui pose problème</legend>

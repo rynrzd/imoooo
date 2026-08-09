@@ -47,7 +47,7 @@ export default async function NidAdminHomePage() {
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
-          <li key={card.label} className="nid-panel rounded-2xl p-4">
+          <li key={card.label} className="nid-panel rounded-lg p-4">
             <card.icon className="size-4 text-primary" aria-hidden />
             <p className="mt-3 text-2xl font-semibold text-foreground tabular-nums">{card.value}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{card.label}</p>
@@ -63,7 +63,7 @@ export default async function NidAdminHomePage() {
         ))}
       </ul>
 
-      <section className="nid-panel rounded-2xl p-5">
+      <section className="nid-panel rounded-lg p-5">
         <h2 className="text-sm font-semibold text-foreground">Interventions professionnelles</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {overview.proEvents} événement{overview.proEvents > 1 ? "s" : ""} portent aujourd’hui
@@ -79,7 +79,7 @@ export default async function NidAdminHomePage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Règles de l’administration</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
           <li>· Chaque décision exige un motif et laisse une trace dans le journal d’audit.</li>

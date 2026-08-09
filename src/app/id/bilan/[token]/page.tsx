@@ -57,7 +57,7 @@ export default async function CheckupPage({
         <>
           <h1 className="text-xl font-semibold text-foreground">Un rapide point sur votre téléphone</h1>
           {resolution.request.is_company ? (
-            <p className="mt-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
+            <p className="mt-2 border-l-2 border-primary py-2 pl-4 text-sm text-foreground">
               Ce bilan concerne uniquement l’état matériel de l’appareil. Aucune donnée d’usage
               personnel (appels, messages, position, applications) n’est consultée.
             </p>
@@ -72,7 +72,7 @@ export default async function CheckupPage({
           </div>
         </>
       ) : resolution.state === "deja_repondu" ? (
-        <div className="nid-panel rounded-2xl p-6">
+        <div className="nid-panel rounded-lg p-6">
           <h1 className="text-lg font-semibold text-foreground">Bilan déjà enregistré</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Votre réponse
@@ -85,7 +85,7 @@ export default async function CheckupPage({
           </p>
         </div>
       ) : (
-        <div className="nid-panel rounded-2xl p-6">
+        <div className="nid-panel rounded-lg p-6">
           <h1 className="text-lg font-semibold text-foreground">
             {MESSAGES[resolution.state]?.title ?? "Lien indisponible"}
           </h1>

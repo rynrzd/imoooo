@@ -61,11 +61,11 @@ export default async function AdminAuditPage() {
       </header>
 
       {logs.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Aucune action journalisée pour le moment.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full min-w-[38rem] text-sm">
             <thead className="bg-muted/60 text-left">
               <tr>

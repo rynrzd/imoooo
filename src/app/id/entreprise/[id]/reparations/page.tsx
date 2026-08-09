@@ -44,7 +44,7 @@ export default async function CompanyRepairsPage({
       {REPAIR_STATUSES.filter((status) => status !== "annule").map((status) => {
         const list = groups[status];
         return (
-          <section key={status} className="nid-panel rounded-2xl p-5">
+          <section key={status} className="nid-panel rounded-lg p-5">
             <h2 className="font-medium text-foreground">
               {REPAIR_STATUS_LABELS[status]}{" "}
               <span className="text-muted-foreground">({list.length})</span>

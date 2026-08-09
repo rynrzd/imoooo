@@ -28,7 +28,7 @@ export default function NireoIdExamplePage() {
           {/* Mention non ambiguë, présente en haut de page. */}
           <div
             role="note"
-            className="flex items-start gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--nid-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--nid-warning)_10%,transparent)] p-4"
+            className="flex items-start gap-3 rounded-lg border border-[color-mix(in_srgb,var(--nid-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--nid-warning)_10%,transparent)] p-4"
           >
             <Info className="mt-0.5 size-4 shrink-0 text-[var(--nid-warning)]" aria-hidden />
             <p className="text-sm leading-relaxed text-foreground">
@@ -59,7 +59,7 @@ export default function NireoIdExamplePage() {
               { label: "Propriétaires", value: EXAMPLE_PASSPORT.owners },
               { label: "Contestations", value: 0 },
             ].map((item) => (
-              <div key={item.label} className="nid-panel rounded-2xl p-4">
+              <div key={item.label} className="nid-panel rounded-lg p-4">
                 <dt className="text-xs text-muted-foreground">{item.label}</dt>
                 <dd className="mt-1 text-2xl font-semibold text-foreground tabular-nums">
                   {item.value}
@@ -72,7 +72,7 @@ export default function NireoIdExamplePage() {
             <h2 className="text-lg font-semibold text-foreground">Historique</h2>
             <ol className="mt-5 space-y-4">
               {EXAMPLE_EVENTS.map((event) => (
-                <li key={event.title} className="nid-panel relative rounded-2xl p-5 pl-6">
+                <li key={event.title} className="nid-panel relative rounded-lg p-5 pl-6">
                   <span
                     aria-hidden
                     className="absolute top-6 left-0 h-8 w-1 rounded-r-full bg-primary/70"
@@ -92,7 +92,7 @@ export default function NireoIdExamplePage() {
             </ol>
           </section>
 
-          <section className="mt-10 rounded-2xl border border-border bg-card p-6">
+          <section className="mt-10 rounded-lg border border-border bg-card p-6">
             <h2 className="text-base font-semibold text-foreground">
               Ce qu’un visiteur ne voit jamais
             </h2>

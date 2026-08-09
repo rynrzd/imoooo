@@ -9,15 +9,15 @@ interface NidLogoProps {
 }
 
 /**
- * Logo produit : le mot-symbole Nireo reste inchangé, « ID » est ajouté
- * dans une capsule sobre — un produit de la marque, pas une marque à part.
+ * Mot-symbole : « Nireo » à l'encre, « ID » en petites capitales espacées.
+ * Aucune pastille colorée — un produit de la marque, pas un badge.
  */
 export function NidLogo({ href = "/id", className, size = "md" }: NidLogoProps) {
   const content = (
-    <span className={cn("inline-flex items-center gap-2", className)}>
+    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
       <span
         className={cn(
-          "font-semibold tracking-[-0.03em] text-foreground",
+          "font-semibold tracking-[-0.015em] text-foreground",
           size === "sm" ? "text-[15px]" : "text-lg"
         )}
       >
@@ -25,8 +25,8 @@ export function NidLogo({ href = "/id", className, size = "md" }: NidLogoProps) 
       </span>
       <span
         className={cn(
-          "rounded-md bg-accent font-semibold tracking-wide text-accent-foreground",
-          size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"
+          "font-medium tracking-[0.16em] text-primary uppercase",
+          size === "sm" ? "text-[10px]" : "text-[11px]"
         )}
       >
         ID
@@ -36,11 +36,7 @@ export function NidLogo({ href = "/id", className, size = "md" }: NidLogoProps) 
 
   if (!href) return content;
   return (
-    <Link
-      href={href}
-      aria-label="Nireo ID — accueil"
-      className="rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-    >
+    <Link href={href} aria-label="Nireo ID — accueil" className="rounded-sm outline-none">
       {content}
     </Link>
   );

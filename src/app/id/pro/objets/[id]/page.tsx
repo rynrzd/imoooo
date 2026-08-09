@@ -39,8 +39,8 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
             ← Espace professionnel
           </Link>
         </p>
-        <div className="nid-panel rounded-2xl p-6 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+        <div className="nid-panel rounded-lg p-6 text-center">
+          <span className="mx-auto grid size-12 place-items-center rounded-lg bg-muted text-muted-foreground">
             <Lock className="size-6" aria-hidden />
           </span>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Accès non autorisé</h1>
@@ -73,9 +73,9 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
         </Link>
       </p>
 
-      <header className="nid-panel rounded-2xl p-5 sm:p-6">
+      <header className="nid-panel rounded-lg p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-muted">
+          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
             {view.photo_url ? (
               <Image
                 src={view.photo_url}
@@ -123,7 +123,7 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
       </header>
 
       {conditionEntries.length > 0 ? (
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
             État déclaré par le propriétaire
             <TrustBadge level={0} />
@@ -144,13 +144,13 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
       <section>
         <h2 className="text-sm font-semibold text-foreground">Historique de l’appareil</h2>
         {view.events.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+          <p className="mt-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
             Aucun événement enregistré.
           </p>
         ) : (
           <ol className="mt-3 space-y-2">
             {view.events.map((event) => (
-              <li key={event.id} className="rounded-2xl border border-border bg-card p-4">
+              <li key={event.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-sm font-medium text-foreground">{event.title}</h3>
                   <TrustBadge level={event.revoked_at ? 4 : event.trust_level} />
@@ -180,7 +180,7 @@ export default async function ProAssetPage({ params }: { params: Promise<{ id: s
             {myEvents
               .filter((event) => !event.revoked_at)
               .map((event) => (
-                <li key={event.id} className="rounded-2xl border border-border bg-card p-4">
+                <li key={event.id} className="rounded-lg border border-border bg-card p-4">
                   <p className="text-sm font-medium text-foreground">{event.title}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatEventDate(event.effective_date)}

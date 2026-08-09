@@ -125,7 +125,7 @@ export function CheckupPanel({
   };
 
   return (
-    <section id="bilan" className="nid-panel scroll-mt-20 rounded-2xl p-5">
+    <section id="bilan" className="nid-panel scroll-mt-20 rounded-lg p-5">
       <h2 className="font-medium text-foreground">Bilan</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {lastCheckAt

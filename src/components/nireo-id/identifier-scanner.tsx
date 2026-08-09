@@ -141,7 +141,7 @@ export function IdentifierScanner() {
 
   return (
     <div className="space-y-5">
-      <form onSubmit={submit} className="nid-panel space-y-4 rounded-2xl p-5">
+      <form onSubmit={submit} className="nid-panel space-y-4 rounded-lg p-5">
         <div className="space-y-1.5">
           <Label htmlFor="identifier">Identifiant Nireo</Label>
           <Input
@@ -172,7 +172,7 @@ export function IdentifierScanner() {
         </Button>
       </form>
 
-      <div className="nid-panel space-y-3 rounded-2xl p-5">
+      <div className="nid-panel space-y-3 rounded-lg p-5">
         <h2 className="text-sm font-semibold text-foreground">Scanner un QR code</h2>
         {supported ? (
           <>

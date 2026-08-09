@@ -44,7 +44,7 @@ export function WorkspaceCreateForm({ initialKind }: { initialKind: "entreprise"
   };
 
   return (
-    <form onSubmit={submit} className="nid-panel space-y-5 rounded-2xl p-5" noValidate>
+    <form onSubmit={submit} className="nid-panel space-y-5 rounded-lg p-5" noValidate>
       <fieldset>
         <legend className="text-sm font-medium text-foreground">Type d’espace</legend>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">

@@ -67,13 +67,13 @@ export default async function AdminDisputesPage({
       </nav>
 
       {disputes.length === 0 ? (
-        <p className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
           Aucun signalement{filter ? ` au statut « ${DISPUTE_STATUS_LABELS[filter]} »` : ""}.
         </p>
       ) : (
         <ul className="space-y-3">
           {disputes.map((dispute) => (
-            <li key={dispute.id} className="nid-panel rounded-2xl p-5">
+            <li key={dispute.id} className="nid-panel rounded-lg p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="text-[15px] font-semibold text-foreground">
