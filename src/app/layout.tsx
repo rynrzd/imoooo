@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   },
   description:
     "Nireo centralise la gestion de vos biens locatifs : loyers, locataires, documents, travaux et statistiques.",
+  // Propriété du domaine pour Google Search Console. Déclarée au segment
+  // RACINE : aucun autre segment ne définit `verification`, la balise est
+  // donc héritée par toutes les pages (vitrine, application, Nireo ID).
+  verification: {
+    google: "unsM4fJI0SPNTQs2gS4pMskwAY6tGbUys4eZkZcoWaM",
+  },
 };
 
 export default function RootLayout({
