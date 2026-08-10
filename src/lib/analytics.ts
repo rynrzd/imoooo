@@ -9,7 +9,11 @@ export type AnalyticsEvent =
   | "cta_essai_gratuit"
   | "cta_connexion"
   | "vue_tarifs"
-  | "inscription_commencee";
+  | "inscription_commencee"
+  // Générateur de quittance : seul le TYPE de document est remonté
+  // (« quittance » ou « recu_partiel »), jamais une saisie de l'utilisateur.
+  | "quittance_apercu"
+  | "quittance_telechargement";
 
 interface QueuedEvent {
   name: AnalyticsEvent;

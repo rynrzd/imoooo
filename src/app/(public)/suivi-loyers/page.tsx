@@ -16,7 +16,13 @@ import {
 } from "@/components/seo/content";
 import { FaqSection, type FaqItem } from "@/components/marketing/faq-section";
 import { getPlan } from "@/config/plans";
-import { PILLAR_PAGE, RESOURCES_PAGE, getGuide, otherGuides } from "@/config/seo-pages";
+import {
+  PILLAR_PAGE,
+  QUITTANCE_TOOL,
+  RESOURCES_PAGE,
+  getGuide,
+  otherGuides,
+} from "@/config/seo-pages";
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -84,7 +90,7 @@ const FAQ: FaqItem[] = [
   {
     question: "Nireo produit-il les quittances de loyer ?",
     answer:
-      "Non. Nireo enregistre l'encaissement, sa date et son statut, mais ne génère pas de document de quittance. Vous pouvez déposer dans la bibliothèque documentaire du logement les quittances que vous établissez par ailleurs.",
+      "L'application enregistre l'encaissement, sa date et son statut, mais n'édite pas encore la quittance depuis l'échéance. Nireo met en revanche à disposition un générateur de quittance de loyer gratuit, utilisable sans compte : le PDF obtenu peut ensuite être déposé dans la bibliothèque documentaire du logement.",
   },
 ];
 
@@ -267,6 +273,22 @@ export default function SuiviLoyersPage() {
             export JSON complet sont disponibles depuis les paramètres — pour
             transmettre à un comptable ou simplement garder une copie hors de
             l&apos;outil.
+          </p>
+
+          <ContentSubtitle>Et la quittance à remettre au locataire ?</ContentSubtitle>
+          <p>
+            Elle ne s&apos;édite pas encore depuis l&apos;échéance. En attendant,
+            le{" "}
+            <Link
+              href={QUITTANCE_TOOL.path}
+              className="text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+            >
+              générateur de quittance de loyer
+            </Link>{" "}
+            de Nireo est gratuit et s&apos;utilise sans compte : le PDF obtenu se
+            dépose ensuite dans la bibliothèque documentaire du logement. Si le
+            locataire n&apos;a réglé qu&apos;une partie de sa dette, il produit un
+            reçu de paiement partiel plutôt qu&apos;une quittance.
           </p>
         </ContentSection>
 

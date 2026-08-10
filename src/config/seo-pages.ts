@@ -98,11 +98,31 @@ export const GUIDES: readonly ContentPage[] = [
   },
 ] as const;
 
+/**
+ * Outils publics et gratuits — même forme qu'un guide, mais ce n'en est pas
+ * un : ils sont listés à part sur /ressources et jamais dans « À lire aussi ».
+ * Leur présence dans CONTENT_PAGES suffit à les rendre publics dans le proxy
+ * et à les faire entrer dans le sitemap.
+ */
+export const QUITTANCE_TOOL: ContentPage = {
+  path: "/generateur-quittance-loyer",
+  title: "Générateur de quittance de loyer gratuit",
+  shortTitle: "Générateur de quittance",
+  description:
+    "Créez gratuitement votre quittance de loyer en PDF. Renseignez le loyer, les charges et le locataire, puis téléchargez votre document.",
+  summary:
+    "Un formulaire, un aperçu, un PDF A4. Gratuit, sans inscription, généré dans votre navigateur — et un reçu de paiement partiel si le règlement est incomplet.",
+  updatedAt: "2026-08-11",
+};
+
+export const TOOLS: readonly ContentPage[] = [QUITTANCE_TOOL] as const;
+
 /** Toutes les pages de contenu, dans l'ordre de priorité. */
 export const CONTENT_PAGES: readonly ContentPage[] = [
   PILLAR_PAGE,
   RESOURCES_PAGE,
   ...GUIDES,
+  ...TOOLS,
 ] as const;
 
 /** Guide par chemin (maillage interne « À lire aussi »). */

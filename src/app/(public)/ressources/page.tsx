@@ -9,7 +9,7 @@ import {
   ContentHeader,
   ContentPageShell,
 } from "@/components/seo/content";
-import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, formatUpdatedAt } from "@/config/seo-pages";
+import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, TOOLS, formatUpdatedAt } from "@/config/seo-pages";
 import {
   breadcrumbJsonLd,
   jsonLdGraph,
@@ -133,6 +133,39 @@ export default function RessourcesPage() {
                   <span className="mt-4 text-xs text-muted-foreground">
                     Mis à jour le{" "}
                     <time dateTime={guide.updatedAt}>{formatUpdatedAt(guide.updatedAt)}</time>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Outils : utilisables sans compte, listés à part des guides. */}
+        <section aria-labelledby="outils">
+          <h2 id="outils" className="text-xl font-semibold tracking-tight text-foreground">
+            Outils gratuits
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Utilisables tout de suite, sans compte et sans carte bancaire.
+          </p>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            {TOOLS.map((tool) => (
+              <li key={tool.path}>
+                <Link
+                  href={tool.path}
+                  className="group nireo-hairline flex h-full flex-col rounded-2xl border border-border bg-card/70 p-5 transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-semibold text-balance text-foreground">
+                      {tool.shortTitle}
+                    </span>
+                    <ArrowUpRight
+                      className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                      aria-hidden
+                    />
+                  </span>
+                  <span className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                    {tool.summary}
                   </span>
                 </Link>
               </li>

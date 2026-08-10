@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { NireoLogo } from "@/components/marketing/nireo-logo";
-import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE } from "@/config/seo-pages";
+import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, TOOLS } from "@/config/seo-pages";
 import { version } from "../../../package.json";
 
 /** Adresse de contact publique (footer, pages légales, formulaire, bug). */
@@ -26,6 +26,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: PILLAR_PAGE.shortTitle, href: PILLAR_PAGE.path },
       { label: RESOURCES_PAGE.shortTitle, href: RESOURCES_PAGE.path },
       ...GUIDES.map((guide) => ({ label: guide.shortTitle, href: guide.path })),
+      ...TOOLS.map((tool) => ({ label: tool.shortTitle, href: tool.path })),
     ],
   },
   {

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { CONTENT_PAGES } from "@/config/seo-pages";
+import { CONTENT_PAGES, QUITTANCE_TOOL } from "@/config/seo-pages";
 import { SITE_URL } from "@/lib/supabase/config";
 
 /**
@@ -25,7 +25,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Date réelle de dernière révision du contenu (jamais « aujourd'hui »).
     lastModified: new Date(`${page.updatedAt}T00:00:00Z`),
     changeFrequency: "monthly",
-    priority: page.path === "/logiciel-gestion-locative" ? 0.9 : 0.7,
+    priority:
+      page.path === "/logiciel-gestion-locative"
+        ? 0.9
+        : // Outil autonome, à forte intention : au-dessus des guides.
+          page.path === QUITTANCE_TOOL.path
+          ? 0.8
+          : 0.7,
   }));
 
   return [
