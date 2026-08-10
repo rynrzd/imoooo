@@ -87,11 +87,11 @@ function SectionHead({
       <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
         {eyebrow}
       </span>
-      <h2 className="mt-4 text-3xl font-semibold text-balance text-foreground sm:text-[2.4rem]">
+      <h2 className="mt-3.5 text-[1.75rem] font-semibold text-balance text-foreground sm:text-[2.4rem]">
         {title} {keyword ? <span className="nireo-shine">{keyword}</span> : null}
       </h2>
       {description ? (
-        <p className="mt-4 text-base leading-relaxed text-balance text-muted-foreground">
+        <p className="mt-5 text-[0.98rem] leading-relaxed text-balance text-muted-foreground sm:text-base">
           {description}
         </p>
       ) : null}
@@ -115,7 +115,9 @@ function Section({
     <section
       id={id}
       data-lx-section={track}
-      className={cn("scroll-mt-24 border-t border-border/70 py-18 sm:py-24", className)}
+      // Le `scroll-margin-top` vient de globals.css (`.nireo [id]`) : il suit
+      // la hauteur réelle du header et l'encoche iPhone.
+      className={cn("border-t border-border/70 py-16 sm:py-24", className)}
     >
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">{children}</div>
     </section>
@@ -163,8 +165,8 @@ export default async function LandingPage() {
       <Section id="fonctionnalites" track="features">
         <SectionHead
           eyebrow="Fonctionnalités"
-          title="Trois choses que Nireo fait"
-          keyword="à votre place."
+          title="Trois choses que Nireo rend"
+          keyword="plus simples."
         />
         <FeatureBlocks />
       </Section>
@@ -185,7 +187,7 @@ export default async function LandingPage() {
           keyword="taille de patrimoine."
           description="Démarrez gratuitement avec un logement, changez de plan quand votre patrimoine grandit."
         />
-        <div className="mt-10 space-y-6">
+        <div className="mt-8 space-y-5 sm:mt-10 sm:space-y-6">
           <PricingSection
             compact
             emphasis={content.pricingEmphasis.plan}
@@ -200,11 +202,11 @@ export default async function LandingPage() {
     faq: () => (
       <Section id="faq" track="faq">
         <SectionHead eyebrow="FAQ" title="Questions" keyword="fréquentes." />
-        <div className="mt-10">
+        <div className="mt-8 sm:mt-10">
           <FaqSection items={FAQ_ITEMS} />
         </div>
         {/* Maillage interne : la page pilier et l'espace de contenu. */}
-        <Reveal className="mx-auto mt-8 max-w-3xl text-center">
+        <Reveal className="mx-auto mt-6 max-w-3xl text-center sm:mt-8">
           <p className="text-sm text-muted-foreground">
             Vous cherchez une explication plus complète ? Lisez la page{" "}
             <Link
@@ -249,17 +251,17 @@ export default async function LandingPage() {
       {/* Final — Appel à l'action */}
       <section data-lx-section="cta" className="relative overflow-hidden border-t border-border/70">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="nireo-aurora absolute bottom-0 left-1/2 h-80 w-[42rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-20 blur-2xl" />
+          <div className="nireo-aurora absolute bottom-0 left-1/2 h-56 w-[42rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-[0.14] blur-2xl sm:h-80 sm:opacity-20" />
         </div>
-        <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
+        <div className="mx-auto w-full max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-20">
           <Reveal>
-            <h2 className="mx-auto max-w-2xl text-3xl font-semibold text-balance text-foreground sm:text-4xl">
+            <h2 className="mx-auto max-w-2xl text-[1.75rem] font-semibold text-balance text-foreground sm:text-4xl">
               {content.finalCta.lead} <span className="nireo-shine">{content.finalCta.highlight}</span>
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
+            <p className="mx-auto mt-5 max-w-xl text-[0.98rem] text-muted-foreground sm:text-base">
               {content.finalCta.text}
             </p>
-            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col items-center justify-center gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
               <Link
                 href={content.cta.href}
                 data-lx="final-cta-primary"

@@ -84,8 +84,10 @@ function CompactPricing({
   const featuredId = emphasis === "starter" || emphasis === "pro" ? emphasis : null;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Mobile : nom, prix, nombre de logements, trois avantages, bouton.
+          Rien d'autre — la comparaison complète vit sur /tarifs. */}
+      <div className="grid grid-cols-1 items-stretch gap-2.5 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         {PLANS.map((plan) => {
           const featured = featuredId ? plan.id === featuredId : Boolean(plan.popular);
           const { maxProperties } = plan.limits;
@@ -95,11 +97,16 @@ function CompactPricing({
               size="sm"
               className={cn("relative flex flex-col", featured && "ring-primary/40")}
             >
-              {featured ? <Badge className="absolute -top-2.5 left-4">Recommandé</Badge> : null}
               <CardHeader>
-                <CardTitle className="text-sm font-medium">{plan.name}</CardTitle>
+                {/* Badge dans le flux : la carte est `overflow-hidden`, une
+                    pastille en position absolue au-dessus du bord serait
+                    rognée (visible surtout sur mobile, cartes resserrées). */}
+                <CardTitle className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                  {plan.name}
+                  {featured ? <Badge>Recommandé</Badge> : null}
+                </CardTitle>
                 <p>
-                  <span className="text-2xl font-semibold tracking-tight text-foreground">
+                  <span className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                     {formatPlanPrice(plan.monthlyPrice)} €
                   </span>
                   <span className="text-sm text-muted-foreground"> /mois</span>
@@ -113,7 +120,7 @@ function CompactPricing({
                 </p>
               </CardHeader>
               <CardContent className="flex-1">
-                <ul className="space-y-1.5">
+                <ul className="space-y-1">
                   {/* Seulement les différences principales : le détail est sur /tarifs. */}
                   {plan.highlights.slice(1, 4).map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-[13px] text-muted-foreground">

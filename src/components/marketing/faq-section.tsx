@@ -172,8 +172,9 @@ export function FaqSection({
   return (
     <div className="mx-auto max-w-3xl divide-y divide-border rounded-2xl border border-border bg-card">
       {list.map((item) => (
-        <details key={item.question} className="group px-5 py-1.5 sm:px-6">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-4 text-sm font-medium text-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+        <details key={item.question} className="group px-4 sm:px-6">
+          {/* py-3 + texte = 44 px de zone tactile, sans plus d'air perdu. */}
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 text-sm font-medium text-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
             {item.question}
             <ChevronDown
               className="size-4 shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-180 motion-reduce:transition-none"
@@ -182,7 +183,7 @@ export function FaqSection({
           </summary>
           {/* Le dépliage est animé en CSS via ::details-content (globals.css) ;
               les navigateurs qui ne le connaissent pas ouvrent simplement d'un bloc. */}
-          <p className="pb-5 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
+          <p className="pb-4 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
         </details>
       ))}
     </div>

@@ -48,18 +48,31 @@ export function NireoMark({ className }: { className?: string }) {
 export function NireoLogo({
   className,
   href = "/",
+  compact = false,
 }: {
   className?: string;
   href?: string;
+  /** Version resserrée du header mobile (monogramme 32 px, texte réduit). */
+  compact?: boolean;
 }) {
   return (
     <Link
       href={href}
       aria-label="Nireo — accueil"
-      className={cn("group flex items-center gap-2.5", className)}
+      className={cn("group flex items-center gap-2.5", compact && "gap-2 sm:gap-2.5", className)}
     >
-      <NireoMark className="transition-transform duration-300 group-hover:scale-[1.04]" />
-      <span className="text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground">
+      <NireoMark
+        className={cn(
+          "transition-transform duration-300 group-hover:scale-[1.04]",
+          compact && "size-8 rounded-[0.6rem] sm:size-9 sm:rounded-[0.7rem]"
+        )}
+      />
+      <span
+        className={cn(
+          "text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground",
+          compact && "text-[0.97rem] sm:text-[1.05rem]"
+        )}
+      >
         Nireo
       </span>
     </Link>

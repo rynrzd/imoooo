@@ -14,6 +14,12 @@ import type { ProofPayload, Testimonial } from "@/lib/landing/types";
  * est sinon retirée de l'expérimentation.
  */
 
+/**
+ * Une phrase courte par engagement — et rien qui dépasse ce que
+ * l'infrastructure fait réellement. « Enregistrement immédiat » décrit une
+ * écriture en base à chaque action : ce n'est PAS une promesse de sauvegarde
+ * automatique restaurable, qui serait fausse.
+ */
 const GUARANTEES = [
   {
     icon: Server,
@@ -23,17 +29,17 @@ const GUARANTEES = [
   {
     icon: ShieldCheck,
     title: "Données isolées par compte",
-    text: "L’isolation est appliquée par la base : un compte ne peut jamais lire les données d’un autre.",
+    text: "Un compte ne peut jamais lire les données d’un autre.",
   },
   {
     icon: DatabaseBackup,
     title: "Enregistrement immédiat",
-    text: "Chaque modification est écrite tout de suite et sauvegardée : rien à exporter, rien à penser.",
+    text: "Chaque modification est écrite tout de suite, rien à sauvegarder.",
   },
   {
     icon: CreditCard,
     title: "Gratuit sans carte bancaire",
-    text: "Le plan Gratuit est permanent et ne demande aucun moyen de paiement.",
+    text: "Le plan Gratuit est permanent, aucun moyen de paiement demandé.",
   },
 ];
 
@@ -71,12 +77,13 @@ export function ProofSection({
     );
   }
 
-  // Un seul bloc compact : une carte, quatre engagements, aucune grosse icône.
+  // Une seule enveloppe. Sur mobile : quatre lignes séparées par un filet.
+  // Sur ordinateur : grille 2 × 2. Jamais une carte par engagement.
   return (
-    <Reveal className="mt-10">
-      <div className="nireo-glass mx-auto grid max-w-4xl gap-x-8 gap-y-5 rounded-3xl p-6 sm:grid-cols-2 sm:p-8">
+    <Reveal className="mt-8 sm:mt-10">
+      <div className="nireo-glass mx-auto max-w-4xl rounded-2xl px-4 max-sm:divide-y max-sm:divide-border sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:rounded-3xl sm:p-8">
         {GUARANTEES.map((item) => (
-          <div key={item.title} className="flex items-start gap-3">
+          <div key={item.title} className="flex items-start gap-3 py-3.5 sm:py-0">
             <item.icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
             <div>
               <p className="text-sm font-medium text-foreground">{item.title}</p>

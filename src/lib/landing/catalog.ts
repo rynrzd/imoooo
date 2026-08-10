@@ -63,6 +63,15 @@ const HERO_HEADLINE: SlotDef<"hero_headline"> = {
   ],
 };
 
+/**
+ * Sous-titre du hero — volontairement FIGÉ sur une seule phrase.
+ *
+ * Les deux variantes longues (« benefit » et « automation ») faisaient tenir
+ * le paragraphe sur trois lignes sur mobile et laissaient entendre plus
+ * d'automatisme que Nireo n'en fait réellement. Elles sont retirées de
+ * l'expérimentation ; le slot reste en place, il suffit de rajouter un objet
+ * dans `variants` pour relancer un test.
+ */
 const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
   key: "hero_subheadline",
   label: "Sous-titre",
@@ -70,26 +79,10 @@ const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
   variants: [
     {
       key: "control",
-      label: "Un seul espace clair",
-      description: "Énumère ce qui est réuni, en une phrase courte — référence de comparaison.",
+      label: "Un seul espace",
+      description: "Énumère ce qui est réuni, en une phrase courte et vérifiable.",
       payload: {
-        text: "Nireo réunit vos loyers, vos locataires, vos documents et vos dépenses dans un seul espace clair.",
-      },
-    },
-    {
-      key: "benefit",
-      label: "Bénéfice concret",
-      description: "Insiste sur le temps gagné et la fin des oublis.",
-      payload: {
-        text: "Suivez vos loyers, vos locataires et vos documents sans tableur et sans oubli — tout est rangé, calculé et rappelé au bon moment.",
-      },
-    },
-    {
-      key: "automation",
-      label: "Automatisation",
-      description: "Met en avant ce que le produit fait tout seul.",
-      payload: {
-        text: "Les échéances se génèrent chaque mois, les documents se rangent par logement, les performances se calculent en continu.",
+        text: "Suivez vos loyers, vos locataires et vos documents dans un seul espace, sans chercher partout.",
       },
     },
   ],

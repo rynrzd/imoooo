@@ -236,7 +236,9 @@
   --secondary: oklch(0.245 0.018 264);
   --secondary-foreground: oklch(0.965 0.006 262);
   --muted: oklch(0.245 0.018 264);
-  --muted-foreground: oklch(0.73 0.016 264);
+  /* Gris de texte remonté (0.73 → 0.78) : les paragraphes secondaires
+     restent secondaires, mais se lisent nettement mieux sur mobile. */
+  --muted-foreground: oklch(0.78 0.014 264);
   --accent: oklch(0.275 0.021 264);
   --accent-foreground: oklch(0.97 0.006 262);
   --destructive: oklch(0.7 0.19 22);
@@ -563,6 +565,29 @@
 .nireo h2 {
   letter-spacing: -0.035em;
   line-height: 1.04;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Header collant : hauteur publiée, ancres jamais masquées.          */
+/*                                                                    */
+/*  `--nireo-header-h` est la hauteur RÉELLE de la barre (52 px sur    */
+/*  mobile, 56 px à partir de « sm »), marge de détachement comprise.  */
+/*  Toute cible d'ancre s'arrête donc SOUS le header, encoche iPhone   */
+/*  incluse — aucun titre ne peut passer derrière.                    */
+/* ------------------------------------------------------------------ */
+
+.nireo {
+  --nireo-header-h: 3.625rem; /* 52 px + 6 px de marge une fois détaché */
+}
+
+@media (width >= 40rem) {
+  .nireo {
+    --nireo-header-h: 4.125rem; /* 56 px + 10 px */
+  }
+}
+
+.nireo [id] {
+  scroll-margin-top: calc(var(--nireo-header-h) + env(safe-area-inset-top) + 0.75rem);
 }
 
 /* ------------------------------------------------------------------ */

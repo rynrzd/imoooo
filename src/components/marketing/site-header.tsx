@@ -15,6 +15,12 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
  * Header public — sticky, sobre, avec menu mobile accessible.
  * Les ancres pointent vers les sections de la landing ; depuis une autre
  * page publique, elles ramènent vers « /#section ».
+ *
+ * Encombrement mobile volontairement minimal : barre de 52 px (58 px marge
+ * comprise une fois détachée), largeur `calc(100% - 24px)`, encoche iPhone
+ * absorbée par `env(safe-area-inset-top)`. La hauteur réelle est publiée dans
+ * `--nireo-header-h` (globals.css) : c'est elle qui alimente le
+ * `scroll-margin-top` des ancres, donc aucun titre ne peut passer dessous.
  */
 
 const NAV_LINKS = [
@@ -46,6 +52,16 @@ export function SiteHeader() {
       .then(({ data: { session } }) => setConnected(Boolean(session)));
   }, []);
 
+  // Échap referme le menu mobile (le panneau n'a pas de zone de fermeture).
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
   // La landing vit sur « / » (et « /accueil » pour les connectés).
   const onLanding = pathname === "/" || pathname === "/accueil";
   const anchor = (hash: string) => (onLanding ? hash : `/${hash}`);
@@ -53,16 +69,16 @@ export function SiteHeader() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-40">
+    <header className="sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
       <div
         className={cn(
-          "mx-auto flex h-14 items-center justify-between gap-4 transition-all duration-300 ease-out",
+          "mx-auto flex h-13 items-center justify-between gap-3 transition-all duration-300 ease-out sm:h-14 sm:gap-4",
           scrolled
-            ? "mt-2.5 w-[min(72rem,calc(100%-1rem))] rounded-2xl border border-border bg-background/85 px-3 shadow-[0_16px_40px_-24px_oklch(0.28_0.03_235/0.55)] backdrop-blur-xl sm:px-4"
-            : "w-full max-w-6xl border border-transparent px-4 sm:px-6"
+            ? "mt-1.5 w-[calc(100%-24px)] rounded-2xl border border-border bg-background/85 px-2.5 shadow-[0_16px_40px_-24px_oklch(0.28_0.03_235/0.55)] backdrop-blur-xl sm:mt-2.5 sm:w-[min(72rem,calc(100%-1rem))] sm:px-4"
+            : "w-[calc(100%-24px)] max-w-6xl border border-transparent sm:w-full sm:px-6"
         )}
       >
-        <NireoLogo />
+        <NireoLogo compact />
 
         <nav
           aria-label="Navigation principale"
@@ -107,33 +123,36 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="nireo-glass-soft flex size-9 items-center justify-center rounded-xl text-foreground md:hidden"
+          className="nireo-glass-soft flex size-10.5 shrink-0 items-center justify-center rounded-xl text-foreground md:hidden"
           aria-expanded={open}
           aria-controls="menu-mobile"
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? <X className="size-4" /> : <Menu className="size-4" />}
+          {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {/* Menu mobile */}
+      {/* Menu mobile — panneau flottant aligné sur la pilule du header. */}
       {open ? (
-        <div id="menu-mobile" className="border-t border-border/70 bg-background/95 backdrop-blur-xl md:hidden">
-          <nav aria-label="Navigation mobile" className="flex flex-col gap-1 px-4 py-3">
+        <div
+          id="menu-mobile"
+          className="mx-3 mt-2 rounded-2xl border border-border bg-background/95 backdrop-blur-xl md:hidden"
+        >
+          <nav aria-label="Navigation mobile" className="flex flex-col gap-1 p-3">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.hash}
                 href={anchor(link.hash)}
                 onClick={close}
-                className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted"
+                className="flex min-h-11 items-center rounded-lg px-3 text-sm text-foreground hover:bg-muted"
               >
                 {link.label}
               </a>
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
               {connected ? (
-                <Link href="/" onClick={close} className={buttonVariants({ className: "w-full" })}>
+                <Link href="/" onClick={close} className={buttonVariants({ className: "h-11 w-full" })}>
                   <LayoutDashboard data-icon="inline-start" />
                   Ouvrir le tableau de bord
                 </Link>
@@ -145,7 +164,7 @@ export function SiteHeader() {
                       track("cta_essai_gratuit", { source: "menu_mobile" });
                       close();
                     }}
-                    className={buttonVariants({ className: "w-full" })}
+                    className={buttonVariants({ className: "h-11 w-full" })}
                   >
                     Essayer gratuitement
                   </Link>
@@ -155,7 +174,7 @@ export function SiteHeader() {
                       track("cta_connexion", { source: "menu_mobile" });
                       close();
                     }}
-                    className={buttonVariants({ variant: "outline", className: "w-full" })}
+                    className={buttonVariants({ variant: "outline", className: "h-11 w-full" })}
                   >
                     Se connecter
                   </Link>

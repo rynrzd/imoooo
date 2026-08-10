@@ -26,25 +26,25 @@ const ITEMS = [
     label: "Loyers",
     detail: "Échéances, encaissements et retards",
     /* Décalage de départ : mobile discret, puis dispersion sur grand écran. */
-    scatter: "[--dx:-10px] [--dy:-26px] [--r:-4deg] sm:[--dx:-120px] sm:[--dy:-58px] sm:[--r:-7deg]",
+    scatter: "[--dx:-8px] [--dy:-14px] [--r:-3deg] sm:[--dx:-120px] sm:[--dy:-58px] sm:[--r:-7deg]",
   },
   {
     icon: FilePenLine,
     label: "Baux",
     detail: "Bail, dépôt de garantie, dates d’entrée et de sortie",
-    scatter: "[--dx:12px] [--dy:-14px] [--r:5deg] sm:[--dx:138px] sm:[--dy:-34px] sm:[--r:6deg]",
+    scatter: "[--dx:10px] [--dy:-8px] [--r:4deg] sm:[--dx:138px] sm:[--dy:-34px] sm:[--r:6deg]",
   },
   {
     icon: Receipt,
     label: "Factures",
     detail: "Dépenses et justificatifs classés par catégorie",
-    scatter: "[--dx:-12px] [--dy:18px] [--r:4deg] sm:[--dx:-132px] sm:[--dy:38px] sm:[--r:5deg]",
+    scatter: "[--dx:-10px] [--dy:10px] [--r:3deg] sm:[--dx:-132px] sm:[--dy:38px] sm:[--r:5deg]",
   },
   {
     icon: Users,
     label: "Locataires",
     detail: "Contacts et bail rattachés à chaque logement",
-    scatter: "[--dx:10px] [--dy:28px] [--r:-5deg] sm:[--dx:126px] sm:[--dy:62px] sm:[--r:-6deg]",
+    scatter: "[--dx:8px] [--dy:16px] [--r:-4deg] sm:[--dx:126px] sm:[--dy:62px] sm:[--r:-6deg]",
   },
 ];
 
@@ -84,24 +84,28 @@ export function UnifyScene() {
   }, []);
 
   return (
-    <div ref={ref} className="mx-auto max-w-2xl overflow-hidden px-1 py-6 sm:px-10 sm:py-10">
+    <div ref={ref} className="mx-auto mt-8 max-w-2xl overflow-hidden px-1 pt-2 pb-0.5 sm:mt-10 sm:px-10 sm:py-6">
+      {/* UNE SEULE enveloppe : à l'intérieur, de simples lignes séparées par un
+          filet — jamais une carte encadrée par élément. */}
       <div
         data-gathered={gathered ? "" : undefined}
-        className="group/scene nireo-glass rounded-3xl p-4 sm:p-6"
+        className="group/scene nireo-glass rounded-2xl px-3.5 py-3 sm:rounded-3xl sm:px-6 sm:py-5"
       >
-        <div className="flex items-center gap-2.5 pb-4">
-          <NireoMark className="size-8" />
+        <div className="flex items-center gap-2.5 border-b border-border pb-3">
+          <NireoMark className="size-7 sm:size-8" />
           <span className="text-sm font-medium text-foreground">Votre espace Nireo</span>
-          <span className="ml-auto text-[11px] text-muted-foreground">1 logement · tout au même endroit</span>
+          <span className="ml-auto hidden text-[11px] text-muted-foreground min-[400px]:block">
+            1 logement · tout au même endroit
+          </span>
         </div>
 
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border">
           {ITEMS.map((item, i) => (
             <li
               key={item.label}
               style={{ transitionDelay: `${i * 110}ms` }}
               className={cn(
-                "flex items-center gap-3 rounded-2xl border border-border bg-card/70 px-3.5 py-3",
+                "flex items-center gap-3 py-2.5 sm:py-3",
                 "transition-[translate,rotate,opacity] duration-700 ease-out motion-reduce:transition-none",
                 // État dispersé (tant que le parent n'a pas `data-gathered`).
                 item.scatter,
@@ -110,12 +114,12 @@ export function UnifyScene() {
                 "group-data-[gathered]/scene:rotate-0 group-data-[gathered]/scene:opacity-100"
               )}
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                <item.icon className="size-4.5" aria-hidden />
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary sm:size-9 sm:rounded-xl">
+                <item.icon className="size-4 sm:size-4.5" aria-hidden />
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-medium text-foreground">{item.label}</span>
-                <span className="block text-[12px] leading-relaxed text-muted-foreground">
+                <span className="block text-[12px] leading-snug text-muted-foreground sm:leading-relaxed">
                   {item.detail}
                 </span>
               </span>

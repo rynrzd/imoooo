@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { CountUp } from "@/components/marketing/count-up";
-import { DashboardPreview } from "@/components/marketing/product-previews";
+import { DashboardPreviewBody, FrameBar } from "@/components/marketing/product-previews";
 import { buttonVariants } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,7 @@ function ValueCurve() {
   const H = 92;
   const { line, area, last } = buildPaths(values, W, H);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-[5.5rem] w-full" preserveAspectRatio="none" aria-hidden>
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-16 w-full sm:h-[5.5rem]" preserveAspectRatio="none" aria-hidden>
       <defs>
         <linearGradient id="nireo-curve" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--nireo-emerald)" stopOpacity="0.18" />
@@ -89,7 +89,7 @@ function ValueCurve() {
 /** Résultat net et revenus — indicateurs réellement calculés par Nireo. */
 function ResultPanel() {
   return (
-    <div className="nireo-panel rounded-2xl p-4">
+    <div className="nireo-panel rounded-xl p-3 sm:rounded-2xl sm:p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
@@ -135,7 +135,7 @@ function LedgerPanel() {
     { unit: "Studio Croix-Rousse", amount: "560 €", status: "En attente", tone: "bg-amber-400" },
   ];
   return (
-    <div className="nireo-panel h-full rounded-2xl p-4">
+    <div className="nireo-panel h-full rounded-xl p-3 sm:rounded-2xl sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
           Loyers du mois
@@ -167,7 +167,7 @@ function OccupationDonut() {
   const c = 2 * Math.PI * r;
   const off = c * (1 - pct / 100);
   return (
-    <div className="nireo-panel flex h-full items-center gap-3 rounded-2xl p-4">
+    <div className="nireo-panel flex h-full items-center gap-3 rounded-xl p-3 sm:rounded-2xl sm:p-4">
       <div className="relative grid size-16 shrink-0 place-items-center">
         <svg viewBox="0 0 64 64" className="size-16 -rotate-90" aria-hidden>
           <circle cx="32" cy="32" r={r} fill="none" stroke="var(--muted)" strokeWidth="6" />
@@ -195,7 +195,11 @@ function OccupationDonut() {
   );
 }
 
-/** Carte du patrimoine — fonction réelle (plan Business+). */
+/**
+ * Carte du patrimoine — fonction réelle (plan Business+).
+ * Purement illustrative : masquée sur mobile, où elle n'apporterait que de la
+ * hauteur vide à l'aperçu.
+ */
 function MapPanel() {
   const pins = [
     { top: "34%", left: "22%" },
@@ -204,7 +208,7 @@ function MapPanel() {
     { top: "42%", left: "78%" },
   ];
   return (
-    <div className="nireo-panel relative h-full min-h-32 overflow-hidden rounded-2xl p-3">
+    <div className="nireo-panel relative hidden h-full min-h-32 overflow-hidden rounded-2xl p-3 sm:block">
       <div className="nireo-blueprint absolute inset-0 opacity-50" aria-hidden />
       <p className="relative flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
         <MapPin className="size-3.5 text-primary" aria-hidden /> Carte du patrimoine
@@ -243,30 +247,13 @@ const DEFAULT_HEADLINE = {
   highlight: "Ça suffit.",
 };
 const DEFAULT_SUBHEADLINE =
-  "Nireo réunit vos loyers, vos locataires, vos documents et vos dépenses dans un seul espace clair.";
+  "Suivez vos loyers, vos locataires et vos documents dans un seul espace, sans chercher partout.";
 const DEFAULT_CTA = {
   primary: "Commencer gratuitement",
   href: "/inscription",
   secondary: "Découvrir Nireo",
   secondaryHref: "#decouvrir",
 };
-
-/** Barre de titre du panneau : nomme l'écran et assume les données d'exemple. */
-function PanelBar() {
-  return (
-    <div className="flex flex-wrap items-center gap-2 px-1 pb-3">
-      <span className="flex gap-1.5" aria-hidden>
-        <span className="size-2.5 rounded-full bg-border" />
-        <span className="size-2.5 rounded-full bg-border" />
-        <span className="size-2.5 rounded-full bg-border" />
-      </span>
-      <span className="ml-1 text-xs font-medium text-foreground">Tableau de bord</span>
-      <span className="ml-auto text-[11px] text-muted-foreground">
-        Aperçu — données d’illustration
-      </span>
-    </div>
-  );
-}
 
 export function HeroCockpit({
   headline = DEFAULT_HEADLINE,
@@ -278,16 +265,16 @@ export function HeroCockpit({
 
   return (
     <section className="relative isolate overflow-hidden">
-      {/* Washes d'ambiance — intensité réduite d'environ 30 %. */}
+      {/* Washes d'ambiance — encore atténués (halo discret, jamais un projecteur). */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="nireo-aurora absolute -top-40 right-[-10%] h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-[0.17] blur-2xl" />
+        <div className="nireo-aurora absolute -top-40 right-[-10%] h-80 w-80 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-[0.1] blur-2xl sm:h-[34rem] sm:w-[34rem] sm:opacity-[0.13]" />
         <div
-          className="nireo-aurora absolute top-40 left-[-12%] h-96 w-96 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-b),transparent)] opacity-[0.14] blur-2xl"
+          className="nireo-aurora absolute top-40 left-[-12%] h-64 w-64 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-b),transparent)] opacity-[0.08] blur-2xl sm:h-96 sm:w-96 sm:opacity-[0.11]"
           style={{ animationDelay: "-8s" }}
         />
       </div>
 
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-12 px-4 pt-14 pb-16 sm:px-6 sm:pt-20 lg:grid-cols-12 lg:gap-10 lg:pb-24">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-9 px-4 pt-8 pb-12 sm:px-6 sm:pt-16 sm:pb-16 lg:grid-cols-12 lg:gap-10 lg:pb-24">
         {/* ---------------- Colonne éditoriale ---------------- */}
         <div className="lg:col-span-5">
           <p
@@ -297,7 +284,7 @@ export function HeroCockpit({
             Nireo pour propriétaires
           </p>
 
-          <h1 className="mt-4 text-[2.4rem] leading-[1.05] font-semibold text-balance text-foreground sm:text-[3.2rem]">
+          <h1 className="mt-3 text-[2.15rem] leading-[1.05] font-semibold text-balance text-foreground sm:mt-4 sm:text-[3.2rem]">
             {lines.map((line, i) => (
               <span
                 key={line}
@@ -316,14 +303,14 @@ export function HeroCockpit({
           </h1>
 
           <p
-            className="animate-nireo-rise mt-5 max-w-md text-base leading-relaxed text-balance text-muted-foreground"
+            className="animate-nireo-rise mt-4 max-w-md text-[0.98rem] leading-relaxed text-balance text-muted-foreground sm:mt-5 sm:text-base"
             style={{ animationDelay: "0.42s" }}
           >
             {subheadline}
           </p>
 
           <div
-            className="animate-nireo-rise mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"
+            className="animate-nireo-rise mt-5 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:items-center sm:gap-3"
             style={{ animationDelay: "0.5s" }}
           >
             <Link
@@ -347,7 +334,7 @@ export function HeroCockpit({
           </div>
 
           <ul
-            className="animate-nireo-rise mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border pt-5"
+            className="animate-nireo-rise mt-6 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border pt-4 sm:mt-8 sm:gap-x-5 sm:pt-5"
             style={{ animationDelay: "0.56s" }}
           >
             {REASSURE.map((r) => (
@@ -366,27 +353,31 @@ export function HeroCockpit({
           {/* Ombre douce au sol, atténuée. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -bottom-8 left-1/2 h-24 w-3/4 -translate-x-1/2 rounded-[100%] bg-primary/[0.07] blur-2xl"
+            className="pointer-events-none absolute -bottom-6 left-1/2 h-16 w-3/4 -translate-x-1/2 rounded-[100%] bg-primary/[0.05] blur-2xl sm:-bottom-8 sm:h-24"
           />
 
-          <div className="nireo-glass relative overflow-hidden rounded-[1.5rem] p-3 sm:p-4">
-            <PanelBar />
-            {media === "preview" ? (
-              <DashboardPreview className="w-full" />
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-5">
-                <div className="sm:col-span-3">
-                  <ResultPanel />
+          {/* UN SEUL cadre : la barre de titre appartient au panneau de verre,
+              le contenu vient nu (aucune seconde fenêtre à l'intérieur). */}
+          <div className="nireo-glass relative overflow-hidden rounded-2xl sm:rounded-[1.5rem]">
+            <FrameBar title="Tableau de bord" className="bg-transparent" />
+            <div className="p-3 sm:p-4">
+              {media === "preview" ? (
+                <DashboardPreviewBody />
+              ) : (
+                <div className="grid gap-2.5 sm:grid-cols-5 sm:gap-3">
+                  <div className="sm:col-span-3">
+                    <ResultPanel />
+                  </div>
+                  <div className="grid gap-2.5 sm:col-span-2 sm:gap-3">
+                    <OccupationDonut />
+                    <MapPanel />
+                  </div>
+                  <div className="sm:col-span-5">
+                    <LedgerPanel />
+                  </div>
                 </div>
-                <div className="grid gap-3 sm:col-span-2">
-                  <OccupationDonut />
-                  <MapPanel />
-                </div>
-                <div className="sm:col-span-5">
-                  <LedgerPanel />
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

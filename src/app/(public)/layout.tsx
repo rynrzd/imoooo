@@ -1,6 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
-import { ScrollProgress } from "@/components/marketing/scroll-progress";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -52,6 +51,18 @@ export const metadata: Metadata = {
   ],
 };
 
+/**
+ * `viewport-fit=cover` : sur iPhone, la vitrine occupe tout l'écran et les
+ * marges de sécurité sont gérées explicitement (`env(safe-area-inset-*)`) —
+ * en haut par le header collant, en bas et sur les côtés ici. Déclaré sur ce
+ * segment uniquement : l'application n'est pas concernée.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   // Message d'annonce global géré depuis /admin/parametres (lecture via la
   // fonction SQL publique — aucune clé secrète, jamais bloquant).
@@ -62,14 +73,12 @@ export default async function PublicLayout({ children }: { children: React.React
     // (indépendant de la préférence système). « dark » active les variantes
     // dark:* des composants réutilisés ; « nireo » applique la palette
     // obsidienne + signature bleu-ardoise.
-    <div className="dark nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background text-foreground">
+    <div className="dark nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] text-foreground">
       {/* Décor ambiant fixe : aurore + grille en perspective + grain fin. */}
       <div aria-hidden className="nireo-ambient">
         <div className="nireo-grid" />
         <div className="nireo-noise" />
       </div>
-
-      <ScrollProgress />
 
       {announcement_message ? (
         <div className="relative z-10 border-b border-primary/20 bg-primary/10 px-4 py-2 text-center text-sm font-medium text-foreground backdrop-blur">

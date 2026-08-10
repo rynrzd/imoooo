@@ -17,6 +17,12 @@ import { cn } from "@/lib/utils";
  * Construits avec les mêmes primitives visuelles que l'application
  * (bordures, rayons, typographie) — aucune requête, aucune donnée
  * d'utilisateur : uniquement des données d'illustration assumées.
+ *
+ * Règle de composition : UN SEUL cadre par aperçu. La fenêtre extérieure
+ * (`Frame`) porte la bordure, le rayon, la barre de titre, les trois points
+ * et la mention « Aperçu — données d'illustration ». À l'intérieur, plus
+ * aucune carte encadrée : uniquement des filets de séparation. C'est ce qui
+ * évite l'effet « Nireo affiché dans Nireo ».
  */
 
 function Frame({
@@ -35,22 +41,40 @@ function Frame({
         className
       )}
     >
-      <figcaption className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
-        <span className="flex gap-1.5" aria-hidden>
-          <span className="size-2.5 rounded-full bg-border" />
-          <span className="size-2.5 rounded-full bg-border" />
-          <span className="size-2.5 rounded-full bg-border" />
-        </span>
-        <span className="text-xs font-medium text-muted-foreground">{title}</span>
-        <span className="ml-auto text-[10px] text-muted-foreground/70">
-          Aperçu — données d&apos;illustration
-        </span>
-      </figcaption>
-      <div className="p-4 sm:p-5">{children}</div>
+      <FrameBar title={title} />
+      <div className="p-3 sm:p-4">{children}</div>
     </figure>
   );
 }
 
+/**
+ * Barre de titre — exportée pour que le hero réutilise EXACTEMENT la même
+ * (et n'en empile jamais une seconde par-dessus l'aperçu).
+ */
+export function FrameBar({ title, className }: { title: string; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-2 sm:px-4",
+        className
+      )}
+    >
+      <span className="flex gap-1.5" aria-hidden>
+        <span className="size-2 rounded-full bg-border sm:size-2.5" />
+        <span className="size-2 rounded-full bg-border sm:size-2.5" />
+        <span className="size-2 rounded-full bg-border sm:size-2.5" />
+      </span>
+      <span className="truncate text-xs font-medium text-muted-foreground">{title}</span>
+      {/* Mention d'honnêteté : jamais masquée, même à 320 px — c'est le titre
+          qui se tronque si la place manque. */}
+      <span className="ml-auto shrink-0 text-[10px] text-muted-foreground/70">
+        Aperçu — données d&apos;illustration
+      </span>
+    </div>
+  );
+}
+
+/** Indicateur nu : aucune bordure, aucun fond — c'est le cadre qui encadre. */
 function MiniStat({
   label,
   value,
@@ -63,7 +87,7 @@ function MiniStat({
   positive?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-3">
+    <div>
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{value}</p>
       {hint ? (
@@ -81,23 +105,27 @@ function MiniStat({
   );
 }
 
-/** Cockpit : indicateurs + barres mensuelles (formes pures, sans lib). */
-export function DashboardPreview({ className }: { className?: string }) {
+/**
+ * Contenu du tableau de bord, SANS cadre : statistiques puis graphique.
+ * Le hero l'insère directement dans son propre panneau de verre — un seul
+ * cadre, une seule barre de titre, une seule mention « données d'illustration ».
+ */
+export function DashboardPreviewBody() {
   const bars = [42, 58, 50, 66, 61, 74, 70, 82, 78, 88, 84, 92];
   return (
-    <Frame title="Tableau de bord — cockpit du patrimoine" className={className}>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+    <>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         <MiniStat label="Logements" value="6" hint="5 loués" />
         <MiniStat label="Loyers du mois" value="4 505 €" hint="+2,1 % vs n−1" positive />
         <MiniStat label="Encaissé" value="3 975 €" hint="88 %" />
         <MiniStat label="Résultat net (année)" value="21 340 €" hint="+8,4 %" positive />
       </div>
-      <div className="mt-4 rounded-xl border border-border bg-background p-3">
+      <div className="mt-3.5 border-t border-border pt-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium text-foreground">Revenus mensuels</p>
           <p className="text-[11px] text-muted-foreground">12 derniers mois</p>
         </div>
-        <div className="mt-3 flex h-24 items-end gap-1.5" aria-hidden>
+        <div className="mt-2.5 flex h-16 items-end gap-1.5 sm:h-24" aria-hidden>
           {bars.map((height, i) => (
             <span
               key={i}
@@ -110,6 +138,15 @@ export function DashboardPreview({ className }: { className?: string }) {
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+/** Cockpit : indicateurs + barres mensuelles (formes pures, sans lib). */
+export function DashboardPreview({ className }: { className?: string }) {
+  return (
+    <Frame title="Tableau de bord" className={className}>
+      <DashboardPreviewBody />
     </Frame>
   );
 }
@@ -134,14 +171,14 @@ export function RentsPreview({ className }: { className?: string }) {
   };
 
   return (
-    <Frame title="Loyers — échéances du mois" className={className}>
-      <div className="grid grid-cols-2 gap-2.5">
+    <Frame title="Loyers du mois" className={className}>
+      <div className="grid grid-cols-2 gap-x-4">
         <MiniStat label="Prévu ce mois" value="3 505 €" />
         <MiniStat label="Encaissé" value="2 590 €" hint="1 échéance à vérifier" />
       </div>
-      <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-background">
+      <ul className="mt-3 divide-y divide-border border-t border-border">
         {rows.map((row) => (
-          <li key={`${row.month}-${row.unit}`} className="flex items-center gap-2.5 px-3 py-2.5">
+          <li key={`${row.month}-${row.unit}`} className="flex items-center gap-2.5 py-2">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs text-foreground">{row.unit}</span>
               <span className="block text-[11px] text-muted-foreground">{row.month}</span>
@@ -177,12 +214,12 @@ export function ExpensesPreview({ className }: { className?: string }) {
     { category: "assurance" as const, amount: "720 €", share: 16 },
   ];
   return (
-    <Frame title="Dépenses — année en cours" className={className}>
-      <div className="grid grid-cols-2 gap-2.5">
+    <Frame title="Dépenses" className={className}>
+      <div className="grid grid-cols-2 gap-x-4">
         <MiniStat label="Dépenses" value="10 780 €" />
         <MiniStat label="Résultat net" value="21 340 €" hint="revenus − dépenses" positive />
       </div>
-      <ul className="mt-3 space-y-2.5 rounded-xl border border-border bg-background p-3">
+      <ul className="mt-3 space-y-2 border-t border-border pt-3">
         {rows.map((row) => (
           <li key={row.category}>
             <div className="flex items-center justify-between text-xs">
@@ -198,7 +235,7 @@ export function ExpensesPreview({ className }: { className?: string }) {
           </li>
         ))}
       </ul>
-      <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border bg-background px-3 py-2.5">
+      <div className="mt-3 flex items-center gap-2.5 border-t border-border pt-3">
         <Hammer className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate text-xs text-foreground">
           Rénovation cuisine — T2 Monplaisir
@@ -270,7 +307,7 @@ export function PropertyDossierPreview({ className }: { className?: string }) {
 /** Bibliothèque documentaire : catégories + lignes de fichiers. */
 export function DocumentsPreview({ className }: { className?: string }) {
   return (
-    <Frame title="Documents — bibliothèque du patrimoine" className={className}>
+    <Frame title="Documents" className={className}>
       <div className="flex flex-wrap gap-1.5">
         {["Tous", "Baux", "Diagnostics", "Assurance", "Factures"].map((cat, i) => (
           <span
@@ -286,14 +323,14 @@ export function DocumentsPreview({ className }: { className?: string }) {
           </span>
         ))}
       </div>
-      <ul className="mt-3 divide-y divide-border rounded-xl border border-border bg-background">
+      <ul className="mt-3 divide-y divide-border border-t border-border">
         {[
           { name: "Bail de location — Studio Croix-Rousse", meta: "Bail · 1,2 Mo" },
           { name: "DPE (classe C) — T3 Tête d'Or", meta: "Diagnostic · 790 Ko" },
           { name: "Attestation PNO 2026", meta: "Assurance · expire dans 3 mois" },
           { name: "Facture — remplacement chaudière", meta: "Facture · 310 Ko" },
         ].map((doc) => (
-          <li key={doc.name} className="flex items-center gap-2.5 px-3 py-2.5">
+          <li key={doc.name} className="flex items-center gap-2.5 py-2.5">
             <FileText className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate text-xs text-foreground">{doc.name}</span>
             <span className="hidden text-[11px] whitespace-nowrap text-muted-foreground sm:block">
