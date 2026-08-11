@@ -25,29 +25,25 @@ import {
  * d'erreur, on sert la configuration par défaut (contenu d'origine).
  */
 
-/** Règles de personnalisation livrées par défaut (modifiables dans l'admin). */
+/**
+ * Règles de personnalisation livrées par défaut (modifiables dans l'admin).
+ *
+ * Elles sont volontairement peu nombreuses : depuis la refonte, le hook, le
+ * sous-titre, le média du hero, l'appel à l'action final et l'ordre des
+ * sections sont FIGÉS (une seule variante au catalogue) — la landing est une
+ * narration continue, pas une liste de blocs interchangeables. Ne restent que
+ * les décisions qui ont encore un sens :
+ *
+ * - un visiteur DÉJÀ CONNECTÉ repart vers son tableau de bord (comportement,
+ *   pas expérimentation) ;
+ * - une audience professionnelle voit le plan Pro mis en avant.
+ *
+ * Une règle qui pointerait vers une variante retirée du catalogue est ignorée
+ * à la résolution : rien ne casse, elle ne sert simplement plus.
+ */
 export const DEFAULT_RULES: SegmentRule[] = [
-  // Réseaux sociaux : arrivée mobile, attention courte → promesse directe.
-  { segment: "tiktok", slot: "hero_headline", variant: "mobile", origin: "default" },
-  { segment: "tiktok", slot: "hero_cta", variant: "instant", origin: "default" },
-  { segment: "tiktok", slot: "section_order", variant: "features_first", origin: "default" },
-  { segment: "facebook", slot: "hero_headline", variant: "problem", origin: "default" },
-  // Recherche Google : intention explicite → montrer l'outil et lever l'objection prix.
-  { segment: "google", slot: "hero_headline", variant: "problem", origin: "default" },
-  { segment: "google", slot: "hero_media", variant: "preview", origin: "default" },
-  { segment: "google", slot: "hero_cta", variant: "no_card", origin: "default" },
-  // LinkedIn : audience professionnelle → discours produit + plan Pro.
-  { segment: "linkedin", slot: "hero_headline", variant: "control", origin: "default" },
-  { segment: "linkedin", slot: "pricing_emphasis", variant: "pro", origin: "default" },
-  // Partenaire / QR : le visiteur vient d'une recommandation → aller au produit.
-  { segment: "partner", slot: "hero_cta", variant: "no_card", origin: "default" },
-  { segment: "partner", slot: "section_order", variant: "pricing_early", origin: "default" },
-  { segment: "qr", slot: "hero_media", variant: "preview", origin: "default" },
-  { segment: "qr", slot: "section_order", variant: "features_first", origin: "default" },
-  // Visiteur déjà venu / connecté : ne pas répéter la découverte.
-  { segment: "returning", slot: "hero_cta", variant: "resume", origin: "default" },
-  { segment: "returning", slot: "section_order", variant: "pricing_early", origin: "default" },
   { segment: "member", slot: "hero_cta", variant: "member", origin: "default" },
+  { segment: "linkedin", slot: "pricing_emphasis", variant: "pro", origin: "default" },
 ];
 
 export const DEFAULT_CONFIG: LandingConfig = {

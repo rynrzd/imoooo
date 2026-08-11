@@ -27,9 +27,15 @@ import {
 /* ------------------------------------------------------------------ */
 
 /**
- * Titres du hero. `lead` peut contenir des retours à la ligne (« \n ») :
- * chaque ligne est rendue séparément et apparaît l'une après l'autre. Seul
- * `highlight` reçoit le dégradé bleu/violet — jamais tout le titre.
+ * Titre du hero — FIGÉ.
+ *
+ * La landing est construite autour de ce hook : trois lignes, la dernière
+ * composée dans la typographie éditoriale de la page. Le faire varier
+ * reviendrait à casser la mise en page et l'entrée typographique. Le slot
+ * reste en place : ajouter un objet dans `variants` relance un test.
+ *
+ * `lead` peut contenir des retours à la ligne (« \n ») : chaque ligne est
+ * rendue séparément et apparaît l'une après l'autre.
  */
 const HERO_HEADLINE: SlotDef<"hero_headline"> = {
   key: "hero_headline",
@@ -39,38 +45,20 @@ const HERO_HEADLINE: SlotDef<"hero_headline"> = {
     {
       key: "control",
       label: "Ça suffit",
-      description: "Nomme le quotidien du bailleur en deux lignes, puis tranche — référence de comparaison.",
+      description: "Nomme le quotidien du bailleur en deux lignes, puis tranche.",
       payload: { lead: "Un loyer sur Excel.\nUn bail dans vos mails.", highlight: "Ça suffit." },
-    },
-    {
-      key: "clarity",
-      label: "Au même endroit",
-      description: "Met en avant le bénéfice : tout se retrouve dans un seul espace.",
-      payload: { lead: "Vos loyers, vos baux,\nvos factures.", highlight: "Au même endroit." },
-    },
-    {
-      key: "problem",
-      label: "Recherche de documents",
-      description: "Nomme la douleur la plus concrète : retrouver un document.",
-      payload: { lead: "Chercher un bail\ndans ses mails.", highlight: "C’est terminé." },
-    },
-    {
-      key: "mobile",
-      label: "Mobile",
-      description: "Formulation courte et directe, pensée pour les arrivées réseaux sociaux.",
-      payload: { lead: "Toute votre gestion\nlocative.", highlight: "Dans un seul espace." },
     },
   ],
 };
 
 /**
- * Sous-titre du hero — volontairement FIGÉ sur une seule phrase.
+ * Sous-titre du hero — FIGÉ lui aussi.
  *
- * Les deux variantes longues (« benefit » et « automation ») faisaient tenir
- * le paragraphe sur trois lignes sur mobile et laissaient entendre plus
+ * Les variantes longues (« benefit » et « automation ») faisaient tenir le
+ * paragraphe sur trois lignes sur mobile et laissaient entendre plus
  * d'automatisme que Nireo n'en fait réellement. Elles sont retirées de
- * l'expérimentation ; le slot reste en place, il suffit de rajouter un objet
- * dans `variants` pour relancer un test.
+ * l'expérimentation ; il suffit de rajouter un objet dans `variants` pour
+ * relancer un test.
  */
 const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
   key: "hero_subheadline",
@@ -79,10 +67,10 @@ const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
   variants: [
     {
       key: "control",
-      label: "Un seul espace",
+      label: "Tout le patrimoine",
       description: "Énumère ce qui est réuni, en une phrase courte et vérifiable.",
       payload: {
-        text: "Suivez vos loyers, vos locataires et vos documents dans un seul espace, sans chercher partout.",
+        text: "Loyers, baux, locataires, dépenses et travaux. Tout votre patrimoine réuni dans un espace clair.",
       },
     },
   ],
@@ -92,6 +80,12 @@ const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
 /*  Appels à l'action                                                 */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Boutons du hero. Les libellés visiteur sont figés (ils font partie de la
+ * composition du hook) ; la variante « membre » n'est pas une expérience mais
+ * un comportement : une session déjà connectée doit repartir vers son
+ * tableau de bord, pas vers une inscription.
+ */
 const HERO_CTA: SlotDef<"hero_cta"> = {
   key: "hero_cta",
   label: "Boutons du hero",
@@ -100,45 +94,12 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
     {
       key: "control",
       label: "Commencer gratuitement",
-      description: "Formulation d'origine, neutre et rassurante.",
+      description: "Formulation de la landing : créer un compte, ou voir le produit.",
       payload: {
         primary: "Commencer gratuitement",
         href: "/inscription",
-        secondary: "Découvrir Nireo",
-        secondaryHref: "#decouvrir",
-      },
-    },
-    {
-      key: "instant",
-      label: "Créer mon espace",
-      description: "Insiste sur la mise en route immédiate.",
-      payload: {
-        primary: "Créer mon espace",
-        href: "/inscription",
-        secondary: "Découvrir Nireo",
-        secondaryHref: "#decouvrir",
-      },
-    },
-    {
-      key: "no_card",
-      label: "Sans carte bancaire",
-      description: "Lève l'objection du paiement dès le bouton.",
-      payload: {
-        primary: "Essayer sans carte bancaire",
-        href: "/inscription",
-        secondary: "Voir les tarifs",
-        secondaryHref: "#tarifs",
-      },
-    },
-    {
-      key: "resume",
-      label: "Retour visiteur",
-      description: "Pour un visiteur déjà venu : reprendre là où il s'était arrêté.",
-      payload: {
-        primary: "Reprendre mon inscription",
-        href: "/inscription",
-        secondary: "Me connecter",
-        secondaryHref: "/connexion",
+        secondary: "Voir Nireo en action",
+        secondaryHref: "#fonctionnalites",
       },
     },
     {
@@ -148,13 +109,21 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
       payload: {
         primary: "Ouvrir mon tableau de bord",
         href: "/",
-        secondary: "Voir les nouveautés",
+        secondary: "Voir Nireo en action",
         secondaryHref: "#fonctionnalites",
       },
     },
   ],
 };
 
+/**
+ * Appel à l'action final — FIGÉ.
+ *
+ * Le bloc de conversion est désormais écrit en dur dans la section bleu nuit
+ * (`src/components/landing/night-sections.tsx`) : titre, texte et bouton y
+ * forment une composition centrée. Le slot reste déclaré pour ne pas casser
+ * les configurations existantes, avec la formulation réellement servie.
+ */
 const FINAL_CTA: SlotDef<"final_cta"> = {
   key: "final_cta",
   label: "Appel à l'action final",
@@ -162,24 +131,13 @@ const FINAL_CTA: SlotDef<"final_cta"> = {
   variants: [
     {
       key: "control",
-      label: "Plus simple dès aujourd'hui",
-      description: "Promesse de simplicité immédiate — référence de comparaison.",
+      label: "Mieux qu’un tableur",
+      description: "Formulation servie par la landing.",
       payload: {
-        lead: "Votre gestion immobilière peut être",
-        highlight: "plus simple dès aujourd’hui.",
-        text: "Ajoutez votre premier logement gratuitement et retrouvez toutes vos informations dans un seul espace.",
-        primary: "Commencer gratuitement",
-      },
-    },
-    {
-      key: "start_free",
-      label: "Premier logement offert",
-      description: "Rappelle l'offre gratuite, sans carte bancaire.",
-      payload: {
-        lead: "Votre premier logement,",
-        highlight: "suivi gratuitement.",
-        text: "Sans carte bancaire, sans engagement : ajoutez un logement et retrouvez toutes vos informations au même endroit.",
-        primary: "Commencer gratuitement",
+        lead: "Votre patrimoine mérite",
+        highlight: "mieux qu’un tableur.",
+        text: "Commencez avec votre premier logement et retrouvez enfin une gestion claire.",
+        primary: "Créer mon espace gratuit",
       },
     },
   ],
@@ -189,23 +147,22 @@ const FINAL_CTA: SlotDef<"final_cta"> = {
 /*  Médias & preuves                                                  */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Média du hero — FIGÉ : la mise en scène (les pièces administratives qui se
+ * rangent dans le tableau de bord) est l'effet signature de la page, elle
+ * n'est pas interchangeable avec une capture statique.
+ */
 const HERO_MEDIA: SlotDef<"hero_media"> = {
   key: "hero_media",
   label: "Média du hero",
   description:
-    "Ce qui est montré à droite du titre. Toujours l'interface Nireo : aucune vidéo n'est servie sur la landing.",
+    "Ce qui est montré à côté du titre. Toujours l'interface Nireo : aucune vidéo n'est servie sur la landing.",
   variants: [
     {
       key: "cockpit",
       label: "Tableau de bord",
-      description: "Le tableau de bord Nireo, composé de panneaux réels (référence de comparaison).",
+      description: "Le tableau de bord Nireo, dans lequel viennent se ranger les pièces éparpillées.",
       payload: { kind: "cockpit" },
-    },
-    {
-      key: "preview",
-      label: "Aperçu d'interface",
-      description: "Aperçu statique du tableau de bord, immédiatement lisible.",
-      payload: { kind: "preview" },
     },
   ],
 };
@@ -247,7 +204,16 @@ const PRICING_EMPHASIS: SlotDef<"pricing_emphasis"> = {
 /*  Ordre des sections                                                */
 /* ------------------------------------------------------------------ */
 
-const ORDER_DEFAULT: SectionKey[] = ["unify", "features", "proof", "pricing", "faq"];
+/**
+ * Ordre des sections — FIGÉ.
+ *
+ * La landing est une narration continue (le hook, le produit en trois temps,
+ * une respiration, le patrimoine réuni, la comparaison, les tarifs, les
+ * objections) : intervertir deux sections casserait l'enchaînement et les
+ * transitions visuelles. Les clés restent celles d'origine, si bien que les
+ * mesures « section vue / temps passé » demeurent comparables.
+ */
+const ORDER_DEFAULT: SectionKey[] = ["proof", "features", "unify", "pricing", "faq"];
 
 const SECTION_ORDER: SlotDef<"section_order"> = {
   key: "section_order",
@@ -256,27 +222,10 @@ const SECTION_ORDER: SlotDef<"section_order"> = {
   variants: [
     {
       key: "default",
-      label: "Récit complet",
-      description: "Problème → fonctionnalités → réassurance → tarifs → FAQ (ordre d'origine).",
+      label: "Récit de la landing",
+      description:
+        "Engagements → produit → patrimoine réuni → tarifs → objections. Ordre servi par la page.",
       payload: { order: ORDER_DEFAULT },
-    },
-    {
-      key: "features_first",
-      label: "Fonctionnalités d'abord",
-      description: "Montre le produit immédiatement après le hero — efficace sur trafic froid.",
-      payload: { order: ["features", "unify", "proof", "pricing", "faq"] },
-    },
-    {
-      key: "proof_early",
-      label: "Réassurance d'abord",
-      description: "Rassure très tôt — utile quand le trafic connaît peu la marque.",
-      payload: { order: ["proof", "unify", "features", "pricing", "faq"] },
-    },
-    {
-      key: "pricing_early",
-      label: "Tarifs remontés",
-      description: "Place les tarifs juste après les fonctionnalités — audience à intention d'achat.",
-      payload: { order: ["features", "pricing", "unify", "proof", "faq"] },
     },
   ],
 };

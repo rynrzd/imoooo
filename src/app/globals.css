@@ -617,6 +617,446 @@
 }
 
 /* ================================================================== */
+/*  NIREO — LANDING PUBLIQUE (scope « .nireo-land »)                   */
+/*                                                                    */
+/*  Direction : « le calme après le chaos administratif ». Papier      */
+/*  ivoire chaud, encre bleu-nuit, un seul bleu Nireo réservé aux      */
+/*  actions et aux états actifs, un vert uniquement pour l'encaissé.   */
+/*  Filets nets, aucune ombre diffuse, aucun halo, aucun verre.        */
+/*                                                                    */
+/*  Entièrement scopé : le tableau de bord connecté, la page Tarifs,   */
+/*  la connexion et Nireo ID gardent leur univers d'origine.           */
+/* ================================================================== */
+
+.nireo-land {
+  color-scheme: light;
+
+  /* --- Palette de marque, en valeurs brutes (repères de la direction). --- */
+  --land-ivory: #f5f2ec;
+  --land-paper: #fcfbf8;
+  --land-ink: #151a21;
+  --land-blue: #3158d4;
+  --land-night: #111827;
+  --land-blue-pale: #e3e9f5;
+  --land-stone: #c9c1b5;
+  --land-green: #2f7d5a;
+  /* Même vert, éclairci pour rester lisible sur le bleu nuit (≈ 8,8:1). */
+  --land-green-light: #7fd3ac;
+
+  /* --- Tokens du design system (les composants réutilisés suivent). --- */
+  --background: var(--land-ivory);
+  --foreground: var(--land-ink);
+  --card: var(--land-paper);
+  --card-foreground: var(--land-ink);
+  --popover: var(--land-paper);
+  --popover-foreground: var(--land-ink);
+
+  --primary: var(--land-blue);
+  --primary-foreground: var(--land-paper);
+
+  --secondary: #ece7dd;
+  --secondary-foreground: var(--land-ink);
+  --muted: #ebe6dc;
+  /* Gris de texte assez sombre pour rester lisible sur ivoire (≈ 5,3:1). */
+  --muted-foreground: #5c6470;
+  --accent: var(--land-blue-pale);
+  --accent-foreground: #1e3a8f;
+  --destructive: #9c3324;
+
+  --border: #ded7c9;
+  --input: #ded7c9;
+  --ring: var(--land-blue);
+
+  /* Rayons courts et variés : rien qui ressemble à une pastille générique. */
+  --radius: 0.5rem;
+
+  /* Touche éditoriale, réservée à quelques mots — aucune police téléchargée. */
+  --land-serif:
+    ui-serif, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+
+  /* Hauteur réelle du header collant (ancres jamais masquées). */
+  --land-header-h: 3.5rem;
+
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+}
+
+@media (width >= 40rem) {
+  .nireo-land {
+    --land-header-h: 4rem;
+  }
+}
+
+.nireo-land [id] {
+  scroll-margin-top: calc(var(--land-header-h) + env(safe-area-inset-top) + 1rem);
+}
+
+/* Titres : présence éditoriale, jamais démesurés. */
+.nireo-land h1,
+.nireo-land h2 {
+  letter-spacing: -0.028em;
+  line-height: 1.06;
+}
+
+.nireo-land h3 {
+  letter-spacing: -0.018em;
+}
+
+/* FAQ : dépliage progressif au lieu d'un saut. Repose sur ::details-content,
+   ignoré par les navigateurs qui ne le connaissent pas — l'accordéon s'ouvre
+   alors d'un bloc (aucune régression, aucun JavaScript). */
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-land {
+    interpolate-size: allow-keywords;
+  }
+
+  .nireo-land details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      content-visibility 0.3s allow-discrete;
+  }
+
+  .nireo-land details[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* Focus clavier toujours visible, y compris sur les surfaces sombres. */
+.nireo-land :focus-visible {
+  outline: 2px solid var(--land-blue);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.nireo-land [data-night] :focus-visible {
+  outline-color: var(--land-paper);
+}
+
+/*
+ * Neutralisation de l'univers sombre : certains composants partagés
+ * (offre Fondateur, pied de page) portent encore les utilitaires « verre »
+ * et « halo » de la vitrine obsidienne. Dans le scope de la landing, ils
+ * redeviennent du papier avec un filet net — aucun flou, aucune lueur.
+ */
+.nireo-land .nireo-glass,
+.nireo-land .nireo-glass-soft,
+.nireo-land .nireo-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+.nireo-land .nireo-glow,
+.nireo-land .nireo-sheen::after {
+  box-shadow: none;
+  background: none;
+}
+
+.nireo-land .nireo-hairline::before {
+  background: var(--border);
+  inset-inline: 0;
+}
+
+.nireo-land .nireo-shine {
+  color: inherit;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  animation: none;
+}
+
+/* --- Surfaces ---------------------------------------------------- */
+
+/* Feuille de papier : filet net, ombre portée minuscule et froide. */
+@utility land-paper {
+  background: var(--land-paper);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.04);
+}
+
+/* Filet de section — sépare sans encadrer. */
+@utility land-rule {
+  border-top: 1px solid var(--border);
+}
+
+/* Petite capitale d'accroche : rythme éditorial, jamais un badge coloré.
+   La couleur reste à la charge de l'appelant (ivoire sur les fonds nuit). */
+@utility land-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Mot mis en avant : la seule licence typographique de la page. */
+@utility land-serif {
+  font-family: var(--land-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* --- Animations ---------------------------------------------------- */
+/* Toutes en transform/opacity, aucune boucle infinie, toutes désactivées
+   par « prefers-reduced-motion » (l'état final est l'état de repos). */
+
+@keyframes land-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Les pièces administratives se rangent dans le tableau de bord. */
+@keyframes land-file {
+  0% {
+    opacity: 0;
+    transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)) scale(1);
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.94);
+  }
+}
+
+@keyframes land-settle {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes land-grow {
+  from {
+    transform: scaleX(0.06);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Une échéance passe d'« À encaisser » à « Payé » — le geste du produit. */
+@keyframes land-swap-out {
+  0%,
+  52% {
+    opacity: 1;
+    transform: none;
+  }
+  64%,
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes land-swap-in {
+  0%,
+  52% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  64%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Micro-animations INTERNES aux écrans produit. Elles ne se déclenchent que
+ * lorsque l'écran porte `data-active` (posé par la section produit au
+ * défilement) : hors écran, plus rien ne s'anime. L'état de repos est
+ * toujours l'état final — sans JavaScript, tout est déjà lisible.
+ */
+.nireo-land .land-swap {
+  display: inline-grid;
+}
+
+.nireo-land .land-swap > * {
+  grid-area: 1 / 1;
+}
+
+.nireo-land .land-swap > [data-from] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-land [data-active] [data-settle] {
+    animation: land-settle 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) both;
+  }
+
+  .nireo-land [data-active] [data-grow] {
+    transform-origin: left center;
+    animation: land-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) both;
+  }
+
+  .nireo-land [data-active] .land-swap > [data-from] {
+    animation: land-swap-out 1.9s ease both;
+  }
+
+  .nireo-land [data-active] .land-swap > [data-to] {
+    animation: land-swap-in 1.9s ease both;
+  }
+}
+
+/* Écran d'introduction — un seul tour du monogramme, puis l'ouverture. */
+@keyframes land-intro-turn {
+  from {
+    transform: rotate(0deg) scale(0.96);
+  }
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* 184 = longueur exacte d'une moitié du cadre (66 + 52 + 66 unités SVG). */
+@keyframes land-intro-draw {
+  from {
+    stroke-dashoffset: 184;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes land-intro-lift {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes land-intro-open-up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-101%);
+  }
+}
+
+@keyframes land-intro-open-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(101%);
+  }
+}
+
+@utility land-rise {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: land-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@utility land-file {
+  opacity: 0;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: land-file var(--file-dur, 1.5s) cubic-bezier(0.62, 0.02, 0.28, 1) both;
+  }
+}
+
+/*
+ * Rideau d'introduction.
+ *
+ * Par défaut le rideau n'existe PAS visuellement (`display: none`) : sans
+ * JavaScript, avec « prefers-reduced-motion », ou à la deuxième visite de la
+ * session, la landing s'affiche directement. Un script en ligne (exécuté
+ * pendant l'analyse du HTML, donc avant le premier rendu) ajoute
+ * `data-play` : c'est la SEULE façon de le montrer. Il ne masque jamais le
+ * contenu plus de 940 ms, et l'animation se termine sur un état invisible et
+ * inerte même si le script suivant échoue.
+ */
+.land-intro {
+  display: none;
+}
+
+.land-intro[data-play] {
+  /* Repères de la chorégraphie — la version mobile ne change que ceux-ci. */
+  --intro-turn: 520ms;
+  --intro-draw-at: 120ms;
+  --intro-fade-at: 560ms;
+  --intro-open-at: 600ms;
+  --intro-end: 960ms;
+
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  /* Le rideau ne capture jamais un clic : la page reste utilisable dessous. */
+  pointer-events: none;
+  animation: land-intro-lift 1ms linear var(--intro-end) both;
+}
+
+@media (width < 40rem) {
+  .land-intro[data-play] {
+    --intro-turn: 400ms;
+    --intro-draw-at: 90ms;
+    --intro-fade-at: 430ms;
+    --intro-open-at: 460ms;
+    --intro-end: 760ms;
+  }
+}
+
+.land-intro[data-play] .land-intro-panel {
+  position: absolute;
+  inset-inline: 0;
+  height: 50.5%;
+  background: var(--land-ivory);
+  animation: 340ms cubic-bezier(0.76, 0, 0.24, 1) var(--intro-open-at) both;
+}
+
+.land-intro[data-play] .land-intro-panel[data-side="top"] {
+  top: 0;
+  animation-name: land-intro-open-up;
+}
+
+.land-intro[data-play] .land-intro-panel[data-side="bottom"] {
+  bottom: 0;
+  animation-name: land-intro-open-down;
+}
+
+.land-intro[data-play] .land-intro-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  animation: land-intro-lift 200ms ease-out var(--intro-fade-at) both;
+}
+
+.land-intro[data-play] .land-intro-mark {
+  animation: land-intro-turn var(--intro-turn) cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.land-intro[data-play] .land-intro-frame {
+  stroke-dasharray: 184;
+  animation: land-intro-draw 420ms cubic-bezier(0.4, 0, 0.2, 1) var(--intro-draw-at) both;
+}
+
+/* ================================================================== */
 /*  NIREO ID — second produit de la marque (scope « .nid »)            */
 /*                                                                    */
 /*  Direction : chaleureuse et humaine. Fond crème, encre presque      */
