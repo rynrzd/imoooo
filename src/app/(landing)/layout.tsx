@@ -1,18 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { IntroCurtain } from "@/components/landing/intro-curtain";
+import { BrandIntro } from "@/components/landing/brand-intro";
+import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingHeader } from "@/components/landing/landing-header";
-import { SiteFooter } from "@/components/marketing/site-footer";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
 import { SITE_URL } from "@/lib/supabase/config";
 
 /**
  * Segment de la LANDING PUBLIQUE.
  *
- * Elle a son propre gabarit parce qu'elle a son propre univers : papier
- * ivoire, encre bleu nuit, filets nets (`.nireo-land`, globals.css). Le reste
- * de la vitrine — tarifs, à propos, pages légales, connexion — garde le thème
- * obsidienne du segment `(public)`, et l'application connectée n'est pas
- * concernée du tout.
+ * Elle a son propre gabarit parce qu'elle a son propre univers : cobalt, bleu
+ * nuit presque noir, blanc cassé chaud (`.nireo-landing`, globals.css), et son
+ * propre footer, compact. Le reste de la vitrine — tarifs, à propos, pages
+ * légales, connexion — garde le thème obsidienne du segment `(public)` et son
+ * footer complet ; l'application connectée n'est pas concernée du tout.
+ *
+ * Le scope `.nireo-landing` ne redéfinit AUCUN token du design system : c'est
+ * ce qui permet à l'aperçu du produit de montrer l'application connectée avec
+ * ses vraies couleurs.
  *
  * Les métadonnées reprennent celles du segment `(public)` : `metadataBase`,
  * carte Twitter, mots-clés et images sociales sont donc strictement
@@ -72,9 +76,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Le haut de la page est désormais la photographie du hero, sur fond bleu
-  // nuit : la barre du navigateur se fond dedans plutôt que de trancher.
-  themeColor: "#111827",
+  // Le haut de la page est la photographie du hero, sur fond bleu nuit : la
+  // barre du navigateur se fond dedans plutôt que de trancher.
+  themeColor: "#070c15",
 };
 
 export default async function LandingLayout({ children }: { children: React.ReactNode }) {
@@ -86,13 +90,16 @@ export default async function LandingLayout({ children }: { children: React.Reac
     // Aucun décalage haut : le hero commence au pixel 0 et le header, fixe et
     // transparent, se pose PAR-DESSUS la photographie (cf. landing-header).
     // Le message d'annonce global fait partie de cette même pile fixe.
-    <div className="nireo-land flex min-h-dvh flex-col overflow-x-clip bg-background pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-foreground">
-      {/* Rideau d'introduction — inerte tant qu'un script ne l'active pas. */}
-      <IntroCurtain />
+    //
+    // `overflow-x-clip` : dernier rempart contre tout débordement horizontal,
+    // les grands « N » débordant volontairement de leur section.
+    <div className="nireo-landing flex min-h-dvh flex-col overflow-x-clip pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
+      {/* Écran d'introduction — inerte tant qu'un script ne l'active pas. */}
+      <BrandIntro />
 
       <LandingHeader announcement={announcement_message} />
       <main className="flex-1">{children}</main>
-      <SiteFooter flat />
+      <LandingFooter />
     </div>
   );
 }

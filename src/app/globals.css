@@ -57,7 +57,15 @@
 /* bleu ardoise profond), sombre anthracite légèrement bleuté.          */
 /* ------------------------------------------------------------------ */
 
-:root {
+/*
+ * `.nireo-app-light` : îlot forcé en thème clair. Il sert à l'aperçu du
+ * produit sur la landing publique, qui doit montrer l'espace connecté avec
+ * ses VRAIES couleurs même si le visiteur navigue en thème sombre. Aucun
+ * token n'est recopié : le bloc clair est simplement étendu à cette classe,
+ * l'aperçu ne peut donc jamais diverger du thème réel de l'application.
+ */
+:root,
+.nireo-app-light {
   --background: oklch(0.985 0.003 255);
   --foreground: oklch(0.21 0.021 260);
   --card: oklch(1 0 0);
@@ -617,193 +625,93 @@
 }
 
 /* ================================================================== */
-/*  NIREO — LANDING PUBLIQUE (scope « .nireo-land »)                   */
+/*  NIREO — LANDING PUBLIQUE (scope « .nireo-landing »)                */
 /*                                                                    */
-/*  Direction : « le calme après le chaos administratif ». Papier      */
-/*  ivoire chaud, encre bleu-nuit, un seul bleu Nireo réservé aux      */
-/*  actions et aux états actifs, un vert uniquement pour l'encaissé.   */
-/*  Filets nets, aucune ombre diffuse, aucun halo, aucun verre.        */
+/*  Direction : cobalt, bleu nuit presque noir, blanc cassé chaud.     */
+/*  Le gris ne sert QUE aux textes secondaires. Aucun halo, aucune     */
+/*  tache colorée, aucun verre, aucune carte « bento ».                */
 /*                                                                    */
-/*  Entièrement scopé : le tableau de bord connecté, la page Tarifs,   */
-/*  la connexion et Nireo ID gardent leur univers d'origine.           */
+/*  IMPORTANT : contrairement à la version précédente, ce scope ne     */
+/*  redéfinit AUCUN token du design system (--background, --card…).    */
+/*  Chaque section peint explicitement son fond, et l'aperçu du        */
+/*  produit peut donc afficher l'application avec ses VRAIES couleurs. */
 /* ================================================================== */
 
-.nireo-land {
+.nireo-landing {
+  /* La landing est toujours servie en clair, même en thème sombre. */
   color-scheme: light;
 
-  /* --- Palette de marque, en valeurs brutes (repères de la direction). --- */
-  --land-ivory: #f5f2ec;
-  --land-paper: #fcfbf8;
-  --land-ink: #151a21;
-  --land-blue: #3158d4;
-  --land-night: #111827;
-  --land-blue-pale: #e3e9f5;
-  --land-stone: #c9c1b5;
-  --land-green: #2f7d5a;
-  /* Même vert, éclairci pour rester lisible sur le bleu nuit (≈ 8,8:1). */
-  --land-green-light: #7fd3ac;
+  --nl-cobalt: #1b52e8; /* actions, accents, états actifs */
+  --nl-cobalt-bright: #3b76ff; /* cobalt lisible sur bleu nuit */
+  --nl-deep: #0f2a7d; /* section signature */
+  --nl-night: #070c15; /* section noire et footer */
+  --nl-paper: #f0efeb; /* blanc cassé légèrement chaud */
+  --nl-ink: #0d141f; /* texte principal, noir bleuté */
+  --nl-gray: #5b6472; /* texte secondaire sur clair (5,1:1) */
+  --nl-gray-dark: #9aa0a8; /* texte secondaire sur sombre (7,4:1) */
 
-  /* --- Tokens du design system (les composants réutilisés suivent). --- */
-  --background: var(--land-ivory);
-  --foreground: var(--land-ink);
-  --card: var(--land-paper);
-  --card-foreground: var(--land-ink);
-  --popover: var(--land-paper);
-  --popover-foreground: var(--land-ink);
+  /* Hauteur réelle du header fixe : sert au décalage et aux ancres. */
+  --nl-header-h: 3.5rem;
 
-  --primary: var(--land-blue);
-  --primary-foreground: var(--land-paper);
-
-  --secondary: #ece7dd;
-  --secondary-foreground: var(--land-ink);
-  --muted: #ebe6dc;
-  /* Gris de texte assez sombre pour rester lisible sur ivoire (≈ 5,3:1). */
-  --muted-foreground: #5c6470;
-  --accent: var(--land-blue-pale);
-  --accent-foreground: #1e3a8f;
-  --destructive: #9c3324;
-
-  --border: #ded7c9;
-  --input: #ded7c9;
-  --ring: var(--land-blue);
-
-  /* Rayons courts et variés : rien qui ressemble à une pastille générique. */
-  --radius: 0.5rem;
-
-  /* Touche éditoriale, réservée à quelques mots — aucune police téléchargée. */
-  --land-serif:
-    ui-serif, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-
-  /* Hauteur réelle du header fixe (ancres jamais masquées, décalage du hero).
-     Barre volontairement fine : 48 px sur mobile, 56 px ensuite. */
-  --land-header-h: 3rem;
-
-  background-color: var(--background);
-  color: var(--foreground);
+  background: var(--nl-paper);
+  color: var(--nl-ink);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
 }
 
-@media (width >= 40rem) {
-  .nireo-land {
-    --land-header-h: 3.5rem;
+@media (width >= 48rem) {
+  .nireo-landing {
+    --nl-header-h: 4.25rem;
   }
 }
 
-.nireo-land [id] {
-  scroll-margin-top: calc(var(--land-header-h) + env(safe-area-inset-top) + 1rem);
+.nireo-landing [id] {
+  scroll-margin-top: calc(var(--nl-header-h) + env(safe-area-inset-top));
 }
 
-/* Titres : présence éditoriale, jamais démesurés. */
-.nireo-land h1,
-.nireo-land h2 {
-  letter-spacing: -0.028em;
+.nireo-landing h1,
+.nireo-landing h2 {
+  letter-spacing: -0.032em;
   line-height: 1.06;
 }
 
-.nireo-land h3 {
-  letter-spacing: -0.018em;
-}
-
-/* FAQ : dépliage progressif au lieu d'un saut. Repose sur ::details-content,
-   ignoré par les navigateurs qui ne le connaissent pas — l'accordéon s'ouvre
-   alors d'un bloc (aucune régression, aucun JavaScript). */
-@media (prefers-reduced-motion: no-preference) {
-  .nireo-land {
-    interpolate-size: allow-keywords;
-  }
-
-  .nireo-land details::details-content {
-    block-size: 0;
-    overflow: clip;
-    transition:
-      block-size 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-      content-visibility 0.3s allow-discrete;
-  }
-
-  .nireo-land details[open]::details-content {
-    block-size: auto;
-  }
-}
-
-/* Focus clavier toujours visible, y compris sur les surfaces sombres. */
-.nireo-land :focus-visible {
-  outline: 2px solid var(--land-blue);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.nireo-land [data-night] :focus-visible {
-  outline-color: var(--land-paper);
-}
-
-/*
- * Neutralisation de l'univers sombre : certains composants partagés
- * (offre Fondateur, pied de page) portent encore les utilitaires « verre »
- * et « halo » de la vitrine obsidienne. Dans le scope de la landing, ils
- * redeviennent du papier avec un filet net — aucun flou, aucune lueur.
- */
-.nireo-land .nireo-glass,
-.nireo-land .nireo-glass-soft,
-.nireo-land .nireo-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
+/* Aucun effet hérité de l'univers obsidienne ne doit remonter ici. */
+.nireo-landing .nireo-glass,
+.nireo-landing .nireo-glass-soft,
+.nireo-landing .nireo-panel {
+  background: none;
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   box-shadow: none;
 }
 
-.nireo-land .nireo-glow,
-.nireo-land .nireo-sheen::after {
-  box-shadow: none;
-  background: none;
+/* ------------------------------------------------------------------ */
+/*  Îlot « application réelle »                                        */
+/*                                                                    */
+/*  L'aperçu du produit doit montrer l'espace connecté TEL QU'IL EST.  */
+/*  Plutôt que de recopier trente tokens, le bloc `:root` clair est    */
+/*  simplement étendu à cette classe (cf. la règle `:root,             */
+/*  .nireo-app-light` plus haut) : l'aperçu reste donc automatiquement */
+/*  synchronisé avec le thème de l'application, y compris si le        */
+/*  visiteur est en thème sombre.                                     */
+/* ------------------------------------------------------------------ */
+
+.nireo-app-light {
+  color-scheme: light;
+  background: var(--background);
+  color: var(--foreground);
 }
 
-.nireo-land .nireo-hairline::before {
-  background: var(--border);
-  inset-inline: 0;
-}
+/* ------------------------------------------------------------------ */
+/*  Animations                                                        */
+/*                                                                    */
+/*  Toutes en transform/opacity, aucune boucle infinie, aucune qui     */
+/*  suive le défilement. L'état de repos est TOUJOURS l'état final :   */
+/*  sans JavaScript, la page est complète et lisible.                  */
+/* ------------------------------------------------------------------ */
 
-.nireo-land .nireo-shine {
-  color: inherit;
-  background: none;
-  -webkit-text-fill-color: currentColor;
-  animation: none;
-}
-
-/* --- Surfaces ---------------------------------------------------- */
-
-/* Feuille de papier : filet net, ombre portée minuscule et froide. */
-@utility land-paper {
-  background: var(--land-paper);
-  border: 1px solid var(--border);
-  box-shadow: 0 1px 2px oklch(0 0 0 / 0.04);
-}
-
-/* Filet de section — sépare sans encadrer. */
-@utility land-rule {
-  border-top: 1px solid var(--border);
-}
-
-/* Les petites capitales d'accroche répétées au-dessus de chaque section ont
-   été retirées de la landing courte : la page n'a plus qu'un titre par
-   section. L'utilitaire est supprimé pour qu'elles ne reviennent pas. */
-
-/* Mot mis en avant : la seule licence typographique de la page. */
-@utility land-serif {
-  font-family: var(--land-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-}
-
-/* --- Animations ---------------------------------------------------- */
-/* Toutes en transform/opacity, aucune boucle infinie, toutes désactivées
-   par « prefers-reduced-motion » (l'état final est l'état de repos). */
-
-@keyframes land-rise {
+@keyframes nl-rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -811,11 +719,10 @@
   }
 }
 
-
-@keyframes land-settle {
+@keyframes nl-photo-in {
   from {
     opacity: 0;
-    transform: translateX(-6px);
+    transform: scale(1.045);
   }
   to {
     opacity: 1;
@@ -823,209 +730,137 @@
   }
 }
 
-@keyframes land-grow {
-  from {
-    transform: scaleX(0.06);
-  }
-  to {
-    transform: scaleX(1);
+@utility nl-rise {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nl-rise 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 
-/* Une échéance passe d'« À encaisser » à « Payé » — le geste du produit. */
-@keyframes land-swap-out {
-  0%,
-  52% {
-    opacity: 1;
-    transform: none;
-  }
-  64%,
-  100% {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-}
-
-@keyframes land-swap-in {
-  0%,
-  52% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  64%,
-  100% {
-    opacity: 1;
-    transform: none;
+@utility nl-photo-in {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: nl-photo-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 
 /*
- * Micro-animations INTERNES aux écrans produit. Elles ne se déclenchent que
- * lorsque l'écran porte `data-active` (posé par la section produit au
- * défilement) : hors écran, plus rien ne s'anime. L'état de repos est
- * toujours l'état final — sans JavaScript, tout est déjà lisible.
+ * Révélation au défilement, posée par un IntersectionObserver
+ * (`components/landing/reveal-on-scroll.tsx`). Sans JavaScript ou en
+ * mouvement réduit, `data-reveal` n'est jamais posé : rien n'est masqué.
  */
-.nireo-land .land-swap {
-  display: inline-grid;
-}
-
-.nireo-land .land-swap > * {
-  grid-area: 1 / 1;
-}
-
-.nireo-land .land-swap > [data-from] {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .nireo-land [data-active] [data-settle] {
-    animation: land-settle 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) both;
+  .nireo-landing [data-reveal="hidden"] {
+    opacity: 0;
+    transform: translateY(18px);
   }
 
-  .nireo-land [data-active] [data-grow] {
+  .nireo-landing [data-reveal] {
+    transition:
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  /* Tracé progressif : le « N » se dévoile, les lignes se dessinent. */
+  .nireo-landing [data-draw="hidden"] {
+    stroke-dashoffset: var(--nl-len, 1000);
+  }
+
+  .nireo-landing [data-draw] {
+    stroke-dasharray: var(--nl-len, 1000);
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1.1s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  /* Filet horizontal qui se déploie depuis son point d'attache. */
+  .nireo-landing [data-line="hidden"] {
+    transform: scaleX(0);
+  }
+
+  .nireo-landing [data-line] {
     transform-origin: left center;
-    animation: land-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) both;
+    transition: transform 1.1s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
   }
 
-  .nireo-land [data-active] .land-swap > [data-from] {
-    animation: land-swap-out 1.9s ease both;
+  /* Le masque « N » se remplit du bas vers le haut. */
+  .nireo-landing [data-unmask="hidden"] {
+    clip-path: inset(100% 0 0 0);
   }
 
-  .nireo-land [data-active] .land-swap > [data-to] {
-    animation: land-swap-in 1.9s ease both;
+  .nireo-landing [data-unmask] {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 1.1s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
   }
 }
 
-/* Écran d'introduction — un seul tour du monogramme, puis l'ouverture. */
-@keyframes land-intro-turn {
+/* ------------------------------------------------------------------ */
+/*  Écran d'introduction — signature de marque, pas un spinner         */
+/*                                                                    */
+/*  Par défaut il n'existe PAS (`display: none`) : sans JavaScript,    */
+/*  en mouvement réduit ou à la deuxième visite de la session, la page */
+/*  s'affiche immédiatement. Un script en ligne — exécuté pendant      */
+/*  l'analyse du HTML, donc avant le premier rendu — pose `data-play`. */
+/*  Il ne masque jamais la page plus de 900 ms et se termine sur un    */
+/*  état invisible et inerte même si le script de fermeture échoue.    */
+/* ------------------------------------------------------------------ */
+
+.nl-intro {
+  display: none;
+}
+
+.nl-intro[data-play] {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--nl-night, #070c15);
+  pointer-events: none;
+  animation: nl-intro-out 260ms ease-in 620ms both;
+}
+
+@keyframes nl-intro-out {
   from {
-    transform: rotate(0deg) scale(0.96);
+    opacity: 1;
+    visibility: visible;
   }
   to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes nl-intro-mark {
+  from {
+    opacity: 0;
+    transform: rotate(0deg) scale(0.9);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
     transform: rotate(360deg) scale(1);
   }
 }
 
-/* 184 = longueur exacte d'une moitié du cadre (66 + 52 + 66 unités SVG). */
-@keyframes land-intro-draw {
+@keyframes nl-intro-word {
   from {
-    stroke-dashoffset: 184;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes land-intro-lift {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
     opacity: 0;
-    transform: scale(1.06);
-  }
-}
-
-@keyframes land-intro-open-up {
-  from {
-    transform: translateY(0);
   }
   to {
-    transform: translateY(-101%);
+    opacity: 1;
   }
 }
 
-@keyframes land-intro-open-down {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(101%);
-  }
+.nl-intro[data-play] .nl-intro-mark {
+  animation: nl-intro-mark 620ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-@utility land-rise {
-  @media (prefers-reduced-motion: no-preference) {
-    animation: land-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-}
-
-/*
- * Rideau d'introduction.
- *
- * Par défaut le rideau n'existe PAS visuellement (`display: none`) : sans
- * JavaScript, avec « prefers-reduced-motion », ou à la deuxième visite de la
- * session, la landing s'affiche directement. Un script en ligne (exécuté
- * pendant l'analyse du HTML, donc avant le premier rendu) ajoute
- * `data-play` : c'est la SEULE façon de le montrer. Il ne masque jamais le
- * contenu plus de 940 ms, et l'animation se termine sur un état invisible et
- * inerte même si le script suivant échoue.
- */
-.land-intro {
-  display: none;
-}
-
-.land-intro[data-play] {
-  /* Repères de la chorégraphie — la version mobile ne change que ceux-ci. */
-  --intro-turn: 520ms;
-  --intro-draw-at: 120ms;
-  --intro-fade-at: 560ms;
-  --intro-open-at: 600ms;
-  --intro-end: 960ms;
-
-  display: block;
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  /* Le rideau ne capture jamais un clic : la page reste utilisable dessous. */
-  pointer-events: none;
-  animation: land-intro-lift 1ms linear var(--intro-end) both;
-}
-
-@media (width < 40rem) {
-  .land-intro[data-play] {
-    --intro-turn: 400ms;
-    --intro-draw-at: 90ms;
-    --intro-fade-at: 430ms;
-    --intro-open-at: 460ms;
-    --intro-end: 760ms;
-  }
-}
-
-.land-intro[data-play] .land-intro-panel {
-  position: absolute;
-  inset-inline: 0;
-  height: 50.5%;
-  background: var(--land-ivory);
-  animation: 340ms cubic-bezier(0.76, 0, 0.24, 1) var(--intro-open-at) both;
-}
-
-.land-intro[data-play] .land-intro-panel[data-side="top"] {
-  top: 0;
-  animation-name: land-intro-open-up;
-}
-
-.land-intro[data-play] .land-intro-panel[data-side="bottom"] {
-  bottom: 0;
-  animation-name: land-intro-open-down;
-}
-
-.land-intro[data-play] .land-intro-stage {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  animation: land-intro-lift 200ms ease-out var(--intro-fade-at) both;
-}
-
-.land-intro[data-play] .land-intro-mark {
-  animation: land-intro-turn var(--intro-turn) cubic-bezier(0.65, 0, 0.35, 1) both;
-}
-
-.land-intro[data-play] .land-intro-frame {
-  stroke-dasharray: 184;
-  animation: land-intro-draw 420ms cubic-bezier(0.4, 0, 0.2, 1) var(--intro-draw-at) both;
+.nl-intro[data-play] .nl-intro-word {
+  animation: nl-intro-word 380ms ease-out 180ms both;
 }
 
 /* ================================================================== */

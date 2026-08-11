@@ -99,7 +99,7 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
         primary: "Commencer gratuitement",
         href: "/inscription",
         secondary: "Voir Nireo en action",
-        secondaryHref: "#fonctionnalites",
+        secondaryHref: "#produit",
       },
     },
     {
@@ -110,7 +110,7 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
         primary: "Ouvrir mon tableau de bord",
         href: "/",
         secondary: "Voir Nireo en action",
-        secondaryHref: "#fonctionnalites",
+        secondaryHref: "#produit",
       },
     },
   ],

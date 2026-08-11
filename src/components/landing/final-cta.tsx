@@ -1,52 +1,70 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Reveal } from "@/components/marketing/reveal";
 
 /**
- * L'appel à l'action final : la seule respiration en bleu nuit après le hero.
+ * Appel à l'action final — fond blanc cassé, un bouton, un lien.
  *
- * Aplat plein, aucun dégradé, aucun halo, aucune carte. La page se referme
- * comme elle s'est ouverte — texte clair sur fond sombre.
+ * À droite, un très grand « N » dessiné au seul contour cobalt, volontairement
+ * coupé par les bords de la section : la marque déborde du cadre plutôt que de
+ * s'y ranger. Aucun remplissage, aucun halo, aucune ombre.
+ *
+ * Les deux destinations sont les vraies routes du produit : l'inscription
+ * existante (personnalisée par le moteur pour un visiteur déjà connecté) et
+ * la connexion existante. Aucun tarif ici : le choix du plan a lieu APRÈS la
+ * création du compte, dans le parcours déjà en place.
  */
+
+/** Le même contour de monogramme que la section signature. */
+const N_PATH = "M0 240 V0 H44 L156 168 V0 H200 V240 H156 L44 72 V240 Z";
 
 export function FinalCta({ href }: { href: string }) {
   return (
     <section
-      data-night
       data-lx-section="cta"
-      className="bg-[var(--land-night)] text-[var(--land-paper)]"
+      className="relative overflow-hidden bg-[var(--nl-paper)] text-[var(--nl-ink)]"
     >
-      <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-24">
-        <Reveal>
-          <h2 className="text-[1.85rem] font-semibold text-balance text-[var(--land-paper)] sm:text-[2.5rem]">
-            Votre patrimoine mérite mieux qu’un tableur.
+      {/* Le « N » de contour — décoratif, coupé en bas et à droite. */}
+      <svg
+        aria-hidden
+        viewBox="0 0 200 240"
+        preserveAspectRatio="xMidYMin slice"
+        className="pointer-events-none absolute -right-10 -bottom-24 h-[22rem] w-[18rem] opacity-70 sm:-right-4 sm:h-[26rem] sm:w-[22rem] lg:right-16 lg:-bottom-32 lg:h-[34rem] lg:w-[28rem]"
+      >
+        <path
+          d={N_PATH}
+          fill="none"
+          stroke="var(--nl-cobalt)"
+          strokeWidth="1"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+
+      <div className="relative mx-auto w-full max-w-[82rem] px-5 py-20 sm:px-8 sm:py-28">
+        <div className="max-w-xl" data-reveal>
+          <h2 className="text-[clamp(1.9rem,6vw,3.2rem)] font-semibold text-balance">
+            Commencez là où vous en êtes.
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-[0.98rem] leading-relaxed text-balance text-[rgb(252_251_248/0.72)]">
-            Commencez avec votre premier logement et retrouvez enfin une gestion claire.
+          <p className="mt-5 text-[clamp(0.95rem,2.4vw,1.08rem)] leading-relaxed text-[var(--nl-gray)]">
+            Un logement gratuit. Sans carte. Sans limite de durée.
           </p>
-          {/* Boutons compacts : jamais toute la largeur, même sur mobile. */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+
+          <div className="mt-9 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
             <Link
               href={href}
               data-lx="final-cta-primary"
               data-lx-cta=""
-              className="group inline-flex h-11 items-center justify-center gap-2 rounded-[6px] bg-primary px-5 text-[0.95rem] font-medium text-[var(--land-paper)] transition-colors hover:bg-[color-mix(in_srgb,var(--land-blue)_86%,#fff)]"
+              className="inline-flex h-12 w-full items-center justify-center rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#000)] focus-visible:ring-2 focus-visible:ring-[var(--nl-cobalt)] focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
             >
-              Créer mon espace gratuit
-              <ArrowRight
-                className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none"
-                aria-hidden
-              />
+              Ouvrir mon espace Nireo
             </Link>
             <Link
               href="/connexion"
               data-lx="final-cta-login"
-              className="inline-flex h-11 items-center justify-center rounded-[6px] border border-[rgb(252_251_248/0.32)] px-5 text-[0.95rem] font-medium text-[var(--land-paper)] transition-colors hover:bg-[rgb(252_251_248/0.1)]"
+              className="text-[0.95rem] font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[var(--nl-cobalt)] focus-visible:outline-none"
             >
               Se connecter
             </Link>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

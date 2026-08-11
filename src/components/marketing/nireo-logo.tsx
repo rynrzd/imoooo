@@ -67,6 +67,7 @@ export function NireoLogo({
   compact = false,
   flat = false,
   onDark = false,
+  markClassName,
 }: {
   className?: string;
   href?: string;
@@ -74,8 +75,10 @@ export function NireoLogo({
   compact?: boolean;
   /** Monogramme plat, pour les surfaces claires (landing publique). */
   flat?: boolean;
-  /** Mot « Nireo » en ivoire : header transparent posé sur la photographie. */
+  /** Mot « Nireo » en blanc : marque posée sur une surface sombre. */
   onDark?: boolean;
+  /** Habillage du monogramme (ex. carré blanc à « N » cobalt de la landing). */
+  markClassName?: string;
 }) {
   return (
     <Link
@@ -88,7 +91,8 @@ export function NireoLogo({
         className={cn(
           "transition-transform duration-300 group-hover:scale-[1.04]",
           compact && "size-8 rounded-[0.6rem] sm:size-9 sm:rounded-[0.7rem]",
-          compact && flat && "rounded-[0.4rem] sm:rounded-[0.45rem]"
+          compact && flat && "rounded-[0.4rem] sm:rounded-[0.45rem]",
+          markClassName
         )}
       />
       <span
