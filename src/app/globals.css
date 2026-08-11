@@ -798,6 +798,113 @@
 }
 
 /* ------------------------------------------------------------------ */
+/*  Section signature — « Rien ne se perd. »                           */
+/*                                                                    */
+/*  Composition purement typographique sur cobalt uni. Deux variables  */
+/*  portent toute l'échelle : les décalages éditoriaux sont exprimés   */
+/*  en fraction de ces variables, le rythme est donc le même à toutes  */
+/*  les tailles. Aucune hauteur en `vh` : la section mesure ce que son */
+/*  contenu mesure (≈ 545 px à 375 px de large, ≈ 695 px à 1440 px).   */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-typo {
+  --nl-big: clamp(5rem, 23vw, 7rem); /* « RIEN » et « PERD. » */
+  --nl-mid: clamp(4.25rem, 19.5vw, 6rem); /* « NE SE », qui compte une lettre de plus */
+}
+
+@media (width >= 48rem) {
+  .nireo-landing .nl-typo {
+    --nl-big: clamp(6.5rem, 10vw, 8rem);
+    --nl-mid: clamp(5.5rem, 8.4vw, 7rem);
+  }
+}
+
+.nireo-landing .nl-typo-word {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  font-size: var(--nl-big);
+  font-weight: 800;
+  /* Les trois lignes se serrent sans jamais se toucher : la hauteur de
+     capitale vaut ≈ 0,72 em, il reste donc 0,18 em d'air entre elles. */
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--nl-paper);
+}
+
+/* « NE SE » : contour seul, légèrement plus petit pour tenir sur une ligne,
+   et poussé vers la droite. Repli plein si `-webkit-text-stroke` manque. */
+.nireo-landing .nl-typo-word--outline {
+  font-size: var(--nl-mid);
+  margin-left: calc(var(--nl-mid) * 0.62);
+}
+
+@supports (-webkit-text-stroke: 1px currentcolor) {
+  .nireo-landing .nl-typo-word--outline {
+    color: transparent;
+    -webkit-text-stroke: clamp(1.5px, 0.16vw, 2.2px) var(--nl-paper);
+  }
+}
+
+/* « PERD. » : même corps que « RIEN », mais légèrement rentré — c'est ce
+   troisième alignement qui donne le rythme éditorial. */
+.nireo-landing .nl-typo-word--indent {
+  margin-left: calc(var(--nl-big) * 0.2);
+}
+
+.nireo-landing .nl-typo-rule {
+  margin-left: calc(var(--nl-big) * 0.2);
+  height: 1px;
+  width: min(calc(var(--nl-big) * 2.2), 100%);
+  background: var(--nl-paper);
+  opacity: 0.7;
+}
+
+/* Grain : une seule trame de bruit, à la limite du perceptible. Ce n'est pas
+   une texture décorative, juste de quoi éviter un aplat parfaitement plat. */
+.nireo-landing .nl-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Le conteneur ne porte QUE l'état : l'observateur unique de la landing
+     bascule son `data-reveal`, mais lui-même ne bouge pas — seules ses
+     lignes bougent, chacune avec son propre décalage. */
+  .nireo-landing .nl-typo[data-reveal="hidden"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .nireo-landing .nl-typo [data-nl-in] {
+    transition:
+      opacity 0.52s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-typo[data-reveal="hidden"] [data-nl-in] {
+    opacity: 0;
+    transform: translate3d(var(--nl-shift, 0px), 0, 0);
+  }
+
+  /* Le filet, une fois les trois mots verrouillés (60 → 300 ms + 520 ms). */
+  .nireo-landing .nl-typo [data-nl-rule] {
+    transform-origin: left center;
+    transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-typo[data-reveal="hidden"] [data-nl-rule] {
+    transform: scaleX(0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Écran d'introduction — signature de marque, pas un spinner         */
 /*                                                                    */
 /*  Par défaut il n'existe PAS (`display: none`) : sans JavaScript,    */
