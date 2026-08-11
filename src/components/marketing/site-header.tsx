@@ -23,10 +23,15 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
  * `scroll-margin-top` des ancres, donc aucun titre ne peut passer dessous.
  */
 
-const NAV_LINKS = [
+/**
+ * La grille tarifaire et la FAQ ne vivent plus sur l'accueil (landing courte) :
+ * elles ont leur page dédiée. Seule « Fonctionnalités » reste une ancre de la
+ * landing, résolue par `anchor()` selon la page courante.
+ */
+const NAV_LINKS: { label: string; hash?: string; href?: string }[] = [
   { label: "Fonctionnalités", hash: "#fonctionnalites" },
-  { label: "Tarifs", hash: "#tarifs" },
-  { label: "FAQ", hash: "#faq" },
+  { label: "Tarifs", href: "/tarifs" },
+  { label: "FAQ", href: "/tarifs#faq" },
 ];
 
 export function SiteHeader() {
@@ -64,7 +69,9 @@ export function SiteHeader() {
 
   // La landing vit sur « / » (et « /accueil » pour les connectés).
   const onLanding = pathname === "/" || pathname === "/accueil";
-  const anchor = (hash: string) => (onLanding ? hash : `/${hash}`);
+  /** Destination d'un lien de navigation : route explicite, ou ancre landing. */
+  const anchor = (link: { hash?: string; href?: string }) =>
+    link.href ?? (onLanding ? link.hash! : `/${link.hash!}`);
 
   const close = () => setOpen(false);
 
@@ -86,8 +93,8 @@ export function SiteHeader() {
         >
           {NAV_LINKS.map((link) => (
             <a
-              key={link.hash}
-              href={anchor(link.hash)}
+              key={link.label}
+              href={anchor(link)}
               className="rounded-full px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {link.label}
@@ -142,8 +149,8 @@ export function SiteHeader() {
           <nav aria-label="Navigation mobile" className="flex flex-col gap-1 p-3">
             {NAV_LINKS.map((link) => (
               <a
-                key={link.hash}
-                href={anchor(link.hash)}
+                key={link.label}
+                href={anchor(link)}
                 onClick={close}
                 className="flex min-h-11 items-center rounded-lg px-3 text-sm text-foreground hover:bg-muted"
               >

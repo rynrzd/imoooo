@@ -11,8 +11,11 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: "Produit",
     links: [
       { label: "Fonctionnalités", href: "/#fonctionnalites" },
+      // La grille tarifaire et la FAQ ne sont plus sur l'accueil : elles
+      // vivent sur /tarifs, qui les porte réellement (et le balisage FAQPage
+      // avec elles). Le lien reste donc discret mais toujours accessible.
       { label: "Tarifs", href: "/tarifs" },
-      { label: "FAQ", href: "/#faq" },
+      { label: "FAQ", href: "/tarifs#faq" },
       { label: "À propos", href: "/a-propos" },
       { label: "L’entreprise", href: "/entreprise" },
       { label: "Contact", href: "/contact" },

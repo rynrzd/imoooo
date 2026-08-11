@@ -93,7 +93,9 @@ export default async function PricingPage() {
         <PricingSection paymentsEnabled={isStripeConfigured} />
       </div>
 
-      <div className="mt-20">
+      {/* Ancre `#faq` : la FAQ n'est plus sur l'accueil, les liens du footer
+          et des pages de contenu atterrissent donc ici. */}
+      <div id="faq" className="mt-20 scroll-mt-24">
         <h2 className="mb-8 text-center text-2xl font-semibold tracking-tight text-foreground">
           Questions fréquentes
         </h2>

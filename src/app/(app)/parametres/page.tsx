@@ -987,7 +987,7 @@ export default function SettingsPage() {
               <CardDescription>Version {APP_VERSION}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
-              <Link href="/#faq" className={buttonVariants({ variant: "outline" })}>
+              <Link href="/tarifs#faq" className={buttonVariants({ variant: "outline" })}>
                 FAQ
               </Link>
               <Link href="/contact" className={buttonVariants({ variant: "outline" })}>

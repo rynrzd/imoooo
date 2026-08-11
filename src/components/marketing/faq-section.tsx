@@ -138,31 +138,6 @@ export function getFaqItems({ paymentsEnabled }: { paymentsEnabled: boolean }): 
 }
 
 /**
- * Les cinq objections retenues pour la landing, dans l'ordre où elles se
- * posent : petit patrimoine, mobilité, réversibilité, paiement, vie privée.
- *
- * Seule la FORMULATION de la question est propre à la landing (elle est
- * écrite du point de vue du visiteur) : les réponses restent EXACTEMENT
- * celles de la FAQ générale, jamais réécrites ici — c'est ce qui garantit
- * qu'aucune page ne peut promettre autre chose qu'une autre.
- */
-const LANDING_FAQ: { id: string; question: string }[] = [
-  { id: "audience", question: "Nireo est-il adapté à un seul logement ?" },
-  { id: "mobile", question: "Puis-je utiliser Nireo sur mobile ?" },
-  { id: "export", question: "Puis-je récupérer mes données ?" },
-  { id: "essai", question: "Une carte bancaire est-elle nécessaire pour commencer ?" },
-  { id: "securite", question: "Mes documents sont-ils privés ?" },
-];
-
-export function getLandingFaqItems({ paymentsEnabled }: { paymentsEnabled: boolean }): FaqItem[] {
-  const all = getFaqItems({ paymentsEnabled });
-  return LANDING_FAQ.flatMap(({ id, question }) => {
-    const item = all.find((entry) => entry.id === id);
-    return item ? [{ ...item, question }] : [];
-  });
-}
-
-/**
  * Accordéon de FAQ. Sans `items`, la FAQ générale de la vitrine est utilisée
  * (les guides passent leur propre liste).
  */

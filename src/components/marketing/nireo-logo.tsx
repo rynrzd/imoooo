@@ -66,6 +66,7 @@ export function NireoLogo({
   href = "/",
   compact = false,
   flat = false,
+  onDark = false,
 }: {
   className?: string;
   href?: string;
@@ -73,6 +74,8 @@ export function NireoLogo({
   compact?: boolean;
   /** Monogramme plat, pour les surfaces claires (landing publique). */
   flat?: boolean;
+  /** Mot « Nireo » en ivoire : header transparent posé sur la photographie. */
+  onDark?: boolean;
 }) {
   return (
     <Link
@@ -90,7 +93,8 @@ export function NireoLogo({
       />
       <span
         className={cn(
-          "text-[1.05rem] font-semibold tracking-[-0.03em] text-foreground",
+          "text-[1.05rem] font-semibold tracking-[-0.03em]",
+          onDark ? "text-[var(--land-paper,#fcfbf8)]" : "text-foreground",
           compact && "text-[0.97rem] sm:text-[1.05rem]"
         )}
       >

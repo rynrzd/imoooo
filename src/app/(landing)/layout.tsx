@@ -72,7 +72,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f5f2ec",
+  // Le haut de la page est désormais la photographie du hero, sur fond bleu
+  // nuit : la barre du navigateur se fond dedans plutôt que de trancher.
+  themeColor: "#111827",
 };
 
 export default async function LandingLayout({ children }: { children: React.ReactNode }) {
@@ -81,17 +83,14 @@ export default async function LandingLayout({ children }: { children: React.Reac
   const { announcement_message } = await getPublicSiteSettings();
 
   return (
+    // Aucun décalage haut : le hero commence au pixel 0 et le header, fixe et
+    // transparent, se pose PAR-DESSUS la photographie (cf. landing-header).
+    // Le message d'annonce global fait partie de cette même pile fixe.
     <div className="nireo-land flex min-h-dvh flex-col overflow-x-clip bg-background pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-foreground">
       {/* Rideau d'introduction — inerte tant qu'un script ne l'active pas. */}
       <IntroCurtain />
 
-      {announcement_message ? (
-        <div className="border-b border-border bg-[var(--land-blue-pale)] px-4 py-2 text-center text-sm font-medium text-foreground">
-          {announcement_message}
-        </div>
-      ) : null}
-
-      <LandingHeader />
+      <LandingHeader announcement={announcement_message} />
       <main className="flex-1">{children}</main>
       <SiteFooter flat />
     </div>

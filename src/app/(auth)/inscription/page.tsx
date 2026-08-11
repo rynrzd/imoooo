@@ -72,6 +72,19 @@ function safeNext(raw: string | null): string {
   return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
 }
 
+/**
+ * Première étape après la validation du compte : la question de bienvenue
+ * (« Combien de logements gérez-vous ? »), qui recommande le plan adapté.
+ * Elle se garde elle-même côté serveur et renvoie vers « / » dès qu'elle n'a
+ * plus lieu d'être — un parcours venu d'ailleurs (`?next=…`, ex. Nireo ID)
+ * n'est donc jamais détourné.
+ */
+const WELCOME_PATH = "/bienvenue";
+
+function afterSignup(next: string): string {
+  return next === "/" ? WELCOME_PATH : next;
+}
+
 function SignupForm() {
   const searchParams = useSearchParams();
   const next = safeNext(searchParams.get("next"));
@@ -104,11 +117,10 @@ function SignupForm() {
       options: {
         data: { full_name: values.fullName },
         // `next` permet à un autre produit Nireo (ex. Nireo ID) de ramener
-        // l'utilisateur à son parcours après confirmation. Défaut : « / ».
-        emailRedirectTo:
-          next === "/"
-            ? `${SITE_URL}/auth/callback`
-            : `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
+        // l'utilisateur à son parcours après confirmation. Sans destination
+        // particulière, le compte fraîchement confirmé passe par l'étape de
+        // bienvenue avant le tableau de bord.
+        emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(afterSignup(next))}`,
       },
     });
     setPending(false);
@@ -117,7 +129,9 @@ function SignupForm() {
       return;
     }
     if (data.session) {
-      window.location.assign(next);
+      // Confirmation d'e-mail désactivée : la session est immédiate, l'étape
+      // de bienvenue est servie tout de suite.
+      window.location.assign(afterSignup(next));
       return;
     }
     setSentTo(values.email);

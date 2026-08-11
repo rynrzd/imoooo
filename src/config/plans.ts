@@ -285,6 +285,77 @@ export function planOffersJsonLd(siteUrl: string) {
   }));
 }
 
+/* ------------------------------------------------------------------ */
+/* Recommandation de plan à l'inscription                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Plus PETIT plan disponible capable d'héberger `count` logements.
+ *
+ * Fonction PURE, entièrement dérivée de PLANS : elle ne connaît ni prix, ni
+ * palier écrit à la main. Ajouter, retirer ou replafonner un plan ici suffit
+ * à changer la recommandation — aucune configuration n'est dupliquée.
+ *
+ * Au-delà du plus grand plafond, on retourne le plan le plus large disponible
+ * (jamais `null` : l'inscription ne doit jamais se retrouver sans issue).
+ */
+export function recommendPlanForProperties(count: number): Plan {
+  const wanted = Math.max(1, Math.floor(Number.isFinite(count) ? count : 1));
+  const ordered = [...AVAILABLE_PLANS].sort((a, b) => a.order - b.order);
+  return (
+    ordered.find((p) => p.limits.maxProperties === null || p.limits.maxProperties >= wanted) ??
+    ordered[ordered.length - 1]!
+  );
+}
+
+export interface PropertyRangeChoice {
+  /** Identifiant stable (le plafond du plan, ou 0 pour « au-delà »). */
+  id: string;
+  /** Libellé affiché : « 1 logement », « 2 à 5 logements »… */
+  label: string;
+  /** Nombre représentatif de la tranche, passé à la recommandation. */
+  value: number;
+  /** true si la tranche dépasse le plus grand plafond proposé. */
+  beyond: boolean;
+}
+
+/**
+ * Tranches de patrimoine proposées à l'inscription, DÉDUITES des plafonds
+ * réels des plans : chaque tranche s'arrête exactement là où un plan s'arrête,
+ * si bien qu'une tranche ne peut jamais recommander un plan trop petit.
+ */
+export function propertyRangeChoices(): PropertyRangeChoice[] {
+  const ordered = [...AVAILABLE_PLANS]
+    .sort((a, b) => a.order - b.order)
+    .filter((p) => p.limits.maxProperties !== null);
+
+  const choices: PropertyRangeChoice[] = [];
+  let floor = 1;
+  for (const plan of ordered) {
+    const max = plan.limits.maxProperties!;
+    if (max < floor) continue;
+    choices.push({
+      id: String(max),
+      label: max === floor ? `${max} logement` : `${floor} à ${max} logements`,
+      value: max,
+      beyond: false,
+    });
+    floor = max + 1;
+  }
+
+  // Un plan illimité rendrait la dernière tranche inutile.
+  const hasUnlimited = AVAILABLE_PLANS.some((p) => p.limits.maxProperties === null);
+  if (!hasUnlimited && choices.length > 0) {
+    choices.push({
+      id: "beyond",
+      label: `Plus de ${floor - 1} logements`,
+      value: floor,
+      beyond: true,
+    });
+  }
+  return choices;
+}
+
 export const DEFAULT_PLAN_ID: PlanId = "free";
 
 /** Ordre hiérarchique des plans (guards « plan minimum »). */

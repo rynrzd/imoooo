@@ -674,8 +674,9 @@
   --land-serif:
     ui-serif, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
 
-  /* Hauteur réelle du header collant (ancres jamais masquées). */
-  --land-header-h: 3.5rem;
+  /* Hauteur réelle du header fixe (ancres jamais masquées, décalage du hero).
+     Barre volontairement fine : 48 px sur mobile, 56 px ensuite. */
+  --land-header-h: 3rem;
 
   background-color: var(--background);
   color: var(--foreground);
@@ -684,7 +685,7 @@
 
 @media (width >= 40rem) {
   .nireo-land {
-    --land-header-h: 4rem;
+    --land-header-h: 3.5rem;
   }
 }
 
@@ -783,14 +784,9 @@
   border-top: 1px solid var(--border);
 }
 
-/* Petite capitale d'accroche : rythme éditorial, jamais un badge coloré.
-   La couleur reste à la charge de l'appelant (ivoire sur les fonds nuit). */
-@utility land-eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
+/* Les petites capitales d'accroche répétées au-dessus de chaque section ont
+   été retirées de la landing courte : la page n'a plus qu'un titre par
+   section. L'utilitaire est supprimé pour qu'elles ne reviennent pas. */
 
 /* Mot mis en avant : la seule licence typographique de la page. */
 @utility land-serif {
@@ -815,23 +811,6 @@
   }
 }
 
-/* Les pièces administratives se rangent dans le tableau de bord. */
-@keyframes land-file {
-  0% {
-    opacity: 0;
-    transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)) scale(1);
-  }
-  18% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(0, 0) rotate(0deg) scale(0.94);
-  }
-}
 
 @keyframes land-settle {
   from {
@@ -969,13 +948,6 @@
 @utility land-rise {
   @media (prefers-reduced-motion: no-preference) {
     animation: land-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-}
-
-@utility land-file {
-  opacity: 0;
-  @media (prefers-reduced-motion: no-preference) {
-    animation: land-file var(--file-dur, 1.5s) cubic-bezier(0.62, 0.02, 0.28, 1) both;
   }
 }
 

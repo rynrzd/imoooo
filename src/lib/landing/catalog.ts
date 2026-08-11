@@ -70,7 +70,7 @@ const HERO_SUBHEADLINE: SlotDef<"hero_subheadline"> = {
       label: "Tout le patrimoine",
       description: "Énumère ce qui est réuni, en une phrase courte et vérifiable.",
       payload: {
-        text: "Loyers, baux, locataires, dépenses et travaux. Tout votre patrimoine réuni dans un espace clair.",
+        text: "Loyers, baux, locataires et documents. Tout votre patrimoine, enfin au même endroit.",
       },
     },
   ],
@@ -120,9 +120,9 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
  * Appel à l'action final — FIGÉ.
  *
  * Le bloc de conversion est désormais écrit en dur dans la section bleu nuit
- * (`src/components/landing/night-sections.tsx`) : titre, texte et bouton y
- * forment une composition centrée. Le slot reste déclaré pour ne pas casser
- * les configurations existantes, avec la formulation réellement servie.
+ * (`src/components/landing/final-cta.tsx`) : titre, texte et bouton y forment
+ * une composition centrée. Le slot reste déclaré pour ne pas casser les
+ * configurations existantes, avec la formulation réellement servie.
  */
 const FINAL_CTA: SlotDef<"final_cta"> = {
   key: "final_cta",
