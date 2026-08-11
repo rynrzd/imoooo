@@ -28,7 +28,9 @@ const END_X = 352;
 export function Centralisation() {
   return (
     <section className="bg-[var(--nl-night)] text-white">
-      <div className="mx-auto grid w-full max-w-[82rem] grid-cols-1 items-center gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-12 lg:gap-10">
+      {/* Mobile : le schéma passe SOUS le titre (une seule colonne), avec la
+          même respiration de 64 px que la section bleue. */}
+      <div className="mx-auto grid w-full max-w-[82rem] grid-cols-1 items-center gap-10 px-6 py-16 sm:gap-14 sm:px-8 sm:py-28 lg:grid-cols-12 lg:gap-10">
         {/* Les trois lignes sont des blocs explicites : la borne basse du
             clamp est calée pour que « Juste d'un seul endroit. » (la plus
             longue, ≈ 10,5 em) tienne sur une ligne dès 360 px de large. */}

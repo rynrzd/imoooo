@@ -650,7 +650,8 @@
   --nl-gray: #5b6472; /* texte secondaire sur clair (5,1:1) */
   --nl-gray-dark: #9aa0a8; /* texte secondaire sur sombre (7,4:1) */
 
-  /* Hauteur réelle du header fixe : sert au décalage et aux ancres. */
+  /* Hauteur RÉELLE du header fixe (aucune marge de sécurité ne s'y ajoute,
+     le segment n'utilise pas `viewport-fit=cover`) : 56 px, puis 68 px. */
   --nl-header-h: 3.5rem;
 
   background: var(--nl-paper);
@@ -664,8 +665,9 @@
   }
 }
 
+/* Le header est fixe : une ancre doit s'arrêter SOUS lui, jamais derrière. */
 .nireo-landing [id] {
-  scroll-margin-top: calc(var(--nl-header-h) + env(safe-area-inset-top));
+  scroll-margin-top: calc(var(--nl-header-h) + 1rem);
 }
 
 .nireo-landing h1,

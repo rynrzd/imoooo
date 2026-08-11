@@ -67,7 +67,7 @@ export function ProductPreview() {
       aria-label="Aperçu du tableau de bord Nireo : valeur du patrimoine, revenus du mois, loyers encaissés et documents récents."
       className="nireo-app-light overflow-hidden rounded-lg ring-1 ring-black/8 shadow-[0_2px_4px_rgb(7_12_21/0.04),0_28px_60px_-40px_rgb(7_12_21/0.45)]"
     >
-      <div aria-hidden className="flex min-h-[26rem] text-[13px] sm:min-h-[32rem]">
+      <div aria-hidden className="flex text-[13px] md:min-h-[32rem]">
         {/* -------- Barre latérale : la navigation réelle -------- */}
         <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
           <div className="flex h-14 items-center gap-2 px-5">
@@ -104,7 +104,7 @@ export function ProductPreview() {
         </aside>
 
         {/* -------- Contenu : le tableau de bord -------- */}
-        <div className="min-w-0 flex-1 bg-background p-4 sm:p-6">
+        <div className="min-w-0 flex-1 bg-background p-3 sm:p-6">
           <div className="space-y-1">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               Mardi 4 juin
@@ -112,17 +112,17 @@ export function ProductPreview() {
             <p className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               Bonjour Camille
             </p>
-            <p className="text-sm text-muted-foreground">
+            {/* La phrase d'accueil tient sur trois lignes à 375 px et pousserait
+                les chiffres hors du cadre compact : réservée aux grands écrans. */}
+            <p className="hidden text-sm text-muted-foreground md:block">
               Votre patrimoine se porte bien. Rien ne demande votre attention aujourd’hui.
             </p>
           </div>
 
-          {/* Sous 420 px, deux colonnes rogneraient « 1 240 000 € » : les
-              tuiles passent alors sur une seule colonne, rien n'est tronqué. */}
-          <div className="mt-5 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 xl:grid-cols-4">
             <StatCard
               label="Valeur du patrimoine"
-              value="1 240 000 €"
+              value="840 000 €"
               hint="prix d’acquisition cumulés"
               icon={Landmark}
             />
@@ -147,7 +147,7 @@ export function ProductPreview() {
             />
           </div>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-3">
+          <div className="mt-3 grid gap-3 sm:mt-4 xl:grid-cols-3">
             <Card className="xl:col-span-2">
               <CardHeader>
                 <CardTitle>Derniers loyers</CardTitle>
@@ -172,7 +172,10 @@ export function ProductPreview() {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* Bloc long : masqué sur la landing mobile, où l'aperçu s'arrête
+                au début des derniers loyers. Le tableau de bord connecté, lui,
+                n'est pas concerné — ce composant ne sert qu'à la vitrine. */}
+            <Card className="hidden md:flex">
               <CardHeader>
                 <CardTitle>Documents récents</CardTitle>
               </CardHeader>

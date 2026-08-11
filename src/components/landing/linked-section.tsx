@@ -37,16 +37,20 @@ export function LinkedSection() {
     <section className="relative overflow-hidden bg-[var(--nl-deep)] text-white">
       {/* Texture de plan d'appartement : deux trames de lignes ton sur ton,
           à peine perceptibles. Aucun dégradé, aucune tache. */}
+      {/* Trame resserrée et un peu plus discrète sur petit écran, où elle est
+          vue de beaucoup plus près. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:linear-gradient(to_right,rgb(255_255_255/0.5)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.5)_1px,transparent_1px)] [background-size:72px_72px]"
+        className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,rgb(255_255_255/0.5)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.5)_1px,transparent_1px)] [background-size:48px_48px] md:opacity-[0.16] md:[background-size:72px_72px]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,rgb(255_255_255/0.6)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.6)_1px,transparent_1px)] [background-size:288px_192px]"
+        className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgb(255_255_255/0.6)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.6)_1px,transparent_1px)] [background-size:192px_144px] md:opacity-[0.1] md:[background-size:288px_192px]"
       />
 
-      <div className="relative mx-auto grid w-full max-w-[82rem] grid-cols-1 items-center gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-12 lg:gap-8">
+      {/* Mobile : 64 px de respiration verticale, 24 px sur les côtés, texte à
+          gauche et « N » centré dessous. Aucune hauteur minimale. */}
+      <div className="relative mx-auto grid w-full max-w-[82rem] grid-cols-1 items-center gap-10 px-6 py-16 sm:px-8 sm:py-24 lg:grid-cols-12 lg:gap-8 lg:py-28">
         <div className="lg:col-span-6" data-reveal>
           <h2 className="text-[clamp(2rem,6.4vw,3.6rem)] font-semibold text-white">
             Tout reste lié.
@@ -71,13 +75,18 @@ export function LinkedSection() {
 
         {/* -------- Le « N » découpé dans l'interface réelle -------- */}
         <div className="lg:col-span-6" data-reveal style={{ ["--nl-delay" as string]: "120ms" }}>
-          <div className="relative mx-auto aspect-[200/240] w-[min(20rem,72vw)] lg:mr-0 lg:ml-auto lg:w-[min(24rem,100%)]">
+          {/* Mobile : 260 px de large → 312 px de haut (rapport 200/240), donc
+              dans la fourchette voulue et sans jamais occuper l'écran entier.
+              Au-dessus de `lg`, dimensions inchangées. */}
+          <div className="relative mx-auto aspect-[200/240] w-[min(260px,68vw)] sm:w-[min(20rem,52vw)] lg:mr-0 lg:ml-auto lg:w-[min(24rem,100%)]">
             <div
               aria-hidden
-              // `overflow-hidden` : l'aperçu est agrandi à 190 % pour remplir la
-              // lettre, il ne doit jamais déborder de la page (le masque, lui,
-              // ne découpe que le rendu, pas la boîte).
-              className="absolute inset-0 overflow-hidden"
+              // `overflow-hidden` : l'aperçu est agrandi pour remplir la lettre,
+              // il ne doit jamais déborder de la page (le masque, lui, ne
+              // découpe que le rendu, pas la boîte).
+              // Fond clair sous l'aperçu réduit : la lettre reste PLEINE même
+              // si la texture ne descend pas jusqu'à la pointe du « N ».
+              className="absolute inset-0 overflow-hidden bg-[#f7f8f9] md:bg-transparent"
               data-unmask
               style={{
                 maskImage: N_MASK,
@@ -88,11 +97,18 @@ export function LinkedSection() {
                 WebkitMaskRepeat: "no-repeat",
               }}
             >
-              {/* L'aperçu est agrandi puis recadré : ce sont bien les vrais
-                  écrans de Nireo qu'on aperçoit à l'intérieur de la lettre. */}
-              <div className="absolute top-0 left-1/2 w-[190%] -translate-x-1/2 origin-top">
+              {/* Ce sont bien les vrais écrans de Nireo qu'on aperçoit dans la
+                  lettre. Sur mobile ils sont RÉDUITS (la mise en page y est
+                  déjà empilée, donc beaucoup plus haute) : à cette échelle le
+                  texte n'est plus lisible, il redevient une texture — c'est
+                  exactement ce qu'on veut à l'intérieur d'un monogramme.
+                  L'échelle est appliquée dans un conteneur absolu : elle ne
+                  laisse aucun espace vide dans la mise en page. */}
+              <div className="absolute top-0 left-0 w-[620px] origin-top-left scale-[0.68] md:left-1/2 md:w-[190%] md:origin-top md:-translate-x-1/2 md:scale-100">
                 <ProductPreview />
               </div>
+              {/* Voile blanc : achève de transformer l'interface en texture. */}
+              <div aria-hidden className="absolute inset-0 bg-white/25 md:hidden" />
             </div>
 
             {/* Fine bordure blanc cassé : elle redonne la forme exacte du

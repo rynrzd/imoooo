@@ -77,17 +77,19 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
   return (
     <div className="fixed inset-x-0 top-0 z-50">
       {announcement ? (
-        <div className="bg-[var(--nl-cobalt)] px-4 pt-[env(safe-area-inset-top)] pb-2 text-center text-[0.82rem] font-medium text-white">
-          <span className="block pt-2">{announcement}</span>
+        <div className="bg-[var(--nl-cobalt)] px-4 py-2 text-center text-[0.82rem] font-medium text-white">
+          {announcement}
         </div>
       ) : null}
 
       {/* `relative z-50` : la barre reste AU-DESSUS du panneau de menu, la
-          marque et la croix de fermeture ne sont donc jamais recouvertes. */}
+          marque et la croix de fermeture ne sont donc jamais recouvertes.
+          Aucune marge de sécurité iOS ici : le segment n'utilise plus
+          `viewport-fit=cover`, la hauteur ci-dessous est donc la hauteur
+          réelle — 56 px sur mobile, 68 px à partir de `md`. */}
       <header
         className={cn(
           "relative z-50 transition-colors duration-300",
-          !announcement && "pt-[env(safe-area-inset-top)]",
           solid ? "bg-[var(--nl-night)]" : "bg-transparent"
         )}
       >
@@ -95,7 +97,7 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
           <NireoLogo
             flat
             onDark
-            markClassName="bg-white text-[var(--nl-cobalt)] rounded-[0.5rem]"
+            markClassName="size-10 rounded-[0.5rem] bg-white text-[var(--nl-cobalt)] md:size-9"
           />
 
           {/* Zone tactile 44 × 44 px minimum, à toutes les tailles. */}

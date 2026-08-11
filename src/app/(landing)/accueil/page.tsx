@@ -89,9 +89,9 @@ export default async function LandingPage() {
       <section
         id="produit"
         data-lx-section="features"
-        className="bg-[var(--nl-paper)] py-20 sm:py-28"
+        className="bg-[var(--nl-paper)] py-16 sm:py-28"
       >
-        <div className="mx-auto w-full max-w-[82rem] px-5 sm:px-8">
+        <div className="mx-auto w-full max-w-[82rem] px-6 sm:px-8">
           <div data-reveal>
             <h2 className="text-[clamp(1.9rem,6vw,3.2rem)] font-semibold text-[var(--nl-ink)]">
               <span className="block">Vous ouvrez Nireo.</span>
@@ -103,8 +103,20 @@ export default async function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-12 sm:mt-16" data-reveal style={{ ["--nl-delay" as string]: "120ms" }}>
+          {/* Sur mobile l'aperçu est CADRÉ, pas déroulé : hauteur bornée, ce
+              qui dépasse est coupé, et un fondu blanc cassé dit que
+              l'interface continue. Le rendu au-dessus de 768 px est intact —
+              hauteur automatique, aucun fondu. */}
+          <div
+            className="relative mt-10 h-[clamp(480px,62vh,540px)] overflow-hidden rounded-lg sm:mt-14 md:h-auto md:overflow-visible"
+            data-reveal
+            style={{ ["--nl-delay" as string]: "120ms" }}
+          >
             <ProductPreview />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,var(--nl-paper),transparent)] md:hidden"
+            />
           </div>
 
           {/* L'honnêteté est dite une fois, discrètement, sous l'aperçu. */}

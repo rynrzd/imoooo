@@ -22,12 +22,14 @@ export function FinalCta({ href }: { href: string }) {
       data-lx-section="cta"
       className="relative overflow-hidden bg-[var(--nl-paper)] text-[var(--nl-ink)]"
     >
-      {/* Le « N » de contour — décoratif, coupé en bas et à droite. */}
+      {/* Le « N » de contour — décoratif, coupé en bas et à droite. Sur mobile
+          il est plus petit, plus effacé et repoussé sous le bloc d'action : il
+          ne passe jamais derrière le bouton ni le texte. */}
       <svg
         aria-hidden
         viewBox="0 0 200 240"
         preserveAspectRatio="xMidYMin slice"
-        className="pointer-events-none absolute -right-10 -bottom-24 h-[22rem] w-[18rem] opacity-70 sm:-right-4 sm:h-[26rem] sm:w-[22rem] lg:right-16 lg:-bottom-32 lg:h-[34rem] lg:w-[28rem]"
+        className="pointer-events-none absolute -right-14 -bottom-14 h-[15rem] w-[12rem] opacity-30 sm:-right-4 sm:-bottom-24 sm:h-[26rem] sm:w-[22rem] sm:opacity-70 lg:right-16 lg:-bottom-32 lg:h-[34rem] lg:w-[28rem]"
       >
         <path
           d={N_PATH}
@@ -38,7 +40,7 @@ export function FinalCta({ href }: { href: string }) {
         />
       </svg>
 
-      <div className="relative mx-auto w-full max-w-[82rem] px-5 py-20 sm:px-8 sm:py-28">
+      <div className="relative mx-auto w-full max-w-[82rem] px-6 py-16 sm:px-8 sm:py-28">
         <div className="max-w-xl" data-reveal>
           <h2 className="text-[clamp(1.9rem,6vw,3.2rem)] font-semibold text-balance">
             Commencez là où vous en êtes.

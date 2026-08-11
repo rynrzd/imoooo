@@ -81,7 +81,7 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
 
       <div
         className="mx-auto w-full max-w-[82rem] px-5 pb-12 sm:px-8 sm:pb-16"
-        style={{ paddingTop: "calc(var(--nl-header-h) + env(safe-area-inset-top) + 2.5rem)" }}
+        style={{ paddingTop: "calc(var(--nl-header-h) + 2.5rem)" }}
       >
         {/* La ligne la plus longue du hook fait ≈ 10,9 em : la taille fluide la
             garde sur UNE ligne de 320 px à 2560 px. Le hook tient donc toujours

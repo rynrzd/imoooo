@@ -68,14 +68,19 @@ export const metadata: Metadata = {
 };
 
 /**
- * `viewport-fit=cover` : sur iPhone, la page occupe tout l'écran et les marges
- * de sécurité sont gérées explicitement (`env(safe-area-inset-*)`). Déclaré
- * sur ce segment uniquement.
+ * PAS de `viewport-fit=cover`.
+ *
+ * Il faisait passer le contenu sous l'encoche iPhone, et donc obligeait le
+ * header à réserver `env(safe-area-inset-top)` : sur un iPhone récent la barre
+ * atteignait ~115 px et mangeait le haut de la page. Safari donne déjà une
+ * zone d'affichage pleine largeur SOUS l'encoche ; sans `cover`, tous les
+ * `env(safe-area-inset-*)` valent 0 et la hauteur du header est exactement
+ * celle qu'on lui donne. Plus aucune arithmétique de marge de sécurité sur
+ * cette page.
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
   // Le haut de la page est la photographie du hero, sur fond bleu nuit : la
   // barre du navigateur se fond dedans plutôt que de trancher.
   themeColor: "#070c15",
@@ -93,7 +98,7 @@ export default async function LandingLayout({ children }: { children: React.Reac
     //
     // `overflow-x-clip` : dernier rempart contre tout débordement horizontal,
     // les grands « N » débordant volontairement de leur section.
-    <div className="nireo-landing flex min-h-dvh flex-col overflow-x-clip pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
+    <div className="nireo-landing flex min-h-dvh flex-col overflow-x-clip">
       {/* Écran d'introduction — inerte tant qu'un script ne l'active pas. */}
       <BrandIntro />
 
