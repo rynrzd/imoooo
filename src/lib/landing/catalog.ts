@@ -1,3 +1,4 @@
+import { PRIMARY_CTA_LABEL, SIGNUP_PATH } from "./cta";
 import {
   SECTION_KEYS,
   SLOT_KEYS,
@@ -93,11 +94,14 @@ const HERO_CTA: SlotDef<"hero_cta"> = {
   variants: [
     {
       key: "control",
-      label: "Commencer gratuitement",
+      label: PRIMARY_CTA_LABEL,
       description: "Formulation de la landing : créer un compte, ou voir le produit.",
       payload: {
-        primary: "Commencer gratuitement",
-        href: "/inscription",
+        // UNE seule formulation pour tous les appels à l'action principaux de
+        // la page (hero, aperçu produit, bloc final, menu mobile) : la
+        // promesse annoncée est exactement celle du bouton d'inscription.
+        primary: PRIMARY_CTA_LABEL,
+        href: SIGNUP_PATH,
         secondary: "Voir Nireo en action",
         secondaryHref: "#produit",
       },

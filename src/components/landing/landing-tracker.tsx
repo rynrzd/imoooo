@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { trackFunnel } from "@/lib/funnel";
 
 /**
  * Landing Intelligence — MESURE DU COMPORTEMENT RÉEL.
@@ -88,7 +89,11 @@ export function LandingTracker() {
     /* ---------------- Exposition + engagement ---------------- */
 
     const startedAt = Date.now();
+    // `exposure` EST le « landing_view » du tunnel (cf. src/lib/funnel.ts) :
+    // il n'est poussé qu'ici, l'appel ci-dessous ne fait que le nommer et le
+    // rendre lisible en développement — il n'envoie rien de plus.
     push({ type: "exposure" });
+    trackFunnel("landing_view");
 
     let engaged = false;
     const markEngaged = () => {
@@ -254,29 +259,10 @@ export function LandingTracker() {
   return null;
 }
 
-/**
- * Signal ponctuel envoyé depuis une autre page du tunnel (par exemple
- * « inscription démarrée » sur /inscription). Un seul envoi par montage.
+/*
+ * Les signaux ponctuels envoyés depuis les AUTRES pages du tunnel
+ * (« inscription démarrée », « premier logement »…) ne vivent plus ici : ils
+ * passent tous par `trackFunnel` (src/lib/funnel.ts), qui dédoublonne ses
+ * envois — l'ancien composant <LandingIntent> en émettait deux à chaque
+ * montage sous React Strict Mode.
  */
-export function LandingIntent({ event }: { event: "signup_started" | "plan_selected" }) {
-  useEffect(() => {
-    let sessionId = "";
-    try {
-      sessionId = sessionStorage.getItem("nireo_l_sid") ?? "";
-    } catch {
-      sessionId = "";
-    }
-    void fetch(ENDPOINT, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        path: window.location.pathname,
-        events: [{ type: event }],
-      }),
-      keepalive: true,
-    }).catch(() => {});
-  }, [event]);
-
-  return null;
-}

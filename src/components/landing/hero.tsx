@@ -125,8 +125,16 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
           </SmoothAnchor>
         </div>
 
-        <p className="nl-rise mt-8 text-[0.82rem] text-white/70 sm:mt-10" style={rise(540)}>
-          Plan gratuit permanent · Sans carte bancaire · Données privées
+        {/* Réassurance : la seule chose à savoir avant de cliquer — ce qui est
+            inclus, ce que ça coûte, ce qu'on ne demande pas. Trois segments,
+            pas une icône, pas une carte, pas un badge. Centrée sous les deux
+            boutons tant qu'ils sont empilés, alignée sur leur bord gauche dès
+            qu'ils passent côte à côte. */}
+        <p
+          className="nl-rise mt-8 text-center text-[0.82rem] text-white/80 sm:mt-10 sm:text-left"
+          style={rise(540)}
+        >
+          1 logement inclus · 0 € · Sans carte bancaire
         </p>
       </div>
     </section>

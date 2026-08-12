@@ -13,47 +13,29 @@ import { useAppStore } from "@/lib/store";
 import { persistTourCompleted, startProductTour } from "./product-tour";
 
 /**
- * Assistant de première connexion — 4 étapes courtes.
+ * Assistant de découverte — 4 étapes courtes, À LA DEMANDE.
  *
- * Ouverture automatique UNIQUEMENT si : utilisateur authentifié (e-mail
- * confirmé, garanti par le proxy), profil chargé, et onboarding ni terminé ni
- * ignoré. La progression est persistée par étape côté serveur (POST
- * /api/onboarding) : la reprise se fait à la bonne étape après un
- * rafraîchissement ou sur un autre appareil. Jamais sur la landing, la
- * connexion, l'admin ou Stripe Checkout (le composant n'est monté que dans le
- * layout applicatif protégé). Relance manuelle depuis Paramètres
- * (événement `immopilot:onboarding`).
+ * Il ne s'ouvre PLUS tout seul à la première connexion : un nouveau compte
+ * doit voir immédiatement la seule action qui compte — « Ajouter mon premier
+ * logement » (cf. components/dashboard/first-property.tsx) — et non un modal
+ * qui recouvre son espace avant qu'il ait rien pu faire.
+ *
+ * Il reste intégralement disponible depuis Paramètres → Aide (« Revoir le
+ * guide », événement `immopilot:onboarding`), avec la même progression
+ * persistée côté serveur (POST /api/onboarding) et la même reprise à l'étape
+ * mémorisée. Jamais sur la landing, la connexion, l'admin ou Stripe Checkout :
+ * le composant n'est monté que dans le layout applicatif protégé.
  */
 
 export function OnboardingWizard() {
-  const { profile, loading, completeOnboarding, skipOnboarding, saveOnboardingStep } =
-    useAppStore();
+  const { profile, completeOnboarding, skipOnboarding, saveOnboardingStep } = useAppStore();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
-  const openedRef = React.useRef(false);
-
-  // Ouverture automatique après la première connexion, à l'étape mémorisée.
-  // Différée d'un tick : pas de setState synchrone dans l'effet.
-  React.useEffect(() => {
-    if (loading || !profile || openedRef.current) return;
-    if (!profile.onboardingCompleted && !profile.onboardingSkipped) {
-      openedRef.current = true;
-      const resume = Math.min(
-        Math.max(profile.onboardingCurrentStep ?? 0, 0),
-        ONBOARDING_TOTAL_STEPS - 1
-      );
-      // Différé d'un tick : pas de setState synchrone dans le corps de l'effet.
-      const id = window.setTimeout(() => {
-        setStep(resume);
-        setOpen(true);
-      }, 400);
-      return () => window.clearTimeout(id);
-    }
-  }, [loading, profile]);
-
-  // Relance manuelle (« Revoir le guide » dans Paramètres).
+  // Relance manuelle (« Revoir le guide » dans Paramètres) — désormais le SEUL
+  // point d'ouverture, inchangé par ailleurs : le guide reprend à sa première
+  // étape, comme avant.
   React.useEffect(() => {
     const relaunch = () => {
       setStep(0);

@@ -10,7 +10,15 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Étape de bienvenue, entre la validation du compte et le tableau de bord.
+ * Étape de bienvenue — PLUS AUCUN PARCOURS N'Y MÈNE.
+ *
+ * Elle s'intercalait entre la validation du compte et le tableau de bord pour
+ * demander « Combien de logements gérez-vous ? » et recommander un plan. Un
+ * compte fraîchement créé va maintenant DIRECTEMENT à son espace, où la seule
+ * action proposée est l'ajout du premier logement : on ne parle d'abonnement
+ * qu'au moment où la limite du plan Gratuit est réellement atteinte
+ * (page /abonnement). Plus aucun lien, plus aucune redirection ne pointe ici ;
+ * la route reste servie (et gardée) pour ne casser aucun favori.
  *
  * Elle pose UNE question — « Combien de logements gérez-vous ? » — et en
  * déduit le plus petit plan compatible à partir de `src/config/plans.ts`.

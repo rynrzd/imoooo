@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isPlanId, type PlanId } from "@/config/plans";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getEngineState } from "@/lib/landing/config";
 import { resolveLanding } from "@/lib/landing/resolve";
@@ -19,7 +20,9 @@ export const runtime = "nodejs";
  *   ce qui lui a réellement été servi ;
  * - seuls les événements comportementaux sont acceptés. Les conversions
  *   (compte créé, paiement) sont écrites ailleurs, à partir d'une session
- *   vérifiée ou d'un webhook signé.
+ *   vérifiée ou d'un webhook signé. Les deux étapes « premier logement »
+ *   restent des INTENTIONS : le décompte qui fait foi est celui du
+ *   déclencheur SQL `analytics_events.property_added`.
  *
  * RGPD : aucune donnée personnelle, aucune coordonnée absolue, aucun contenu
  * de formulaire. Les positions de clic sont relatives (0–1).
@@ -41,6 +44,22 @@ function str(value: unknown, max: number): string | null {
   const clean = value.trim().slice(0, max);
   return clean.length > 0 ? clean : null;
 }
+
+/**
+ * Seule propriété métier acceptée du client, et uniquement sur les étapes du
+ * tunnel qui suivent la création du compte : l'identifiant du plan, validé
+ * contre la liste des plans réels. Aucun montant, aucun droit n'en dépend —
+ * c'est une étiquette de segmentation.
+ */
+function planLabel(value: unknown): PlanId | null {
+  return typeof value === "string" && isPlanId(value) ? value : null;
+}
+
+/** Étapes du tunnel autorisées à porter une étiquette de plan. */
+const PLAN_TAGGED: ReadonlySet<string> = new Set([
+  "first_property_started",
+  "first_property_created",
+]);
 
 export async function POST(request: Request) {
   // Sans clé secrète serveur, aucune écriture possible : on l'ignore en silence.
@@ -80,6 +99,7 @@ export async function POST(request: Request) {
     const x = clamp01(o.x);
     const y = clamp01(o.y);
     const value = Number(o.value);
+    const plan = PLAN_TAGGED.has(o.type) ? planLabel(o.plan) : null;
 
     events.push({
       eventType: o.type,
@@ -105,9 +125,11 @@ export async function POST(request: Request) {
       meta:
         o.type === "exposure"
           ? { personalized: resolution.personalized }
-          : x !== null && y !== null
-            ? { x, y }
-            : null,
+          : plan
+            ? { plan }
+            : x !== null && y !== null
+              ? { x, y }
+              : null,
     });
   }
 

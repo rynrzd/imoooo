@@ -13,6 +13,7 @@ import {
 import { ActionCenter } from "@/components/dashboard/action-center";
 import { AddMenu } from "@/components/dashboard/add-menu";
 import { DocumentsPreview } from "@/components/dashboard/documents-preview";
+import { FirstPropertyCta } from "@/components/dashboard/first-property";
 import dynamic from "next/dynamic";
 import { HealthScore } from "@/components/dashboard/health-score";
 import { PriorityProperties } from "@/components/dashboard/priority-properties";
@@ -112,6 +113,10 @@ export default function DashboardPage() {
       >
         <AddMenu />
       </PageHeader>
+
+      {/* Espace encore vide : une seule action, tout en haut. Le composant ne
+          rend rien dès qu'un logement existe. */}
+      <FirstPropertyCta />
 
       <section aria-label="Santé du patrimoine">
         <HealthScore report={health} />

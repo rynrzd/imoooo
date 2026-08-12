@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Check, Eye, EyeOff, Loader2, Lock, MailCheck, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, MailCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,24 +12,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { LandingIntent } from "@/components/landing/landing-tracker";
+import { trackFunnel } from "@/lib/funnel";
+import { PRIMARY_CTA_LABEL } from "@/lib/landing/cta";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 
-const schema = z
-  .object({
-    fullName: z.string().min(2, "Nom requis."),
-    email: z.string().email("E-mail invalide."),
-    password: z.string().min(8, "8 caractères minimum."),
-    confirm: z.string(),
-    terms: z.boolean().refine((v) => v === true, "Vous devez accepter les conditions."),
-  })
-  .refine((v) => v.password === v.confirm, {
-    path: ["confirm"],
-    message: "Les mots de passe ne correspondent pas.",
-  });
+/**
+ * Création de compte — DEUX CHAMPS.
+ *
+ * Ne sont demandées que les informations sans lesquelles Supabase Auth ne
+ * peut pas créer le compte : une adresse e-mail et un mot de passe. Le nom, le
+ * téléphone, l'entreprise ou la SCI se renseignent plus tard dans
+ * Paramètres → Profil (`profiles.full_name` a une valeur par défaut vide en
+ * base, aucun écran ne dépend de sa présence). Aucun plan, aucune carte,
+ * aucune donnée de facturation, aucune question sur la taille du patrimoine :
+ * tout nouveau compte est sur le plan Gratuit, qui est simplement l'absence
+ * d'abonnement (cf. `DEFAULT_PLAN_ID` dans src/config/plans.ts).
+ *
+ * Rien n'a été retiré côté sécurité : mot de passe de 8 caractères minimum
+ * (règle Supabase du projet) avec indicateur de force, validation Zod avant
+ * envoi, confirmation d'e-mail obligatoire, réponse identique que l'adresse
+ * existe ou non (aucune énumération de comptes).
+ */
+
+const schema = z.object({
+  email: z.string().email("E-mail invalide."),
+  password: z.string().min(8, "8 caractères minimum."),
+});
 
 type FormValues = z.infer<typeof schema>;
 
@@ -61,28 +72,9 @@ function PasswordStrength({ value }: { value: string }) {
   );
 }
 
-const TRUST = [
-  { icon: ShieldCheck, label: "Données protégées" },
-  { icon: Check, label: "Sans engagement" },
-  { icon: Lock, label: "Gratuit disponible" },
-];
-
 /** Destination après inscription : uniquement un chemin interne. */
 function safeNext(raw: string | null): string {
   return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
-}
-
-/**
- * Première étape après la validation du compte : la question de bienvenue
- * (« Combien de logements gérez-vous ? »), qui recommande le plan adapté.
- * Elle se garde elle-même côté serveur et renvoie vers « / » dès qu'elle n'a
- * plus lieu d'être — un parcours venu d'ailleurs (`?next=…`, ex. Nireo ID)
- * n'est donc jamais détourné.
- */
-const WELCOME_PATH = "/bienvenue";
-
-function afterSignup(next: string): string {
-  return next === "/" ? WELCOME_PATH : next;
 }
 
 function SignupForm() {
@@ -92,6 +84,12 @@ function SignupForm() {
   const [sentTo, setSentTo] = React.useState<string | null>(null);
   const [showPw, setShowPw] = React.useState(false);
 
+  // Tunnel de conversion : « inscription démarrée » (anonyme, non bloquant,
+  // dédoublonné — React Strict Mode monte ce composant deux fois).
+  React.useEffect(() => {
+    trackFunnel("signup_started");
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -100,12 +98,10 @@ function SignupForm() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onChange",
-    defaultValues: { fullName: "", email: "", password: "", confirm: "", terms: false },
+    defaultValues: { email: "", password: "" },
   });
 
   const password = useWatch({ control, name: "password" }) ?? "";
-  const confirm = useWatch({ control, name: "confirm" }) ?? "";
-  const matches = Boolean(password) && password === confirm;
 
   const onSubmit = handleSubmit(async (values) => {
     if (pending) return;
@@ -115,12 +111,11 @@ function SignupForm() {
       email: values.email,
       password: values.password,
       options: {
-        data: { full_name: values.fullName },
         // `next` permet à un autre produit Nireo (ex. Nireo ID) de ramener
         // l'utilisateur à son parcours après confirmation. Sans destination
-        // particulière, le compte fraîchement confirmé passe par l'étape de
-        // bienvenue avant le tableau de bord.
-        emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(afterSignup(next))}`,
+        // particulière, le compte confirmé arrive directement dans son
+        // espace, sur l'ajout du premier logement.
+        emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     setPending(false);
@@ -129,21 +124,17 @@ function SignupForm() {
       return;
     }
     if (data.session) {
-      // Confirmation d'e-mail désactivée : la session est immédiate, l'étape
-      // de bienvenue est servie tout de suite.
-      window.location.assign(afterSignup(next));
+      // Confirmation d'e-mail désactivée : la session est immédiate.
+      window.location.assign(next);
       return;
     }
     setSentTo(values.email);
   });
 
   return (
-    <>
-    {/* Tunnel de conversion : « inscription démarrée » (anonyme, non bloquant). */}
-    <LandingIntent event="signup_started" />
     <AuthShell
       title="Créer votre espace"
-      description="Le centre de contrôle de votre patrimoine, prêt en quelques minutes."
+      description="Deux informations suffisent : votre e-mail et un mot de passe."
       footer={
         <p>
           Déjà un compte ?{" "}
@@ -175,14 +166,8 @@ function SignupForm() {
       ) : (
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="fullName">Nom complet</Label>
-            <Input id="fullName" autoComplete="name" placeholder="Camille Roux" aria-invalid={!!errors.fullName} {...register("fullName")} />
-            {errors.fullName ? <p className="text-xs text-destructive">{errors.fullName.message}</p> : null}
-          </div>
-
-          <div className="space-y-1.5">
             <Label htmlFor="email">Adresse e-mail</Label>
-            <Input id="email" type="email" autoComplete="email" placeholder="vous@exemple.fr" aria-invalid={!!errors.email} {...register("email")} />
+            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="vous@exemple.fr" aria-invalid={!!errors.email} {...register("email")} />
             {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
           </div>
 
@@ -203,55 +188,32 @@ function SignupForm() {
             {errors.password ? <p className="text-xs text-destructive">{errors.password.message}</p> : null}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="confirm">Confirmer le mot de passe</Label>
-            <div className="relative">
-              <Input id="confirm" type={showPw ? "text" : "password"} autoComplete="new-password" className="pr-10" aria-invalid={!!errors.confirm} {...register("confirm")} />
-              {matches ? (
-                <span className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-emerald-300" aria-hidden>
-                  <Check className="size-4" />
-                </span>
-              ) : null}
-            </div>
-            {errors.confirm ? <p className="text-xs text-destructive">{errors.confirm.message}</p> : null}
-          </div>
-
-          <label className="flex cursor-pointer items-start gap-2.5 text-xs text-muted-foreground select-none">
-            <input
-              type="checkbox"
-              className="mt-0.5 size-4 shrink-0 rounded border-input bg-transparent text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
-              {...register("terms")}
-            />
-            <span>
-              J’accepte les{" "}
-              <Link href="/cgu" target="_blank" className="text-foreground underline-offset-2 hover:underline">conditions d’utilisation</Link>{" "}
-              et la{" "}
-              <Link href="/confidentialite" target="_blank" className="text-foreground underline-offset-2 hover:underline">politique de confidentialité</Link>.
-            </span>
-          </label>
-          {errors.terms ? <p className="-mt-2 text-xs text-destructive">{errors.terms.message}</p> : null}
-
           <Button type="submit" className="nireo-sheen w-full" disabled={!isSupabaseConfigured || pending}>
             {pending ? (
               <>
                 <Loader2 className="size-4 animate-spin" /> Création…
               </>
             ) : (
-              "Créer mon compte gratuitement"
+              PRIMARY_CTA_LABEL
             )}
           </Button>
 
-          <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 pt-1">
-            {TRUST.map((t) => (
-              <li key={t.label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <t.icon className="size-3.5 text-primary/80" /> {t.label}
-              </li>
-            ))}
-          </ul>
+          <p className="text-center text-xs text-muted-foreground">
+            Gratuit pour 1 logement. Aucune carte demandée.
+          </p>
+
+          {/* Acceptation par l'acte de création — l'ancienne case à cocher
+              obligatoire a disparu, les deux textes restent accessibles d'un
+              clic depuis l'endroit exact où l'engagement est pris. */}
+          <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+            En créant votre espace, vous acceptez les{" "}
+            <Link href="/cgu" target="_blank" className="text-foreground underline-offset-2 hover:underline">conditions d’utilisation</Link>{" "}
+            et la{" "}
+            <Link href="/confidentialite" target="_blank" className="text-foreground underline-offset-2 hover:underline">politique de confidentialité</Link>.
+          </p>
         </form>
       )}
     </AuthShell>
-    </>
   );
 }
 

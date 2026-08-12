@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Centralisation } from "@/components/landing/centralisation";
 import { FinalCta } from "@/components/landing/final-cta";
 import { LandingHero } from "@/components/landing/hero";
@@ -7,6 +8,7 @@ import { LinkedSection } from "@/components/landing/linked-section";
 import { ProductPreview } from "@/components/landing/product-preview";
 import { RevealOnScroll } from "@/components/landing/reveal-on-scroll";
 import { JsonLd } from "@/components/seo/json-ld";
+import { CTA_MARKER } from "@/lib/funnel";
 import { payloadOf } from "@/lib/landing/catalog";
 import { getLandingResolution } from "@/lib/landing/server";
 import {
@@ -65,8 +67,41 @@ export const dynamic = "force-dynamic";
  */
 const JSON_LD = jsonLdGraph([organizationJsonLd, webSiteJsonLd, softwareApplicationJsonLd]);
 
-export default async function LandingPage() {
-  const { content, profile } = await getLandingResolution();
+/** Paramètres de campagne recopiés tels quels vers l'inscription. */
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"] as const;
+
+type SearchParams = Record<string, string | string[] | undefined>;
+
+/**
+ * Recopie les seuls paramètres UTM présents sur l'URL vers la destination.
+ *
+ * Le projet exploite déjà ces paramètres (le proxy en déduit le segment du
+ * visiteur et les mémorise dans son cookie) : les conserver sur le lien
+ * garantit qu'une campagne reste attribuée si le visiteur partage l'URL ou
+ * revient par ce lien. Rien d'autre n'est recopié — ni identifiant, ni
+ * paramètre inconnu.
+ */
+function withUtm(href: string, params: SearchParams): string {
+  const query = new URLSearchParams();
+  for (const key of UTM_KEYS) {
+    const raw = params[key];
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (value) query.set(key, value.slice(0, 120));
+  }
+  const suffix = query.toString();
+  if (!suffix) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${suffix}`;
+}
+
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const [{ content, profile }, params] = await Promise.all([
+    getLandingResolution(),
+    searchParams,
+  ]);
 
   // Garde-fou : la variante « membre » du CTA renvoie vers /, c'est-à-dire le
   // tableau de bord. Servie à un visiteur ANONYME (variante épinglée dans la
@@ -124,6 +159,29 @@ export default async function LandingPage() {
             Aperçu de l’interface Nireo. Les logements et les montants affichés sont
             des exemples&nbsp;: aucune donnée réelle n’est utilisée.
           </p>
+
+          {/* Conclusion naturelle de la démonstration : « ce que vous venez de
+              voir, avec VOTRE logement ». Un lien éditorial, pas un second
+              bouton — la page n'a qu'un seul bouton plein par écran. Zone
+              tactile de 44 px garantie par `min-h-11`, la flèche n'avance
+              qu'au survol (jamais au chargement, jamais en mouvement réduit).
+              Les paramètres de campagne présents sur l'URL sont conservés. */}
+          <p className="mt-6">
+            <Link
+              href={withUtm(cta.href, params)}
+              data-lx={CTA_MARKER.product_preview}
+              data-lx-cta=""
+              className="group inline-flex min-h-11 items-center gap-2 text-[0.98rem] font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[var(--nl-cobalt)] focus-visible:outline-none"
+            >
+              Essayer avec mon premier logement
+              <span
+                aria-hidden
+                className="transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+              >
+                →
+              </span>
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -138,7 +196,7 @@ export default async function LandingPage() {
       </div>
 
       {/* ---------------- Action ---------------- */}
-      <FinalCta href={cta.href} />
+      <FinalCta href={cta.href} label={cta.primary} />
 
       {/* Révélations au défilement (aucune si le visiteur limite les animations). */}
       <RevealOnScroll />

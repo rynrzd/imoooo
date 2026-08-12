@@ -323,6 +323,12 @@ export const CLIENT_EVENT_TYPES = [
   "exit",
   "signup_started",
   "plan_selected",
+  // Suite du tunnel, dans l'espace connecté (cf. src/lib/funnel.ts). Ce sont
+  // des INTENTIONS, au même titre que `signup_started` : le décompte qui fait
+  // foi pour les logements créés reste celui du déclencheur SQL
+  // (`analytics_events.property_added`), qu'un navigateur ne peut pas écrire.
+  "first_property_started",
+  "first_property_created",
 ] as const;
 
 export type ClientEventType = (typeof CLIENT_EVENT_TYPES)[number];

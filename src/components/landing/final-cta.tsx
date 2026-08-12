@@ -9,14 +9,20 @@ import Link from "next/link";
  *
  * Les deux destinations sont les vraies routes du produit : l'inscription
  * existante (personnalisée par le moteur pour un visiteur déjà connecté) et
- * la connexion existante. Aucun tarif ici : le choix du plan a lieu APRÈS la
- * création du compte, dans le parcours déjà en place.
+ * la connexion existante. Aucun tarif ici : le plan Gratuit est celui de tout
+ * nouveau compte, et le choix d'un plan payant n'arrive que le jour où la
+ * limite gratuite est atteinte.
+ *
+ * Le libellé du bouton vient du MÊME payload que celui du hero
+ * (`hero_cta`) : les appels à l'action principaux ne peuvent donc pas
+ * diverger. Un visiteur déjà connecté garde sa formulation « tableau de
+ * bord », un visiteur anonyme lit « Créer mon espace gratuit ».
  */
 
 /** Le même contour de monogramme que la section signature. */
 const N_PATH = "M0 240 V0 H44 L156 168 V0 H200 V240 H156 L44 72 V240 Z";
 
-export function FinalCta({ href }: { href: string }) {
+export function FinalCta({ href, label }: { href: string; label: string }) {
   return (
     <section
       data-lx-section="cta"
@@ -56,7 +62,7 @@ export function FinalCta({ href }: { href: string }) {
               data-lx-cta=""
               className="inline-flex h-12 w-full items-center justify-center rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#000)] focus-visible:ring-2 focus-visible:ring-[var(--nl-cobalt)] focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
             >
-              Ouvrir mon espace Nireo
+              {label}
             </Link>
             <Link
               href="/connexion"

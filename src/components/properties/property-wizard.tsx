@@ -39,7 +39,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { DropZone } from "@/components/shared/drop-zone";
 import { FormField } from "@/components/shared/form-field";
+import { isPlanId, type PlanId } from "@/config/plans";
 import { todayISO } from "@/lib/dates";
+import { trackFunnel } from "@/lib/funnel";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { DOCUMENT_CATEGORY_LABELS, toOptions } from "@/lib/labels";
 import { useAppStore } from "@/lib/store";
@@ -168,7 +170,7 @@ export function PropertyWizard({
   onOpenChange,
   showTrigger = true,
 }: PropertyWizardProps) {
-  const { addProperty, updateProperty, addPhoto, addDocument, addTenant } =
+  const { data, profile, addProperty, updateProperty, addPhoto, addDocument, addTenant } =
     useAppStore();
   const router = useRouter();
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -177,6 +179,24 @@ export function PropertyWizard({
     setInternalOpen(next);
     onOpenChange?.(next);
   };
+
+  /**
+   * Tunnel d'acquisition : le PREMIER logement est l'activation réelle du
+   * compte. La mesure est posée ici — donc quel que soit le point d'entrée
+   * (tableau de bord, menu « Ajouter », page Logements) — et jamais ailleurs,
+   * pour ne compter chaque étape qu'une fois. Aucune donnée du formulaire
+   * n'est transmise : seulement l'étape et le plan (« free » pour un nouveau
+   * compte).
+   */
+  const isFirstProperty = data.properties.length === 0;
+  const planLabel: PlanId =
+    profile && isPlanId(profile.plan) ? (profile.plan as PlanId) : "free";
+
+  React.useEffect(() => {
+    if (open && isFirstProperty) {
+      trackFunnel("first_property_started", { plan: planLabel });
+    }
+  }, [open, isFirstProperty, planLabel]);
 
   const [step, setStep] = React.useState(0);
   const [photos, setPhotos] = React.useState<QueuedPhoto[]>([]);
@@ -340,6 +360,8 @@ export function PropertyWizard({
           deposit: values.tenantDeposit ?? values.rent,
         });
       }
+
+      if (isFirstProperty) trackFunnel("first_property_created", { plan: planLabel });
 
       toast.success(`${values.name} créé — son dossier complet est prêt.`);
       resetWizard();

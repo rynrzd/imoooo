@@ -5,6 +5,8 @@ import Link from "next/link";
 import { LayoutDashboard, X } from "lucide-react";
 import { NireoLogo } from "@/components/marketing/nireo-logo";
 import { track } from "@/lib/analytics";
+import { CTA_MARKER, trackFunnel } from "@/lib/funnel";
+import { PRIMARY_CTA_LABEL, SIGNUP_PATH } from "@/lib/landing/cta";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
@@ -163,16 +165,16 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
             ) : (
               <>
                 <Link
-                  href="/inscription"
-                  data-lx="menu-cta"
+                  href={SIGNUP_PATH}
+                  data-lx={CTA_MARKER.mobile_menu}
                   data-lx-cta=""
                   onClick={() => {
-                    track("cta_essai_gratuit", { source: "menu" });
+                    trackFunnel("landing_primary_cta_click", { location: "mobile_menu" });
                     close();
                   }}
                   className="inline-flex h-12 items-center justify-center rounded-md bg-[var(--nl-cobalt)] px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#fff)]"
                 >
-                  Commencer gratuitement
+                  {PRIMARY_CTA_LABEL}
                 </Link>
                 <Link
                   href="/connexion"
