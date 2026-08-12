@@ -47,7 +47,8 @@ export function PaginationBar({
       <p className="text-xs text-muted-foreground">
         Page {page} sur {pageCount} · {total} {label}
       </p>
-      <div className="flex gap-1.5">
+      {/* 44 px au doigt (les boutons « sm » du bureau font 28 px). */}
+      <div className="flex gap-1.5 [&_button]:max-lg:h-11 [&_button]:max-lg:px-3">
         <Button
           variant="outline"
           size="sm"

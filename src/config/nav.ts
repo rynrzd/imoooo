@@ -3,10 +3,14 @@ import {
   Building2,
   Camera,
   CreditCard,
+  Ellipsis,
   FileText,
   Gauge,
   Hammer,
   LayoutDashboard,
+  LifeBuoy,
+  Receipt,
+  ScrollText,
   Settings,
   Users,
   Wallet,
@@ -53,8 +57,31 @@ export const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
+/**
+ * Navigation de la SIDEBAR (≥ 1024 px) : la navigation produit ci-dessus,
+ * plus les deux écrans transverses ajoutés avec la navigation mobile.
+ *
+ * Pourquoi une liste séparée : `NAV_SECTIONS` est aussi rendu tel quel par
+ * l'aperçu produit de la landing publique (`components/landing/product-preview`).
+ * Y ajouter des entrées modifierait une page validée. La sidebar, elle, doit
+ * rester complète — d'où cette composition, dérivée sans duplication.
+ */
+export const SIDEBAR_SECTIONS: NavSection[] = NAV_SECTIONS.map((section) =>
+  section.label === "Patrimoine"
+    ? { ...section, items: [...section.items, { title: "Baux", href: "/baux", icon: ScrollText }] }
+    : section.label === "Gestion"
+      ? {
+          ...section,
+          items: [
+            ...section.items,
+            { title: "Dépenses", href: "/depenses", icon: Receipt },
+          ],
+        }
+      : section
+);
+
 /** Liste à plat (recherches, menu mobile…). */
-export const MAIN_NAV: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
+export const MAIN_NAV: NavItem[] = SIDEBAR_SECTIONS.flatMap((s) => s.items);
 
 /** Navigation secondaire (compte). */
 export const ACCOUNT_NAV: NavItem[] = [
@@ -64,5 +91,60 @@ export const ACCOUNT_NAV: NavItem[] = [
 
 export function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const path = href.split("?")[0];
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
+
+/* ------------------------------------------------------------------ */
+/*  Navigation MOBILE                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Barre inférieure — exactement cinq entrées, dont « Plus ».
+ *
+ * C'est la navigation principale du téléphone : le pouce y accède sans
+ * traverser l'écran, et l'entrée active se lit d'un coup d'œil. La sidebar
+ * (≥ 1024 px) et son groupement par sections restent inchangés : la barre ne
+ * les remplace pas, elle prend le relais là où elles n'existent pas.
+ */
+export const BOTTOM_NAV: NavItem[] = [
+  { title: "Accueil", href: "/", icon: LayoutDashboard },
+  { title: "Logements", href: "/logements", icon: Building2 },
+  { title: "Loyers", href: "/loyers", icon: Wallet },
+  { title: "Documents", href: "/documents", icon: FileText },
+];
+
+/** Icône de la cinquième entrée (ouvre la feuille « Plus »). */
+export const MORE_ICON = Ellipsis;
+
+/**
+ * Tout le reste, dans la feuille « Plus ». L'ordre suit la fréquence d'usage
+ * réelle : le quotidien d'abord, le compte ensuite.
+ */
+export const MORE_NAV: NavSection[] = [
+  {
+    label: "Gestion",
+    items: [
+      { title: "Locataires", href: "/locataires", icon: Users },
+      { title: "Baux", href: "/baux", icon: ScrollText },
+      { title: "Dépenses", href: "/depenses", icon: Receipt },
+      { title: "Travaux", href: "/travaux", icon: Hammer },
+      { title: "Photos", href: "/photos", icon: Camera },
+    ],
+  },
+  {
+    label: "Analyse",
+    items: [
+      { title: "Statistiques", href: "/statistiques", icon: BarChart3 },
+      { title: "Pilotage", href: "/pilotage", icon: Gauge },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { title: "Abonnement", href: "/abonnement", icon: CreditCard },
+      { title: "Paramètres", href: "/parametres", icon: Settings },
+      { title: "Aide", href: "/parametres?onglet=aide", icon: LifeBuoy },
+    ],
+  },
+];

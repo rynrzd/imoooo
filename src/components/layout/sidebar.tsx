@@ -1,6 +1,6 @@
 "use client";
 
-import { ACCOUNT_NAV, NAV_SECTIONS } from "@/config/nav";
+import { ACCOUNT_NAV, SIDEBAR_SECTIONS } from "@/config/nav";
 import { Brand } from "./brand";
 import { GlobalSearch } from "./global-search";
 import { NavLinks, NavSections } from "./nav-links";
@@ -20,7 +20,7 @@ export function Sidebar() {
         <div className="px-1">
           <GlobalSearch />
         </div>
-        <NavSections sections={NAV_SECTIONS} />
+        <NavSections sections={SIDEBAR_SECTIONS} />
         <div className="mt-auto flex flex-col gap-4">
           <NavLinks items={ACCOUNT_NAV} />
         </div>

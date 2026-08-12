@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   Receipt,
   UserRound,
-  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +20,7 @@ import { PhotoGallery } from "@/components/photos/photo-gallery";
 import { PropertyFinancesTab } from "@/components/properties/property-finances-tab";
 import { PropertyHeader } from "@/components/properties/property-header";
 import { PropertyOverview } from "@/components/properties/property-overview";
+import { PropertySummary } from "@/components/properties/property-summary";
 import { PropertyRentsTab } from "@/components/properties/property-rents-tab";
 import { TenantLeaseTab } from "@/components/properties/tenant-lease-tab";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -28,15 +28,24 @@ import { DropZone } from "@/components/shared/drop-zone";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAppStore } from "@/lib/store";
 
-const TAB_VALUES = new Set([
-  "overview",
-  "tenant",
-  "rents",
-  "documents",
-  "photos",
-  "finances",
-  "history",
-]);
+/**
+ * QUATRE sections, et rien d'autre : Aperçu, Location, Documents, Finances.
+ *
+ * La fiche en comptait sept, dans une barre d'onglets qui débordait de
+ * l'écran sur téléphone. Aucune fonction n'a disparu, elles ont retrouvé leur
+ * place : les loyers du bien sont dans Location (c'est le bail qui les
+ * produit), les photos dans Documents, l'historique au bas de l'Aperçu.
+ */
+const TAB_VALUES = new Set(["overview", "location", "documents", "finances"]);
+
+/** Anciennes ancres encore présentes dans des liens ou des favoris. */
+const TAB_ALIASES: Record<string, string> = {
+  tenant: "location",
+  rents: "location",
+  works: "finances",
+  photos: "documents",
+  history: "overview",
+};
 
 /** Pastille de compteur affichée dans les onglets. */
 function TabCount({ value }: { value: number }) {
@@ -56,7 +65,7 @@ export default function PropertyDetailPage({
   // Onglet initial optionnel (ex. « Historique » depuis le portefeuille).
   const search = React.use(searchParams);
   const rawTab = typeof search.tab === "string" ? search.tab : "";
-  const tabParam = rawTab === "works" ? "finances" : rawTab;
+  const tabParam = TAB_ALIASES[rawTab] ?? rawTab;
   const initialTab = TAB_VALUES.has(tabParam) ? tabParam : "overview";
   const { data } = useAppStore();
   // Photo déposée dans l'onglet Photos.
@@ -84,95 +93,113 @@ export default function PropertyDetailPage({
       </div>
 
       <Tabs defaultValue={initialTab}>
-        <div className="overflow-x-auto">
-          <TabsList
-            variant="line"
-            className="w-max min-w-full justify-start border-b border-border"
-          >
-            <TabsTrigger value="overview">
-              <LayoutGrid data-icon="inline-start" />
-              Vue d&apos;ensemble
-            </TabsTrigger>
-            <TabsTrigger value="tenant">
-              <UserRound data-icon="inline-start" />
-              Locataire et bail
-            </TabsTrigger>
-            <TabsTrigger value="rents">
-              <Wallet data-icon="inline-start" />
-              Loyers
-              <TabCount value={payments.length} />
-            </TabsTrigger>
-            <TabsTrigger value="documents">
-              <FileText data-icon="inline-start" />
-              Documents
-              <TabCount value={documents.length} />
-            </TabsTrigger>
-            <TabsTrigger value="photos">
-              <Camera data-icon="inline-start" />
-              Photos
-              <TabCount value={photos.length} />
-            </TabsTrigger>
-            <TabsTrigger value="finances">
-              <Receipt data-icon="inline-start" />
-              Dépenses et travaux
-              <TabCount value={works.length + expenses.length} />
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              <History data-icon="inline-start" />
-              Historique
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        {/* Quatre onglets qui tiennent sans défilement dès 320 px : au doigt
+            les icônes disparaissent et les libellés se partagent la largeur —
+            avec elles et les pastilles de comptage, la barre débordait de
+            24 px sur un iPhone. */}
+        <TabsList
+          variant="line"
+          className="w-full justify-start border-b border-border"
+        >
+          <TabsTrigger value="overview" className="flex-1 px-1 sm:flex-none sm:px-3">
+            <LayoutGrid data-icon="inline-start" className="max-sm:hidden" />
+            Aperçu
+          </TabsTrigger>
+          <TabsTrigger value="location" className="flex-1 px-1 sm:flex-none sm:px-3">
+            <UserRound data-icon="inline-start" className="max-sm:hidden" />
+            Location
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="flex-1 px-1 sm:flex-none sm:px-3">
+            <FileText data-icon="inline-start" className="max-sm:hidden" />
+            Documents
+            <TabCount value={documents.length + photos.length} />
+          </TabsTrigger>
+          <TabsTrigger value="finances" className="flex-1 px-1 sm:flex-none sm:px-3">
+            <Receipt data-icon="inline-start" className="max-sm:hidden" />
+            Finances
+            <TabCount value={works.length + expenses.length} />
+          </TabsTrigger>
+        </TabsList>
 
-        <TabsContent value="overview" className="animate-panel-in pt-4">
-          <PropertyOverview property={property} />
+        {/* ---------------- Aperçu ---------------- */}
+        <TabsContent value="overview" className="animate-panel-in space-y-5 pt-4">
+          {/* Cinq lignes utiles sur téléphone… */}
+          <div className="lg:hidden">
+            <PropertySummary property={property} />
+          </div>
+          {/* …le tableau de bord complet du bien au-dessus de 1024 px. */}
+          <div className="hidden lg:block">
+            <PropertyOverview property={property} />
+          </div>
+
+          <section className="space-y-2 lg:hidden">
+            <h2 className="text-sm font-medium text-foreground">Historique</h2>
+            {history.length > 0 ? (
+              <RecentActivity items={history} limit={8} />
+            ) : (
+              <EmptyState
+                icon={History}
+                title="Aucun événement"
+                description="Paiements, documents, photos, travaux : chaque action sur ce logement apparaîtra ici."
+              />
+            )}
+          </section>
         </TabsContent>
 
-        <TabsContent value="tenant" className="animate-panel-in pt-4">
+        {/* ---------------- Location (bail + loyers) ---------------- */}
+        <TabsContent value="location" className="animate-panel-in space-y-6 pt-4">
           <TenantLeaseTab property={property} />
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium text-foreground">
+              Loyers de ce logement
+              {payments.length > 0 ? (
+                <span className="ml-1 font-normal text-muted-foreground">
+                  ({payments.length})
+                </span>
+              ) : null}
+            </h2>
+            <PropertyRentsTab property={property} />
+          </section>
         </TabsContent>
 
-        <TabsContent value="rents" className="animate-panel-in pt-4">
-          <PropertyRentsTab property={property} />
-        </TabsContent>
-
-        <TabsContent value="documents" className="animate-panel-in pt-4">
+        {/* ---------------- Documents (dossiers + photos) ---------------- */}
+        <TabsContent value="documents" className="animate-panel-in space-y-6 pt-4">
           <DocumentLibrary propertyId={property.id} />
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Camera className="size-4 text-muted-foreground" aria-hidden />
+                Photos
+                <TabCount value={photos.length} />
+              </h2>
+              <AddPhotoDialog propertyId={property.id} />
+            </div>
+            {/* Le glisser-déposer n'a de sens qu'avec un pointeur : masqué au doigt. */}
+            <div className="max-lg:hidden">
+              <DropZone
+                label="Glissez-déposez une photo du logement"
+                hint="ou cliquez pour choisir — elle sera classée dans la médiathèque du bien"
+                accept="image/*"
+                onFile={setDroppedPhoto}
+              />
+            </div>
+            <AddPhotoDialog
+              propertyId={property.id}
+              droppedFile={droppedPhoto}
+              open={droppedPhoto !== null}
+              onOpenChange={(open) => {
+                if (!open) setDroppedPhoto(null);
+              }}
+              showTrigger={false}
+            />
+            <PhotoGallery photos={photos} property={property} />
+          </section>
         </TabsContent>
 
-        <TabsContent value="photos" className="animate-panel-in space-y-4 pt-4">
-          <DropZone
-            label="Glissez-déposez une photo du logement"
-            hint="ou cliquez pour choisir — elle sera classée dans la médiathèque du bien"
-            accept="image/*"
-            onFile={setDroppedPhoto}
-          />
-          <AddPhotoDialog
-            propertyId={property.id}
-            droppedFile={droppedPhoto}
-            open={droppedPhoto !== null}
-            onOpenChange={(open) => {
-              if (!open) setDroppedPhoto(null);
-            }}
-            showTrigger={false}
-          />
-          <PhotoGallery photos={photos} property={property} />
-        </TabsContent>
-
+        {/* ---------------- Finances (dépenses + travaux) ---------------- */}
         <TabsContent value="finances" className="animate-panel-in pt-4">
           <PropertyFinancesTab property={property} />
-        </TabsContent>
-
-        <TabsContent value="history" className="animate-panel-in space-y-4 pt-4">
-          {history.length > 0 ? (
-            <RecentActivity items={history} limit={30} />
-          ) : (
-            <EmptyState
-              icon={History}
-              title="Aucun événement"
-              description="Paiements, documents, photos, travaux : chaque action sur ce logement apparaîtra ici."
-            />
-          )}
         </TabsContent>
       </Tabs>
     </>

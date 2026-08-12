@@ -2,6 +2,7 @@
 
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   Landmark,
   ListTodo,
@@ -10,10 +11,15 @@ import {
   Receipt,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
 import { ActionCenter } from "@/components/dashboard/action-center";
 import { AddMenu } from "@/components/dashboard/add-menu";
 import { DocumentsPreview } from "@/components/dashboard/documents-preview";
 import { FirstPropertyCta } from "@/components/dashboard/first-property";
+import { PropertiesShortList } from "@/components/dashboard/properties-short-list";
+import { RentSummary } from "@/components/dashboard/rent-summary";
+import { SetupChecklist } from "@/components/dashboard/setup-checklist";
+import { TodayTasks } from "@/components/dashboard/today-tasks";
 import dynamic from "next/dynamic";
 import { HealthScore } from "@/components/dashboard/health-score";
 import { PriorityProperties } from "@/components/dashboard/priority-properties";
@@ -45,10 +51,12 @@ import {
   formatCurrency,
   formatDateLong,
   formatDelta,
+  formatMonth,
   formatMonthShort,
   formatPercent,
 } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
+import { useIsDesktop } from "@/lib/use-media-query";
 
 /** Tendance mensuelle d'un indicateur (inverted : une hausse est défavorable). */
 function monthTrend(
@@ -69,7 +77,10 @@ function monthTrend(
 }
 
 export default function DashboardPage() {
-  const { data, profile } = useAppStore();
+  const { data, profile, loading } = useAppStore();
+  // Le graphique (recharts) ne se monte QUE là où il est visible : dans un
+  // conteneur masqué il se construirait en taille nulle, pour rien.
+  const isDesktop = useIsDesktop();
 
   const month = currentMonthKey();
   const previousMonth = addMonths(month, -1);
@@ -100,6 +111,24 @@ export default function DashboardPage() {
         ? `${lateCount} loyer${lateCount > 1 ? "s" : ""} en retard et ${actions.length} action${actions.length > 1 ? "s" : ""} à traiter aujourd'hui.`
         : `Votre patrimoine se porte ${health.score >= 75 ? "bien" : "correctement"}. ${actions.length} action${actions.length > 1 ? "s" : ""} demande${actions.length > 1 ? "nt" : ""} votre attention.`;
 
+  // Espace vide : un seul écran, une seule action. Aucun indicateur à zéro,
+  // aucune carte vide, aucun graphique plat — ils n'auraient rien à dire.
+  if (!loading && data.properties.length === 0) {
+    return (
+      <>
+        <PageHeader
+          eyebrow={
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {formatDateLong(new Date())}
+            </p>
+          }
+          title={firstName ? `Bonjour ${firstName}` : "Bienvenue"}
+        />
+        <FirstPropertyCta />
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader
@@ -114,10 +143,32 @@ export default function DashboardPage() {
         <AddMenu />
       </PageHeader>
 
-      {/* Espace encore vide : une seule action, tout en haut. Le composant ne
-          rend rien dès qu'un logement existe. */}
-      <FirstPropertyCta />
+      {/* Mise en route — disparaît d'elle-même une fois le compte configuré. */}
+      <SetupChecklist />
 
+      {/* ================= TÉLÉPHONE ET TABLETTE =================
+          Ce qui aide à décider aujourd'hui, dans cet ordre : à faire, loyers
+          du mois, logements, activité, puis le lien vers l'analyse complète.
+          Les modules d'analyse du bureau ne sont pas rétrécis ici, ils sont
+          simplement à leur place — sur l'écran Statistiques. */}
+      <div className="space-y-5 lg:hidden">
+        <TodayTasks items={actions} />
+        <RentSummary payments={monthPayments} monthLabel={formatMonth(month)} />
+        <PropertiesShortList data={data} />
+        <RecentActivity items={data.activity} limit={5} />
+        <Link
+          href="/statistiques"
+          className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-accent/50"
+        >
+          Voir les statistiques complètes
+          <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
+        </Link>
+      </div>
+
+      {/* ================= BUREAU =================
+          Le tableau de bord riche est conservé à l'identique au-dessus de
+          1024 px : aucun module n'a été retiré. */}
+      <div className="hidden space-y-6 lg:block">
       <section aria-label="Santé du patrimoine">
         <HealthScore report={health} />
       </section>
@@ -206,7 +257,7 @@ export default function DashboardPage() {
         className="grid grid-cols-1 gap-4 xl:grid-cols-3"
       >
         <div className="xl:col-span-2">
-          <MainChart />
+          {isDesktop ? <MainChart /> : null}
         </div>
         <div className="space-y-4">
           <WorksPreview />
@@ -226,6 +277,7 @@ export default function DashboardPage() {
         </div>
         <QuickActions />
       </section>
+      </div>
     </>
   );
 }

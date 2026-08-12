@@ -20,14 +20,13 @@ export default function WorksPage() {
 
   return (
     <>
-      <PageHeader
-        title="Travaux"
-        description="Suivi des chantiers et réparations de votre parc"
-      >
+      <PageHeader title="Travaux">
         <AddWorkDialog />
       </PageHeader>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Les quatre indicateurs restent au bureau : sur téléphone, ce qui
+          compte est la liste des chantiers, pas leur comptage. */}
+      <div className="grid grid-cols-1 gap-4 max-lg:hidden sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Chantiers" value={String(data.works.length)} icon={Hammer} />
         <StatCard
           label="En cours"

@@ -66,38 +66,42 @@
  */
 :root,
 .nireo-app-light {
-  --background: oklch(0.985 0.003 255);
+  /* Fond clair CHAUD (et non plus gris froid) : la même famille que le blanc
+     cassé de la vitrine, en plus lumineux pour un usage prolongé. */
+  --background: oklch(0.982 0.004 85);
   --foreground: oklch(0.21 0.021 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.021 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.21 0.021 260);
-  --primary: oklch(0.47 0.09 258);
-  --primary-foreground: oklch(0.985 0.004 255);
-  --secondary: oklch(0.965 0.004 255);
+  /* Bleu Nireo (#1b52e8) : réservé à l'action principale et aux états
+     actifs. Le blanc dessus tient 6,7:1 — au-delà de l'exigence AA. */
+  --primary: oklch(0.48 0.21 264);
+  --primary-foreground: oklch(0.99 0.002 85);
+  --secondary: oklch(0.965 0.004 85);
   --secondary-foreground: oklch(0.28 0.02 260);
-  --muted: oklch(0.965 0.004 255);
-  --muted-foreground: oklch(0.53 0.017 258);
-  --accent: oklch(0.96 0.006 255);
+  --muted: oklch(0.963 0.004 85);
+  --muted-foreground: oklch(0.52 0.017 258);
+  --accent: oklch(0.958 0.006 85);
   --accent-foreground: oklch(0.28 0.02 260);
   --destructive: oklch(0.577 0.223 27);
-  --border: oklch(0.912 0.005 258);
-  --input: oklch(0.912 0.005 258);
-  --ring: oklch(0.47 0.09 258);
+  --border: oklch(0.906 0.005 85);
+  --input: oklch(0.906 0.005 85);
+  --ring: oklch(0.48 0.21 264);
   --chart-1: oklch(0.55 0.11 258);
   --chart-2: oklch(0.62 0.12 200);
   --chart-3: oklch(0.68 0.14 150);
   --chart-4: oklch(0.72 0.15 85);
   --chart-5: oklch(0.64 0.19 30);
   --radius: 0.75rem;
-  --sidebar: oklch(0.99 0.003 255);
+  --sidebar: oklch(0.99 0.004 85);
   --sidebar-foreground: oklch(0.21 0.021 260);
-  --sidebar-primary: oklch(0.47 0.09 258);
-  --sidebar-primary-foreground: oklch(0.985 0.004 255);
-  --sidebar-accent: oklch(0.96 0.006 255);
+  --sidebar-primary: oklch(0.48 0.21 264);
+  --sidebar-primary-foreground: oklch(0.99 0.002 85);
+  --sidebar-accent: oklch(0.958 0.006 85);
   --sidebar-accent-foreground: oklch(0.28 0.02 260);
-  --sidebar-border: oklch(0.912 0.005 258);
-  --sidebar-ring: oklch(0.47 0.09 258);
+  --sidebar-border: oklch(0.906 0.005 85);
+  --sidebar-ring: oklch(0.48 0.21 264);
 }
 
 .dark {
@@ -107,7 +111,8 @@
   --card-foreground: oklch(0.96 0.004 255);
   --popover: oklch(0.238 0.013 262);
   --popover-foreground: oklch(0.96 0.004 255);
-  --primary: oklch(0.64 0.1 258);
+  /* Cobalt éclairci pour rester lisible sur l'anthracite (7,2:1). */
+  --primary: oklch(0.66 0.16 264);
   --primary-foreground: oklch(0.16 0.014 262);
   --secondary: oklch(0.285 0.014 262);
   --secondary-foreground: oklch(0.96 0.004 255);
@@ -126,12 +131,12 @@
   --chart-5: oklch(0.68 0.18 30);
   --sidebar: oklch(0.22 0.013 262);
   --sidebar-foreground: oklch(0.96 0.004 255);
-  --sidebar-primary: oklch(0.64 0.1 258);
+  --sidebar-primary: oklch(0.66 0.16 264);
   --sidebar-primary-foreground: oklch(0.16 0.014 262);
   --sidebar-accent: oklch(0.3 0.016 262);
   --sidebar-accent-foreground: oklch(0.96 0.004 255);
   --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.64 0.1 258);
+  --sidebar-ring: oklch(0.66 0.16 264);
 }
 
 /* ------------------------------------------------------------------ */
@@ -162,27 +167,24 @@
 
 @utility animate-page-in {
   @media (prefers-reduced-motion: no-preference) {
-    animation: page-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+    animation: page-in 0.22s cubic-bezier(0.21, 1.02, 0.73, 1) both;
   }
 }
 
 @utility animate-panel-in {
   @media (prefers-reduced-motion: no-preference) {
-    animation: panel-in 0.25s cubic-bezier(0.21, 1.02, 0.73, 1) both;
+    animation: panel-in 0.18s cubic-bezier(0.21, 1.02, 0.73, 1) both;
   }
 }
 
 /* Carte « vivante » : léger soulèvement au survol, sans excès. */
+/* Uniquement une transformation : l'ombre animée alourdissait le rendu sans
+   rien apprendre, et le survol n'existe pas au doigt. */
 @utility card-lift {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
   @media (prefers-reduced-motion: no-preference) {
     &:hover {
       transform: translateY(-2px);
-      box-shadow:
-        0 1px 2px rgb(0 0 0 / 0.05),
-        0 8px 24px -8px rgb(0 0 0 / 0.12);
     }
   }
 }

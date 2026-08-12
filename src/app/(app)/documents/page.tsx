@@ -12,7 +12,11 @@ export default function DocumentsPage() {
     <>
       <PageHeader
         title="Documents"
-        description={`${data.documents.length} document${data.documents.length > 1 ? "s" : ""} dans votre bibliothèque`}
+        description={
+          data.documents.length > 0
+            ? `${data.documents.length} document${data.documents.length > 1 ? "s" : ""} dans votre bibliothèque privée`
+            : undefined
+        }
       >
         <AddDocumentDialog />
       </PageHeader>

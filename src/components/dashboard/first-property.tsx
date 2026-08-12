@@ -7,17 +7,15 @@ import { PropertyWizard } from "@/components/properties/property-wizard";
 import { useAppStore } from "@/lib/store";
 
 /**
- * Première action de l'espace — « Ajouter mon premier logement ».
+ * Espace vide — l'écran d'accueil ne montre QUE ceci.
  *
- * C'est la seule chose à faire tant que l'espace est vide : elle est donc
- * posée EN HAUT du tableau de bord, visible sans défiler, avant les
- * indicateurs (qui n'affichent que des zéros à ce stade). Elle disparaît
- * d'elle-même dès qu'un logement existe.
+ * Pas de graphique à zéro, pas de carte vide, pas de fausse donnée : tant
+ * qu'aucun logement n'existe, aucun indicateur n'a de sens. Le tableau de bord
+ * complet apparaît avec le premier bien.
  *
  * Aucun formulaire dupliqué : le bouton ouvre l'assistant de création réel
- * (`PropertyWizard`), le même que celui du menu « Ajouter » et de la page
- * Logements. Plus aucune étape intermédiaire ne s'intercale avant lui — ni
- * choix de plan, ni carte bancaire, ni guide modal.
+ * (`PropertyWizard`), le même que celui du menu « Ajouter », du guide et de la
+ * page Logements.
  */
 export function FirstPropertyCta() {
   const { data, loading } = useAppStore();
@@ -43,23 +41,33 @@ export function FirstPropertyCta() {
 
       <div className="space-y-1.5">
         <h2 className="text-base font-semibold text-foreground">
-          Votre espace est prêt. Il attend son premier logement.
+          Ajoutez votre premier logement
         </h2>
         <p className="mx-auto max-w-md text-sm text-muted-foreground">
-          Loyers, bail, documents, photos et travaux s’organisent autour de lui.
-          Vous pourrez tout compléter plus tard.
+          Nireo organisera ensuite vos loyers, vos documents et vos dépenses autour
+          de ce bien.
         </p>
       </div>
 
       {/* Zone tactile confortable (44 px) : c'est l'unique action de l'écran. */}
       <Button size="lg" className="h-11 px-6 text-sm" onClick={() => setOpen(true)}>
         <Plus data-icon="inline-start" />
-        Ajouter mon premier logement
+        Ajouter un logement
       </Button>
 
       <p className="text-xs text-muted-foreground">
         Plan Gratuit : 1 logement inclus, sans carte bancaire.
       </p>
+
+      {/* Le chemin de retour vers le guide. Sans lui, quelqu'un qui l'a fermé
+          n'aurait plus que Paramètres → Aide pour le reprendre. */}
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new CustomEvent("immopilot:onboarding"))}
+        className="min-h-11 text-xs text-primary underline-offset-4 hover:underline"
+      >
+        Se laisser guider pas à pas
+      </button>
 
       {/* Monté seulement à l'ouverture : aucun formulaire initialisé à vide
           en arrière-plan sur l'écran d'accueil. */}

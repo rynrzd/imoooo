@@ -4,15 +4,24 @@
  * composant client, pour garder une seule source de vérité.
  */
 
-/** Nombre d'étapes du guide (doit correspondre au tableau `steps` du wizard). */
-export const ONBOARDING_TOTAL_STEPS = 4;
+/**
+ * Nombre d'écrans du guide : l'accueil (index 0) puis les QUATRE étapes
+ * (logement, location, bail, résumé). Doit correspondre aux index de
+ * `components/onboarding/onboarding-flow.tsx`.
+ */
+export const ONBOARDING_TOTAL_STEPS = 5;
 
 /**
  * Version du guide. À incrémenter UNIQUEMENT lors d'une refonte majeure du
  * contenu pour le reproposer aux utilisateurs. Un simple redéploiement ne
  * doit jamais changer cette valeur (sinon le guide réapparaîtrait à tous).
+ *
+ * v2 (12/08/2026) : l'ancien diaporama en quatre écrans de texte, doublé
+ * d'une visite à bulles, est remplacé par un guide qui crée réellement le
+ * premier logement, son bail et son document. Les comptes qui possèdent déjà
+ * un logement ne le revoient pas : le guide se garde lui-même.
  */
-export const ONBOARDING_VERSION = 1;
+export const ONBOARDING_VERSION = 2;
 
 /** Actions de persistance acceptées par POST /api/onboarding. */
 export type OnboardingAction = "step" | "skip" | "complete";

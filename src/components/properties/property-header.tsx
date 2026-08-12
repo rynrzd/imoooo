@@ -37,12 +37,64 @@ export function PropertyHeader({ property }: PropertyHeaderProps) {
 
   return (
     <div className="space-y-4">
-      {/* Photo et identité */}
-      <div className="relative overflow-hidden rounded-xl border border-border bg-muted">
-        <div className="relative aspect-[3/1] min-h-52">
+      {/* ---------------- TÉLÉPHONE : photo courte, texte en dessous ----------
+          Le titre, l'adresse et trois boutons posés SUR la photo devenaient
+          illisibles sous 400 px (le dégradé ne couvrait plus rien). Ici la
+          photographie n'est qu'un bandeau, et l'identité se lit sur le fond
+          de la carte. Aucune information n'a été retirée. */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card lg:hidden">
+        <div className="relative h-28 bg-muted">
           <Image
             src={property.photo}
             alt={`Photo — ${property.name}`}
+            fill
+            priority
+            sizes="100vw"
+            unoptimized={needsUnoptimized(property.photo)}
+            className="object-cover"
+          />
+        </div>
+        <div className="space-y-2 p-4">
+          <PropertyStatusBadge status={property.status} />
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            {property.name}
+          </h1>
+          <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+            <MapPin className="size-3.5 shrink-0" aria-hidden />
+            {property.address}, {property.postalCode} {property.city}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {property.type} · {formatSurface(property.surface)}
+          </p>
+          {tenant ? (
+            <Link
+              href={`/locataires/${tenant.id}`}
+              className="flex min-h-11 w-fit items-center gap-1.5 text-sm text-foreground underline-offset-2 hover:underline"
+            >
+              <UserRound className="size-3.5" aria-hidden />
+              {tenantFullName(tenant)}
+            </Link>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2 pt-1 [&_button]:h-11">
+            {nextDue ? (
+              <RecordPaymentDialog
+                payment={nextDue}
+                triggerLabel="Enregistrer un loyer"
+                triggerVariant="default"
+              />
+            ) : null}
+            <EditPropertySheet property={property} />
+            <PropertyActions property={property} />
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------- BUREAU : la bannière d'origine ---------------- */}
+      <div className="relative overflow-hidden rounded-xl border border-border bg-muted max-lg:hidden">
+        <div className="relative aspect-[3/1] min-h-52">
+          <Image
+            src={property.photo}
+            alt=""
             fill
             priority
             sizes="(max-width: 1152px) 100vw, 1152px"
@@ -56,9 +108,9 @@ export function PropertyHeader({ property }: PropertyHeaderProps) {
           <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-1.5">
               <PropertyStatusBadge status={property.status} />
-              <h1 className="text-2xl font-semibold tracking-tight text-white">
+              <p className="text-2xl font-semibold tracking-tight text-white">
                 {property.name}
-              </h1>
+              </p>
               <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-white/85">
                 <MapPin className="size-3.5 shrink-0" aria-hidden />
                 {property.address}, {property.postalCode} {property.city}
@@ -90,8 +142,9 @@ export function PropertyHeader({ property }: PropertyHeaderProps) {
         </div>
       </div>
 
-      {/* KPIs immédiats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* KPIs immédiats — au bureau : sur téléphone, l'onglet Aperçu porte
+          déjà l'essentiel en cinq lignes. */}
+      <div className="grid grid-cols-1 gap-4 max-lg:hidden sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Loyer mensuel"
           value={formatCurrency(property.rent + property.charges)}

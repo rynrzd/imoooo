@@ -3,11 +3,11 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { Megaphone, Wrench } from "lucide-react";
 import { AppDataBoundary } from "@/components/layout/app-data-boundary";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { FounderIntentRedirect } from "@/components/layout/founder-intent-redirect";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
-import { ProductTour } from "@/components/onboarding/product-tour";
+import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
 import { VISITOR_COOKIE } from "@/lib/landing/audience";
@@ -89,7 +89,14 @@ export default async function AppLayout({
         <Sidebar />
         <MobileHeader />
         <main className="lg:pl-64">
-          <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {/* La barre de navigation inférieure est fixe : le contenu réserve
+              sa hauteur ET la zone gestuelle iPhone, il ne passe donc jamais
+              dessous. Au-dessus de 1024 px la barre n'existe pas et la marge
+              redevient normale. */}
+          <div
+            className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 pb-[calc(var(--nireo-bottom-nav-h)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 lg:px-8 lg:py-8 lg:pb-8"
+            style={{ ["--nireo-bottom-nav-h" as string]: "3.5rem" }}
+          >
             {settings.announcement_message ? (
               <div className="flex items-start gap-2.5 rounded-xl bg-primary/5 px-4 py-3 text-sm text-foreground ring-1 ring-primary/15">
                 <Megaphone className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -99,8 +106,8 @@ export default async function AppLayout({
             <AppDataBoundary>{children}</AppDataBoundary>
           </div>
         </main>
-        <OnboardingWizard />
-        <ProductTour />
+        <BottomNav />
+        <OnboardingFlow />
         <FounderIntentRedirect />
       </div>
     </AppStoreProvider>

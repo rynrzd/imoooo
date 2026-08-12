@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { FilterSheet } from "@/components/shared/filter-sheet";
+import { ListRow } from "@/components/shared/list-row";
 import { StatCard } from "@/components/shared/stat-card";
 import { ImportPropertiesDialog } from "@/components/properties/import-properties-dialog";
 import {
@@ -130,63 +132,136 @@ export default function PropertiesPage() {
 
   return (
     <>
-      <PageHeader
-        title="Mon patrimoine"
-        description="Gérez tous vos logements depuis une seule interface."
-      >
-        <div className="relative">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher…"
-            className="w-44 pl-8 sm:w-56"
-            aria-label="Rechercher un logement"
-          />
-        </div>
-        <Button
-          variant={showFilters || activeFilterCount > 0 ? "secondary" : "outline"}
-          onClick={() => setShowFilters((s) => !s)}
-          aria-expanded={showFilters}
-        >
-          <SlidersHorizontal data-icon="inline-start" />
-          Filtres
-          {activeFilterCount > 0 ? (
-            <span className="rounded-full bg-foreground px-1.5 text-[11px] font-medium text-background">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-        <div
-          className="flex items-center rounded-lg border border-border p-0.5"
-          role="group"
-          aria-label="Mode d'affichage"
-        >
+      {/* Une seule action principale visible sur téléphone : ajouter un
+          logement. Recherche, filtres, bascule d'affichage et import sont
+          secondaires — ils passent sous le titre ou restent au bureau. */}
+      <PageHeader title="Logements">
+        <div className="flex items-center gap-2 max-lg:hidden">
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Rechercher…"
+              className="w-44 pl-8 sm:w-56"
+              aria-label="Rechercher un logement"
+            />
+          </div>
           <Button
-            variant={view === "cards" ? "secondary" : "ghost"}
-            size="icon-sm"
-            aria-label="Vue cartes"
-            aria-pressed={view === "cards"}
-            onClick={() => setView("cards")}
+            variant={showFilters || activeFilterCount > 0 ? "secondary" : "outline"}
+            onClick={() => setShowFilters((s) => !s)}
+            aria-expanded={showFilters}
           >
-            <LayoutGrid />
+            <SlidersHorizontal data-icon="inline-start" />
+            Filtres
+            {activeFilterCount > 0 ? (
+              <span className="rounded-full bg-foreground px-1.5 text-[11px] font-medium text-background">
+                {activeFilterCount}
+              </span>
+            ) : null}
           </Button>
-          <Button
-            variant={view === "list" ? "secondary" : "ghost"}
-            size="icon-sm"
-            aria-label="Vue liste"
-            aria-pressed={view === "list"}
-            onClick={() => setView("list")}
+          <div
+            className="flex items-center rounded-lg border border-border p-0.5"
+            role="group"
+            aria-label="Mode d'affichage"
           >
-            <List />
-          </Button>
+            <Button
+              variant={view === "cards" ? "secondary" : "ghost"}
+              size="icon-sm"
+              aria-label="Vue cartes"
+              aria-pressed={view === "cards"}
+              onClick={() => setView("cards")}
+            >
+              <LayoutGrid />
+            </Button>
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="icon-sm"
+              aria-label="Vue liste"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+            >
+              <List />
+            </Button>
+          </div>
+          <ImportPropertiesDialog />
         </div>
-        <ImportPropertiesDialog />
         <PropertyWizard />
       </PageHeader>
+
+      {data.properties.length > 0 ? (
+        <div className="flex items-center gap-2 lg:hidden">
+          <div className="relative flex-1">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Rechercher un logement…"
+              className="pl-8"
+              aria-label="Rechercher un logement"
+            />
+          </div>
+          <FilterSheet
+            activeCount={activeFilterCount}
+            onReset={() => setFilters(DEFAULT_FILTERS)}
+            groups={[
+              {
+                label: "Statut",
+                value: filters.status,
+                onChange: (value) =>
+                  setFilters((f) => ({ ...f, status: value as Filters["status"] })),
+                options: [
+                  { value: "tous", label: "Tous les statuts" },
+                  ...toOptions(PROPERTY_STATUS_LABELS),
+                ],
+              },
+              {
+                label: "Ville",
+                value: filters.city,
+                onChange: (value) => setFilters((f) => ({ ...f, city: value })),
+                options: [
+                  { value: "toutes", label: "Toutes les villes" },
+                  ...cities.map((c) => ({ value: c, label: c })),
+                ],
+              },
+              {
+                label: "Type",
+                value: filters.type,
+                onChange: (value) =>
+                  setFilters((f) => ({ ...f, type: value as Filters["type"] })),
+                options: [
+                  { value: "tous", label: "Tous les types" },
+                  ...PROPERTY_TYPES.map((t) => ({ value: t, label: t })),
+                ],
+              },
+              {
+                label: "Occupation",
+                value: filters.occupation,
+                onChange: (value) =>
+                  setFilters((f) => ({ ...f, occupation: value as Filters["occupation"] })),
+                options: [
+                  { value: "tous", label: "Toute occupation" },
+                  { value: "occupe", label: "Avec locataire" },
+                  { value: "sans", label: "Sans locataire" },
+                ],
+              },
+              {
+                label: "Rentabilité",
+                value: filters.minYield,
+                onChange: (value) =>
+                  setFilters((f) => ({ ...f, minYield: value as Filters["minYield"] })),
+                options: YIELD_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+              },
+            ]}
+          />
+        </div>
+      ) : null}
 
       {data.properties.length === 0 ? (
         <div className="animate-panel-in flex flex-col items-center justify-center gap-5 rounded-xl border border-dashed border-border bg-card/50 px-6 py-20 text-center">
@@ -217,7 +292,7 @@ export default function PropertiesPage() {
           {/* Synthèse du portefeuille */}
           <section
             aria-label="Synthèse du portefeuille"
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6"
+            className="grid grid-cols-2 gap-4 max-lg:hidden sm:grid-cols-3 xl:grid-cols-6"
           >
             <StatCard
               label="Logements"
@@ -258,7 +333,7 @@ export default function PropertiesPage() {
           {showFilters ? (
             <section
               aria-label="Filtres"
-              className="animate-panel-in flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-3"
+              className="animate-panel-in flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 max-lg:hidden"
             >
               <Select
                 value={filters.status}
@@ -386,16 +461,48 @@ export default function PropertiesPage() {
                 </Button>
               ) : null}
             </EmptyState>
-          ) : view === "cards" ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {visible.map((entry) => (
-                <PropertyCard key={entry.property.id} entry={entry} />
-              ))}
-            </div>
           ) : (
-            <div className="animate-panel-in">
-              <PropertyTable entries={visible} />
-            </div>
+            <>
+              {/* Téléphone : une ligne par logement, lisible d'un coup d'œil. */}
+              <div className="overflow-hidden rounded-xl border border-border bg-card lg:hidden">
+                {visible.map(({ property, tenant }) => (
+                  <ListRow
+                    key={property.id}
+                    href={`/logements/${property.id}`}
+                    title={property.name}
+                    subtitle={
+                      tenant
+                        ? `${tenant.firstName} ${tenant.lastName}`
+                        : `${property.type} · ${property.city}`
+                    }
+                    value={property.rent > 0 ? formatCurrency(property.rent) : undefined}
+                    hint={PROPERTY_STATUS_LABELS[property.status]}
+                    tone={
+                      property.status === "loue"
+                        ? "positive"
+                        : property.status === "vacant"
+                          ? "warning"
+                          : "default"
+                    }
+                  />
+                ))}
+              </div>
+
+              {/* Bureau : cartes ou tableau, au choix — inchangé. */}
+              <div className="max-lg:hidden">
+                {view === "cards" ? (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {visible.map((entry) => (
+                      <PropertyCard key={entry.property.id} entry={entry} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="animate-panel-in">
+                    <PropertyTable entries={visible} />
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </>
       )}

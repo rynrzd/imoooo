@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { DropZone } from "@/components/shared/drop-zone";
+import { FilterSheet } from "@/components/shared/filter-sheet";
 import { PaginationBar, usePagination } from "@/components/shared/pagination-bar";
 import { DOCUMENT_CATEGORY_LABELS, toOptions } from "@/lib/labels";
 import { useAppStore } from "@/lib/store";
@@ -53,14 +54,22 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
   // Pagination d'affichage : filtres et recherche restent appliqués à tout.
   const { pageItems, page, pageCount, setPage, total } = usePagination(visible, 25);
 
+  const activeFilters =
+    (category === "toutes" ? 0 : 1) + (propertyFilter === "tous" ? 0 : 1);
+
   return (
     <div className="space-y-4">
-      <DropZone
-        label="Glissez-déposez un fichier ici"
-        hint="ou cliquez pour choisir un fichier — PDF, image ou Word"
-        accept=".pdf,.jpg,.jpeg,.png,.docx"
-        onFile={setDroppedFile}
-      />
+      {/* Le glisser-déposer suppose un pointeur : inutile au doigt, où il
+          occupait le premier tiers de l'écran. Le bouton « Ajouter » de
+          l'en-tête ouvre le même dialogue. */}
+      <div className="max-lg:hidden">
+        <DropZone
+          label="Glissez-déposez un fichier ici"
+          hint="ou cliquez pour choisir un fichier — PDF, image ou Word"
+          accept=".pdf,.jpg,.jpeg,.png,.docx"
+          onFile={setDroppedFile}
+        />
+      </div>
       <AddDocumentDialog
         propertyId={propertyId}
         droppedFile={droppedFile}
@@ -83,7 +92,42 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
             aria-label="Rechercher un document"
           />
         </div>
-        <div className="flex flex-1 flex-wrap items-center gap-2 sm:justify-end">
+        {/* Filtres : une feuille au doigt, les listes déroulantes au bureau. */}
+        <div className="lg:hidden">
+          <FilterSheet
+            activeCount={activeFilters}
+            onReset={() => {
+              setCategory("toutes");
+              setPropertyFilter("tous");
+            }}
+            groups={[
+              {
+                label: "Catégorie",
+                value: category,
+                onChange: (value) => setCategory(value as DocumentCategory | "toutes"),
+                options: [
+                  { value: "toutes", label: "Toutes les catégories" },
+                  ...toOptions(DOCUMENT_CATEGORY_LABELS),
+                ],
+              },
+              ...(propertyId
+                ? []
+                : [
+                    {
+                      label: "Logement",
+                      value: propertyFilter,
+                      onChange: setPropertyFilter,
+                      options: [
+                        { value: "tous", label: "Tous les logements" },
+                        ...data.properties.map((p) => ({ value: p.id, label: p.name })),
+                      ],
+                    },
+                  ]),
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-1 flex-wrap items-center gap-2 max-lg:hidden sm:justify-end">
           <Select
             value={category}
             onValueChange={(value) =>

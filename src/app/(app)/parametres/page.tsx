@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Bell,
+  Compass,
   CreditCard,
   Download,
   Laptop,
@@ -43,7 +44,6 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/layout/page-header";
-import { startProductTour } from "@/components/onboarding/product-tour";
 import { FormField } from "@/components/shared/form-field";
 import { TestEmailCard } from "@/components/shared/test-email-card";
 import { PlanBadge } from "@/components/subscription/plan-badge";
@@ -139,7 +139,22 @@ const emptySubscribe = () => () => {};
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
-export default function SettingsPage() {
+/** Onglets adressables : `/parametres?onglet=aide` ouvre directement l'aide. */
+const TAB_VALUES = new Set([
+  "profile",
+  "security",
+  "notifications",
+  "appearance",
+  "subscription",
+  "data",
+  "aide",
+]);
+
+export default function SettingsPage({ searchParams }: PageProps<"/parametres">) {
+  // La feuille « Plus » de la navigation mobile pointe droit sur l'aide.
+  const search = React.use(searchParams);
+  const requested = typeof search.onglet === "string" ? search.onglet : "";
+  const initialTab = TAB_VALUES.has(requested) ? requested : "profile";
   const { data, profile, updateProfile, setAvatarPath, isLive } = useAppStore();
   // Exports : inclus à partir du plan Starter (affichage — le plan vient de la base).
   const exportCheck = isLive
@@ -461,7 +476,7 @@ export default function SettingsPage() {
         description="Gérez votre compte, votre sécurité, vos préférences et vos données"
       />
 
-      <Tabs defaultValue="profile">
+      <Tabs defaultValue={initialTab}>
         <div className="overflow-x-auto">
           <TabsList
             variant="line"
@@ -473,6 +488,7 @@ export default function SettingsPage() {
             <TabsTrigger value="appearance"><Palette data-icon="inline-start" />Apparence</TabsTrigger>
             <TabsTrigger value="subscription"><CreditCard data-icon="inline-start" />Abonnement</TabsTrigger>
             <TabsTrigger value="data"><Download data-icon="inline-start" />Données</TabsTrigger>
+            <TabsTrigger value="aide"><LifeBuoy data-icon="inline-start" />Aide</TabsTrigger>
           </TabsList>
         </div>
 
@@ -978,6 +994,49 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Zone dangereuse */}
+          <Card className="max-w-xl border-destructive/30">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-destructive">
+                Zone dangereuse
+              </CardTitle>
+              <CardDescription>
+                La suppression du compte est définitive : logements, baux, loyers,
+                documents et photos seront effacés. Exportez vos données avant.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+                <Trash2 data-icon="inline-start" />
+                Supprimer mon compte
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ================= Aide ================= */}
+        <TabsContent value="aide" className="animate-panel-in space-y-4 pt-4">
+          <Card className="max-w-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Compass className="size-4" />
+                Guide de démarrage
+              </CardTitle>
+              <CardDescription>
+                Il reprend là où vous l&apos;aviez laissé — logement, bail, document —
+                et crée réellement les éléments manquants de votre espace.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                onClick={() => window.dispatchEvent(new CustomEvent("immopilot:onboarding"))}
+              >
+                Reprendre le guide
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="max-w-xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -999,34 +1058,6 @@ export default function SettingsPage() {
               >
                 Signaler un bug
               </a>
-              <Button
-                variant="outline"
-                onClick={() => window.dispatchEvent(new CustomEvent("immopilot:onboarding"))}
-              >
-                Revoir le guide
-              </Button>
-              <Button variant="outline" onClick={() => startProductTour()}>
-                Revoir la visite
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Zone dangereuse */}
-          <Card className="max-w-xl border-destructive/30">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-destructive">
-                Zone dangereuse
-              </CardTitle>
-              <CardDescription>
-                La suppression du compte est définitive : logements, baux, loyers,
-                documents et photos seront effacés. Exportez vos données avant.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-                <Trash2 data-icon="inline-start" />
-                Supprimer mon compte
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
