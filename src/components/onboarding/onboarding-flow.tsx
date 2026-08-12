@@ -15,8 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { isPlanId, type PlanId } from "@/config/plans";
 import { todayISO } from "@/lib/dates";
 import { formatCurrency, formatMonth } from "@/lib/format";
+import { trackFunnel } from "@/lib/funnel";
 import { logger } from "@/lib/logger";
 import { ONBOARDING_TOTAL_STEPS } from "@/lib/onboarding";
 import { useAppStore } from "@/lib/store";
@@ -234,6 +236,24 @@ export function OnboardingFlow() {
     return () => window.removeEventListener("immopilot:onboarding", relaunch);
   }, [profile, data.properties.length]);
 
+  /* ---------------- Mesure du tunnel ---------------- */
+
+  /**
+   * Le guide crée le premier logement SANS passer par `PropertyWizard` :
+   * sans ces deux appels, les deux dernières étapes du tunnel resteraient
+   * vides pour le chemin le plus fréquent d'un nouveau compte. `trackFunnel`
+   * dédoublonne, donc rien n'est compté deux fois si l'assistant complet est
+   * ouvert ensuite.
+   */
+  const planLabel: PlanId =
+    profile && isPlanId(profile.plan) ? (profile.plan as PlanId) : "free";
+
+  React.useEffect(() => {
+    if (open && step === STEP_PROPERTY) {
+      trackFunnel("first_property_started", { plan: planLabel, element: "guide" });
+    }
+  }, [open, step, planLabel]);
+
   /* ---------------- Progression ---------------- */
 
   /** Avance d'un écran et mémorise la position (best-effort, jamais bloquant). */
@@ -305,6 +325,7 @@ export function OnboardingFlow() {
               setBusy(true);
               try {
                 const created = await addProperty(values);
+                trackFunnel("first_property_created", { plan: planLabel, element: "guide" });
                 setPropertyId(created.id);
                 goTo(STEP_LEASE);
               } catch (e) {
