@@ -4,17 +4,22 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MailCheck } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { FormField } from "@/components/shared/form-field";
+import { EmailField, FormError } from "@/components/auth/auth-fields";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
 
-/** Délai minimal entre deux renvois (anti-abus côté interface ; Supabase
- * applique en plus sa propre limite d'envoi côté serveur). */
+/**
+ * Écran de vérification — atteint par le proxy quand une session existe sans
+ * adresse confirmée, ou depuis la connexion. Même composition que les autres.
+ *
+ * L'inscription affiche désormais son propre écran de confirmation juste après
+ * l'envoi ; celui-ci reste le point de passage pour revenir plus tard.
+ */
+
+/** Délai anti-abus entre deux renvois (Supabase applique aussi le sien). */
 const COOLDOWN_SECONDS = 60;
 
 function VerifyEmailForm() {
@@ -23,6 +28,8 @@ function VerifyEmailForm() {
   const [email, setEmail] = React.useState(() => searchParams.get("email") ?? "");
   const [pending, setPending] = React.useState(false);
   const [cooldown, setCooldown] = React.useState(0);
+  const [error, setError] = React.useState<string | null>(null);
+  const [message, setMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!isSupabaseConfigured || searchParams.get("email")) return;
@@ -35,95 +42,88 @@ function VerifyEmailForm() {
 
   React.useEffect(() => {
     if (cooldown <= 0) return;
-    const id = window.setInterval(
-      () => setCooldown((s) => Math.max(0, s - 1)),
-      1000
-    );
+    const id = window.setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
     return () => window.clearInterval(id);
   }, [cooldown]);
 
-  const resend = async () => {
+  const resend = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (pending || cooldown > 0) return;
     const address = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
-      toast.error("Saisissez une adresse e-mail valide.");
+      setError("Saisissez une adresse e-mail valide.");
       return;
     }
     setPending(true);
-    const { error } = await createClient().auth.resend({
-      type: "signup",
-      email: address,
-      options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
-    });
-    setPending(false);
-    if (error) {
-      toast.error(authErrorMessage(error, "resend"));
-      return;
+    setError(null);
+    setMessage(null);
+    try {
+      const { error: resendError } = await createClient().auth.resend({
+        type: "signup",
+        email: address,
+        options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
+      });
+      if (resendError) {
+        setError(authErrorMessage(resendError, "resend"));
+        return;
+      }
+      setCooldown(COOLDOWN_SECONDS);
+      // Formulation neutre : ne révèle pas si l'adresse possède un compte.
+      setMessage(
+        "Si un compte non confirmé existe avec cette adresse, un nouveau lien vient d'être envoyé."
+      );
+    } finally {
+      setPending(false);
     }
-    setCooldown(COOLDOWN_SECONDS);
-    // Message neutre : ne révèle pas si l'adresse possède un compte.
-    toast.success(
-      "Si un compte non confirmé existe avec cette adresse, un nouveau lien vient d'être envoyé."
-    );
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col items-center gap-3 py-2 text-center">
-        <span className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700">
-          <MailCheck className="size-5" />
-        </span>
-        <p className="text-sm text-muted-foreground">
-          Votre compte doit être activé via le lien reçu par e-mail avant de
-          pouvoir accéder à l&apos;application. Pensez à vérifier le dossier
-          spam.
+    <AuthShell
+      label="Presque terminé"
+      title="Vérifiez votre boîte mail."
+      description="Votre espace s’ouvre dès que l’adresse est confirmée."
+      footer={
+        <p className="text-center text-sm text-muted-foreground">
+          <Link href="/connexion" className="font-medium text-primary underline-offset-4 hover:underline">
+            Retour à la connexion
+          </Link>
         </p>
-      </div>
-      <FormField label="Adresse e-mail" htmlFor="email">
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="vous@exemple.fr"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </FormField>
-      <Button
-        className="w-full"
-        onClick={() => void resend()}
-        disabled={!isSupabaseConfigured || pending || cooldown > 0}
-      >
-        {pending
-          ? "Envoi…"
-          : cooldown > 0
-            ? `Renvoyer l'e-mail (${cooldown} s)`
-            : "Renvoyer l'e-mail de confirmation"}
-      </Button>
-    </div>
+      }
+    >
+      <form onSubmit={resend} className="space-y-4" noValidate>
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-600/10 text-emerald-700">
+            <MailCheck className="size-5" aria-hidden />
+          </span>
+          <p className="text-sm leading-relaxed text-foreground">
+            Ouvrez le lien reçu pour activer votre compte. Pensez à regarder
+            dans les indésirables.
+          </p>
+        </div>
+
+        <FormError message={error} />
+        <div aria-live="polite">
+          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+        </div>
+
+        <EmailField value={email} onChange={(e) => setEmail(e.target.value)} />
+
+        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending || cooldown > 0}>
+          {pending
+            ? "Envoi…"
+            : cooldown > 0
+              ? `Renvoyer l'e-mail (${cooldown} s)`
+              : "Renvoyer l'e-mail"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
 
 export default function VerifyEmailPage() {
   return (
-    <AuthShell
-      title="Vérifiez votre e-mail"
-      description="Un lien de confirmation vous a été envoyé lors de l'inscription."
-      footer={
-        <p>
-          Déjà confirmé ?{" "}
-          <Link
-            href="/connexion"
-            className="font-medium text-foreground underline-offset-2 hover:underline"
-          >
-            Se connecter
-          </Link>
-        </p>
-      }
-    >
-      <React.Suspense>
-        <VerifyEmailForm />
-      </React.Suspense>
-    </AuthShell>
+    <React.Suspense>
+      <VerifyEmailForm />
+    </React.Suspense>
   );
 }

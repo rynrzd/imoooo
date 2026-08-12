@@ -1,174 +1,146 @@
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  Check,
-  Clock,
-  Lock,
-  ShieldCheck,
-  TrendingUp,
-} from "lucide-react";
-import { NireoLogo } from "@/components/marketing/nireo-logo";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { NireoMark } from "@/components/marketing/nireo-logo";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-interface AuthShellProps {
+/**
+ * Coquille des écrans d'authentification — une photographie, un formulaire.
+ *
+ * La grande carte sombre centrée a disparu. À la place, la composition de la
+ * vitrine : la photographie du hero occupe le haut de l'écran (la colonne
+ * gauche au bureau), et une surface blanc cassé remonte du bas avec ses deux
+ * coins supérieurs arrondis. Pas de bordure extérieure, pas d'ombre portée,
+ * pas de verre dépoli, pas de fond noir derrière les champs.
+ *
+ * - MOBILE : photo sur ~42 % de la hauteur visible, puis la surface qui prend
+ *   tout le reste. Le formulaire commence donc juste sous la ligne de
+ *   flottaison, sans espace mort.
+ * - BUREAU (≥ 1024 px) : deux colonnes, 56 % pour la photographie, le
+ *   formulaire limité à 460 px et centré verticalement dans la seconde.
+ *
+ * La photographie est l'asset DÉJÀ validé du hero (`public/photos/
+ * hero-appartement.jpg`) : aucune image n'est générée. Son voile bleu nuit est
+ * ce qui garantit la lisibilité, jamais la photo elle-même.
+ *
+ * `nireo-app-light` fige la palette claire : la page garde le même rendu même
+ * si le visiteur navigue en thème sombre.
+ */
+
+export interface AuthShellProps {
+  /** Petit label bleu au-dessus du titre (COMMENCER, BON RETOUR, ACCÈS…). */
+  label: string;
   title: string;
-  description: string;
+  description?: string;
   children: React.ReactNode;
-  /** Liens secondaires sous la carte. */
+  /** Liens de bas de formulaire (déjà un compte, retour à la connexion…). */
   footer?: React.ReactNode;
 }
 
-const TRUST = [
-  { icon: ShieldCheck, label: "Données isolées par compte" },
-  { icon: Lock, label: "Stockage privé & liens signés" },
-  { icon: Clock, label: "Sauvegarde automatique" },
-];
+/** Photographie du hero — asset partagé avec la vitrine. */
+const PHOTO = "/photos/hero-appartement.jpg";
 
-/* ------------------------------------------------------------------ */
-/*  Scène de gauche — l'aperçu « atelier » qui donne envie d'entrer.   */
-/* ------------------------------------------------------------------ */
-function AuthScene() {
-  const bars = [46, 58, 52, 66, 61, 74, 70, 82, 78, 88, 84, 96];
+/** La promesse, identique sur les quatre écrans. */
+const PROMISE = {
+  title: "Votre patrimoine vous attend.",
+  text: "Retrouvez tout, sans chercher.",
+};
+
+export function AuthShell({
+  label,
+  title,
+  description,
+  children,
+  footer,
+}: AuthShellProps) {
   return (
-    <aside className="relative hidden overflow-hidden border-r border-border lg:flex lg:flex-col lg:justify-between lg:p-12">
-      {/* Washes émeraude + grille blueprint */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="nireo-aurora absolute -top-24 -left-24 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-25 blur-2xl" />
-        <div
-          className="nireo-aurora absolute right-0 bottom-0 h-96 w-96 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-b),transparent)] opacity-20 blur-2xl"
-          style={{ animationDelay: "-7s" }}
+    <div className="nireo-auth nireo-app-light relative flex min-h-svh flex-col overflow-x-clip bg-[var(--auth-night)] lg:grid lg:min-h-svh lg:grid-cols-[56%_1fr] lg:items-stretch">
+      {/* ---------------- La photographie ---------------- */}
+      <section className="relative isolate h-[42svh] min-h-[15rem] shrink-0 overflow-hidden lg:h-auto lg:min-h-svh">
+        <Image
+          src={PHOTO}
+          alt="Appartement haussmannien : parquet en point de Hongrie, cheminée en marbre et fenêtres ouvertes sur les toits"
+          fill
+          priority
+          sizes="(min-width: 1024px) 56vw, 100vw"
+          // Cadrage : le bandeau mobile est court et large, on privilégie donc
+          // la pièce éclairée (la porte sombre suffit à porter la pastille de
+          // marque). La colonne du bureau est haute : on revient vers le centre.
+          className="-z-10 object-cover object-[68%_48%] lg:object-[52%_50%]"
         />
-        <div className="nireo-grid absolute inset-0" />
-      </div>
+        {/* Voile bleu nuit : dense en bas (le texte s'y pose), léger en haut
+            (la pastille de marque a son propre fond). */}
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgb(7_12_21/0.92)_0%,rgb(7_12_21/0.55)_45%,rgb(7_12_21/0.25)_75%,rgb(7_12_21/0.35)_100%)]"
+        />
 
-      <NireoLogo />
-
-      <div className="max-w-md">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] tracking-widest text-primary">N°00</span>
-          <span className="h-px w-8 bg-primary/40" />
-          <span className="font-mono text-[11px] tracking-widest text-muted-foreground uppercase">
-            Accès
-          </span>
-        </div>
-        <h2 className="mt-5 text-4xl font-semibold text-balance text-foreground">
-          Reprenez le contrôle de votre{" "}
-          <span className="nireo-shine">patrimoine.</span>
-        </h2>
-        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          Votre poste de pilotage vous attend : loyers, locataires, documents
-          et travaux, réunis dans un espace clair et à jour en permanence.
-        </p>
-
-        {/* Cockpit flottant */}
-        <div className="nireo-float mt-10" style={{ "--float-dur": "8s" } as React.CSSProperties}>
-          <div className="nireo-glass nireo-hairline w-full max-w-sm rounded-2xl p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-foreground">Ce mois-ci</p>
-              <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                <span className="size-1.5 rounded-full bg-emerald-400" /> À jour
-              </span>
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {[
-                { l: "Loyers", v: "4 505 €" },
-                { l: "Encaissé", v: "96 %" },
-                { l: "Rendement", v: "5,4 %" },
-              ].map((k) => (
-                <div key={k.l} className="rounded-xl border border-border bg-muted/50 p-2.5">
-                  <p className="text-[10px] text-muted-foreground">{k.l}</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground tabular-nums">{k.v}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex h-14 items-end gap-1" aria-hidden>
-              {bars.map((h, i) => (
-                <span
-                  key={i}
-                  className={cnBar(i === bars.length - 1)}
-                  style={{ height: `${h}%` }}
-                />
-              ))}
-            </div>
-            <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-border bg-muted/50 px-3 py-2">
-              <span className="grid size-7 place-items-center rounded-full bg-emerald-400/15 text-emerald-300">
-                <Check className="size-3.5" />
-              </span>
-              <span className="min-w-0 flex-1 text-xs text-foreground">Loyer de juillet encaissé</span>
-              <span className="flex items-center gap-1 text-xs font-medium text-emerald-300">
-                <TrendingUp className="size-3" /> +840 €
-              </span>
-            </div>
-          </div>
+        {/* Retour à la vitrine + marque compacte. Aucun header public, aucun
+            menu : deux éléments, dans une pastille lisible sur la photo. */}
+        <div
+          className="absolute inset-x-0 top-0 flex items-center gap-1 px-4 sm:px-6"
+          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+        >
+          <Link
+            href="/"
+            aria-label="Retour à l'accueil"
+            className="inline-grid size-11 place-items-center rounded-xl bg-[rgb(7_12_21/0.55)] text-white backdrop-blur-sm transition-colors duration-200 hover:bg-[rgb(7_12_21/0.75)] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          >
+            <ArrowLeft className="size-5" aria-hidden />
+          </Link>
+          <Link
+            href="/"
+            aria-label="Nireo — accueil"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-[rgb(7_12_21/0.55)] px-3 text-white backdrop-blur-sm transition-colors duration-200 hover:bg-[rgb(7_12_21/0.75)] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          >
+            <NireoMark flat className="size-7 rounded-[0.4rem] bg-white text-[#1b52e8]" />
+            <span className="text-[1.05rem] font-semibold tracking-[-0.03em]">Nireo</span>
+          </Link>
         </div>
 
-        <ul className="mt-10 space-y-2.5">
-          {TRUST.map((t) => (
-            <li key={t.label} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-              <t.icon className="size-4 text-primary" />
-              {t.label}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
-        Nireo · le logiciel des propriétaires bailleurs
-        <ArrowUpRight className="size-3.5" />
-      </p>
-    </aside>
-  );
-}
-
-/* Barre du mini-graphe — dernière colonne en émeraude pleine. */
-function cnBar(last: boolean) {
-  return `flex-1 rounded-t-[2px] ${last ? "bg-gradient-to-t from-primary/60 to-primary" : "bg-muted"}`;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Coquille commune des écrans d'authentification — split-screen.     */
-/* ------------------------------------------------------------------ */
-export function AuthShell({ title, description, children, footer }: AuthShellProps) {
-  return (
-    <div className="dark nireo relative min-h-svh overflow-hidden bg-background text-foreground">
-      {/* Décor ambiant global (visible surtout côté formulaire / mobile). */}
-      <div aria-hidden className="nireo-ambient">
-        <div className="nireo-grid" />
-        <div className="nireo-noise" />
-      </div>
-
-      <div className="relative z-10 grid min-h-svh lg:grid-cols-2">
-        <AuthScene />
-
-        {/* Colonne formulaire */}
-        <div className="flex flex-col items-center justify-center px-4 py-10 sm:px-8">
-          <div className="w-full max-w-sm">
-            {/* Marque affichée ici sur mobile (la scène est masquée). */}
-            <div className="mb-8 flex justify-center lg:hidden">
-              <NireoLogo />
-            </div>
-
-            <div className="nireo-glass nireo-hairline animate-nireo-rise rounded-3xl p-6 sm:p-8">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-              <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
-
-              {!isSupabaseConfigured ? (
-                <p className="mt-5 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-300">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  Mode démo : Supabase n’est pas configuré. Renseignez vos clés
-                  dans .env.local pour activer l’authentification.
-                </p>
-              ) : null}
-
-              <div className="nireo-auth mt-6">{children}</div>
-            </div>
-
-            {footer ? (
-              <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>
-            ) : null}
-          </div>
+        {/* La promesse. Sur mobile elle est remontée de la hauteur du congé de
+            la surface, pour ne jamais passer dessous. */}
+        <div className="absolute inset-x-0 bottom-0 px-6 pb-9 sm:px-8 lg:px-12 lg:pb-14">
+          <p className="text-[clamp(1.6rem,6vw,2.6rem)] leading-[1.1] font-semibold tracking-[-0.03em] text-balance text-white">
+            {PROMISE.title}
+          </p>
+          <p className="mt-2 text-[clamp(0.95rem,2.6vw,1.1rem)] text-white/85">
+            {PROMISE.text}
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* ---------------- Le formulaire ---------------- */}
+      <section className="animate-panel-in relative -mt-5 flex flex-1 flex-col rounded-t-3xl bg-background px-6 pt-7 sm:px-8 lg:mt-0 lg:justify-center lg:rounded-none lg:px-14 lg:py-12">
+        <div
+          className="mx-auto w-full max-w-[28.75rem] lg:mx-0"
+          style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
+        >
+          <p className="text-[0.78rem] font-semibold tracking-[0.12em] text-primary uppercase">
+            {label}
+          </p>
+          <h1 className="mt-2 text-[clamp(1.6rem,5.6vw,2.1rem)] leading-[1.12] font-semibold tracking-[-0.03em] text-balance text-foreground">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-2.5 text-[0.98rem] leading-relaxed text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
+
+          {!isSupabaseConfigured ? (
+            <p className="mt-5 flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              Mode démo : l&apos;authentification est désactivée tant que les clés
+              Supabase ne sont pas renseignées.
+            </p>
+          ) : null}
+
+          <div className="mt-7">{children}</div>
+
+          {footer ? <div className="mt-6">{footer}</div> : null}
+        </div>
+      </section>
     </div>
   );
 }

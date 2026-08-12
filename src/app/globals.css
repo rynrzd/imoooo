@@ -601,29 +601,35 @@
 }
 
 /* ------------------------------------------------------------------ */
-/*  Authentification premium — contrôles plus généreux dans la carte.  */
-/*  Scopé à « .nireo-auth » : n'affecte que les écrans de connexion.   */
+/*  AUTHENTIFICATION — photographie en haut, formulaire blanc cassé.   */
+/*                                                                    */
+/*  Scopé à « .nireo-auth » : n'affecte que connexion, inscription,    */
+/*  mot de passe oublié et réinitialisation. Le bleu nuit est celui de */
+/*  la vitrine ; le reste vient des jetons de l'application, forcés en */
+/*  clair par `.nireo-app-light` (le formulaire ne bascule jamais en   */
+/*  sombre, quel que soit le thème du visiteur).                       */
 /* ------------------------------------------------------------------ */
 
+.nireo-auth {
+  --auth-night: #070c15;
+  color-scheme: light;
+}
+
+/* Champs : 48 px de haut — confortables au doigt, lisibles au clavier. */
 .nireo-auth input:not([type="checkbox"]) {
-  height: 2.75rem;
+  height: 3rem;
   border-radius: 0.7rem;
   padding-inline: 0.9rem;
-  font-size: 0.92rem;
-  background: color-mix(in oklch, var(--card), transparent 45%);
+  font-size: 1rem; /* 16 px : iOS ne zoome pas à la mise au point */
+  background: var(--card);
 }
 
-.nireo-auth input:not([type="checkbox"]):focus-visible {
-  background: color-mix(in oklch, var(--card), transparent 25%);
-}
-
+/* Bouton principal : plein, franc, une ombre à peine perceptible. */
 .nireo-auth button[type="submit"] {
-  height: 2.75rem;
-  border-radius: 0.7rem;
-  font-size: 0.92rem;
-  box-shadow:
-    0 0 0 1px oklch(1 0 0 / 0.06) inset,
-    0 10px 30px -12px oklch(0.76 0.12 262 / 0.6);
+  height: 3.25rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.06);
 }
 
 /* ================================================================== */

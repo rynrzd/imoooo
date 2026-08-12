@@ -3,30 +3,30 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { FormField } from "@/components/shared/form-field";
+import { EmailField, FormError, PasswordField } from "@/components/auth/auth-fields";
+import { Button } from "@/components/ui/button";
 import { createClient, setRememberSession } from "@/lib/supabase/client";
-import {
-  authErrorMessage,
-  isEmailNotConfirmed,
-} from "@/lib/supabase/auth-errors";
+import { authErrorMessage, isEmailNotConfirmed } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-const schema = z.object({
-  email: z.string().email("E-mail invalide."),
-  password: z.string().min(1, "Mot de passe requis."),
-});
+/**
+ * Connexion — même photographie, même placement de marque que l'inscription.
+ *
+ * Rien de la logique n'a bougé : `signInWithPassword`, la redirection vers
+ * `?next=` (chemins internes uniquement), le renvoi vers l'écran de
+ * vérification quand l'adresse n'est pas confirmée.
+ *
+ * « Rester connecté » est conservé parce qu'il a un effet RÉEL : décoché, le
+ * cookie de session Supabase perd son `maxAge` et meurt à la fermeture du
+ * navigateur (cf. lib/supabase/session-persistence).
+ *
+ * Le lien « Administrateur » a disparu : l'administration garde sa route
+ * dédiée et n'a jamais à être proposée à un visiteur.
+ */
 
-type FormValues = z.infer<typeof schema>;
-
-/** Messages liés au callback e-mail (?erreur=…), en français clair. */
+/** Messages liés au retour du lien e-mail (?erreur=…), en français clair. */
 const CALLBACK_MESSAGES: Record<string, string> = {
   "lien-expire": "Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau.",
   "lien-invalide": "Ce lien est invalide ou a expiré. Veuillez réessayer.",
@@ -36,131 +36,136 @@ const CALLBACK_MESSAGES: Record<string, string> = {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [emailError, setEmailError] = React.useState<string | null>(null);
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  // Retour d'un lien e-mail expiré : le message est posé dès le premier rendu,
+  // dans le formulaire — pas dans une notification qui s'efface avant d'être
+  // lue, et sans effet qui déclencherait un second rendu.
+  const [formError, setFormError] = React.useState<string | null>(
+    () => CALLBACK_MESSAGES[searchParams.get("erreur") ?? ""] ?? null
+  );
   const [pending, setPending] = React.useState(false);
-  const [showPw, setShowPw] = React.useState(false);
-  // Case cochée par défaut : session persistante sur cet appareil.
+  // Coché par défaut : la session survit à la fermeture du navigateur.
   const [remember, setRemember] = React.useState(true);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pending) return;
 
-  React.useEffect(() => {
-    const erreur = searchParams.get("erreur");
-    if (erreur && CALLBACK_MESSAGES[erreur]) {
-      toast.error(CALLBACK_MESSAGES[erreur]);
-    }
-  }, [searchParams]);
+    const address = email.trim();
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address);
+    setEmailError(validEmail ? null : "Saisissez une adresse e-mail valide.");
+    setPasswordError(password ? null : "Saisissez votre mot de passe.");
+    setFormError(null);
+    if (!validEmail || !password) return;
 
-  const onSubmit = handleSubmit(async (values) => {
-    if (pending) return; // double clic
     setPending(true);
-    // Préférence de persistance posée AVANT la connexion : la session est
-    // écrite d'emblée avec la bonne durée (persistante ou éphémère).
-    setRememberSession(remember);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword(values);
-    setPending(false);
-    if (error) {
-      // Compte non confirmé : direction la page de vérification (renvoi du lien).
-      if (isEmailNotConfirmed(error)) {
-        toast.error("Votre adresse e-mail n'est pas encore confirmée.");
-        router.push(
-          `/verification-email?email=${encodeURIComponent(values.email)}`
-        );
+    try {
+      // Préférence de persistance posée AVANT la connexion : la session est
+      // écrite d'emblée avec la bonne durée.
+      setRememberSession(remember);
+      const { error } = await createClient().auth.signInWithPassword({
+        email: address,
+        password,
+      });
+
+      if (error) {
+        if (isEmailNotConfirmed(error)) {
+          router.push(`/verification-email?email=${encodeURIComponent(address)}`);
+          return;
+        }
+        setFormError(authErrorMessage(error, "signin"));
         return;
       }
-      toast.error(authErrorMessage(error, "signin"));
-      return;
+
+      const next = searchParams.get("next");
+      const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      router.replace(safeNext);
+      router.refresh();
+    } finally {
+      setPending(false);
     }
-    // Sécurité : uniquement des chemins internes (jamais //hote-externe).
-    const next = searchParams.get("next");
-    const safeNext =
-      next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
-    router.replace(safeNext);
-    router.refresh();
-  });
+  };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <FormField label="Adresse e-mail" htmlFor="email" error={errors.email?.message}>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="vous@exemple.fr"
-          {...register("email")}
-        />
-      </FormField>
-      <FormField label="Mot de passe" htmlFor="password" error={errors.password?.message}>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPw ? "text" : "password"}
-            autoComplete="current-password"
-            className="pr-10"
-            {...register("password")}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPw((v) => !v)}
-            aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+    <AuthShell
+      label="Bon retour"
+      title="Retrouvez votre espace."
+      description="Vos logements, vos documents et vos chiffres vous attendent."
+      footer={
+        <p className="text-center text-sm text-muted-foreground">
+          Pas encore de compte ?{" "}
+          <Link
+            href="/inscription"
+            className="inline-flex min-h-11 items-center font-medium text-primary underline-offset-4 hover:underline"
           >
-            {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
-        </div>
-      </FormField>
-      <div className="flex items-center justify-between gap-3">
-        <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground select-none">
+            Ouvrir mon espace gratuit
+          </Link>
+        </p>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <FormError message={formError} />
+
+        <EmailField
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={emailError ?? undefined}
+          autoFocus
+        />
+
+        <PasswordField
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          error={passwordError ?? undefined}
+          trailing={
+            <Link
+              href="/mot-de-passe-oublie"
+              className="inline-flex min-h-11 items-center text-sm text-primary underline-offset-4 hover:underline"
+            >
+              Mot de passe oublié ?
+            </Link>
+          }
+        />
+
+        <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-muted-foreground select-none">
           <input
             type="checkbox"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
-            className="size-4 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="size-4 shrink-0 rounded border-input bg-transparent text-primary focus-visible:ring-2 focus-visible:ring-ring"
           />
-          Garder ma session ouverte sur cet appareil
+          Rester connecté sur cet appareil
         </label>
-        <Link
-          href="/mot-de-passe-oublie"
-          className="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:underline"
-        >
-          Mot de passe oublié ?
-        </Link>
-      </div>
-      <Button type="submit" className="nireo-sheen w-full" disabled={!isSupabaseConfigured || pending}>
-        {pending ? "Connexion…" : "Se connecter"}
-      </Button>
-    </form>
+
+        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+          {pending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+              Connexion…
+            </>
+          ) : (
+            "Se connecter"
+          )}
+        </Button>
+
+        <p className="flex items-center justify-center gap-1.5 pt-1 text-xs text-muted-foreground">
+          <ShieldCheck className="size-3.5 shrink-0 text-muted-foreground/80" aria-hidden />
+          Connexion sécurisée
+        </p>
+      </form>
+    </AuthShell>
   );
 }
 
 export default function LoginPage() {
   return (
-    <AuthShell
-      title="Connexion"
-      description="Accédez à votre espace de gestion locative."
-      footer={
-        <p>
-          Pas encore de compte ?{" "}
-          <Link href="/inscription" className="font-medium text-foreground underline-offset-2 hover:underline">
-            Créer un compte
-          </Link>
-          <span className="mx-2 text-muted-foreground/50">·</span>
-          <Link
-            href="/admin/login"
-            className="font-medium text-foreground underline-offset-2 hover:underline"
-          >
-            Administrateur
-          </Link>
-        </p>
-      }
-    >
-      <React.Suspense>
-        <LoginForm />
-      </React.Suspense>
-    </AuthShell>
+    <React.Suspense>
+      <LoginForm />
+    </React.Suspense>
   );
 }

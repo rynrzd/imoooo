@@ -2,85 +2,124 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MailCheck } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { FormField } from "@/components/shared/form-field";
+import { EmailField, FormError } from "@/components/auth/auth-fields";
 import { createClient } from "@/lib/supabase/client";
+import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
 
-const schema = z.object({
-  email: z.string().email("E-mail invalide."),
-});
-
-type FormValues = z.infer<typeof schema>;
-
+/**
+ * Mot de passe oublié — même composition que les autres écrans.
+ *
+ * Deux corrections de fond au passage :
+ * - le message d'erreur brut de Supabase n'est plus affiché (« Envoi
+ *   impossible : … » exposait le texte anglais de GoTrue) ;
+ * - la réussite est formulée de façon NEUTRE : elle ne permet pas de savoir si
+ *   une adresse possède un compte.
+ *
+ * Le lien pointe toujours vers `/auth/callback?next=/reinitialiser-mot-de-passe` :
+ * la route et le flux de récupération sont inchangés.
+ */
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = React.useState("");
+  const [emailError, setEmailError] = React.useState<string | null>(null);
+  const [formError, setFormError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pending) return;
 
-  const onSubmit = handleSubmit(async (values) => {
+    const address = email.trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address);
+    setEmailError(valid ? null : "Saisissez une adresse e-mail valide.");
+    setFormError(null);
+    if (!valid) return;
+
     setPending(true);
-    const supabase = createClient();
-    // NEXT_PUBLIC_SITE_URL : lien de réinitialisation vers l'URL canonique.
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${SITE_URL}/auth/callback?next=/reinitialiser-mot-de-passe`,
-    });
-    setPending(false);
-    if (error) {
-      toast.error("Envoi impossible : " + error.message);
-      return;
+    try {
+      const { error } = await createClient().auth.resetPasswordForEmail(address, {
+        redirectTo: `${SITE_URL}/auth/callback?next=/reinitialiser-mot-de-passe`,
+      });
+      if (error) {
+        setFormError(authErrorMessage(error, "reset"));
+        return;
+      }
+      setSent(true);
+    } finally {
+      setPending(false);
     }
-    setSent(true);
-  });
+  };
+
+  if (sent) {
+    return (
+      <AuthShell
+        label="Accès"
+        title="Consultez votre boîte mail."
+        footer={
+          <p className="text-center text-sm text-muted-foreground">
+            <Link
+              href="/connexion"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Retour à la connexion
+            </Link>
+          </p>
+        }
+      >
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-600/10 text-emerald-700">
+            <MailCheck className="size-5" aria-hidden />
+          </span>
+          <p className="text-sm leading-relaxed text-foreground">
+            Si un compte correspond à cette adresse, vous recevrez un lien de
+            réinitialisation.
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell
-      title="Mot de passe oublié"
-      description="Recevez un lien de réinitialisation par e-mail."
+      label="Accès"
+      title="Réinitialisez votre mot de passe."
+      description="Entrez votre adresse e-mail pour recevoir un lien sécurisé."
       footer={
-        <Link href="/connexion" className="underline-offset-2 hover:underline">
-          Retour à la connexion
-        </Link>
+        <p className="text-center text-sm text-muted-foreground">
+          <Link
+            href="/connexion"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Retour à la connexion
+          </Link>
+        </p>
       }
     >
-      {sent ? (
-        <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <span className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700">
-            <MailCheck className="size-5" />
-          </span>
-          <p className="text-sm text-foreground">
-            Si un compte existe avec cette adresse, un e-mail de
-            réinitialisation vient d&apos;être envoyé.
-          </p>
-        </div>
-      ) : (
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField label="Adresse e-mail" htmlFor="email" error={errors.email?.message}>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="vous@exemple.fr"
-              {...register("email")}
-            />
-          </FormField>
-          <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
-            {pending ? "Envoi…" : "Envoyer le lien"}
-          </Button>
-        </form>
-      )}
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <FormError message={formError} />
+
+        <EmailField
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={emailError ?? undefined}
+          autoFocus
+        />
+
+        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+          {pending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+              Envoi…
+            </>
+          ) : (
+            "Recevoir le lien"
+          )}
+        </Button>
+      </form>
     </AuthShell>
   );
 }

@@ -14,16 +14,17 @@ interface AuthErrorLike {
 export const NEUTRAL_SIGNUP_MESSAGE =
   "Si cette adresse peut être utilisée, vous recevrez un e-mail de confirmation.";
 
+/** Le seul critère réellement exigé par la configuration : la longueur. */
+export const PASSWORD_MIN_LENGTH = 8;
+
 const MESSAGES: Record<string, string> = {
-  invalid_credentials: "Adresse e-mail ou mot de passe incorrect.",
+  invalid_credentials: "E-mail ou mot de passe incorrect.",
   email_not_confirmed: "Votre adresse e-mail n'est pas encore confirmée.",
-  email_address_invalid:
-    "Cette adresse e-mail n'est pas acceptée. Utilisez une adresse réelle.",
+  email_address_invalid: "Saisissez une adresse e-mail valide.",
   email_address_not_authorized:
     "Cette adresse e-mail n'est pas autorisée pour le moment.",
-  validation_failed: "Adresse e-mail invalide.",
-  weak_password:
-    "Mot de passe trop faible : 8 caractères minimum, évitez les mots de passe trop courants.",
+  validation_failed: "Saisissez une adresse e-mail valide.",
+  weak_password: `Mot de passe trop court : ${PASSWORD_MIN_LENGTH} caractères minimum.`,
   same_password: "Le nouveau mot de passe doit être différent de l'ancien.",
   user_already_exists: NEUTRAL_SIGNUP_MESSAGE,
   email_exists: NEUTRAL_SIGNUP_MESSAGE,
@@ -44,12 +45,19 @@ const SMTP_FAILURE_MESSAGE =
   "L'e-mail de confirmation n'a pas pu être envoyé (service e-mail indisponible). " +
   "Réessayez plus tard ou contactez le support.";
 
+/** Panne de réseau : le seul cas où l'on peut dire quoi faire précisément. */
+export const NETWORK_MESSAGE =
+  "Connexion impossible. Vérifiez votre réseau puis réessayez.";
+
+/** Repli unique : jamais de code, jamais d'anglais, jamais de détail interne. */
+const UNKNOWN_MESSAGE = "Une erreur est survenue. Réessayez dans quelques instants.";
+
 const FALLBACKS = {
-  signin: "Connexion impossible pour le moment. Réessayez.",
-  signup: "Inscription impossible pour le moment. Réessayez.",
-  reset: "Envoi du lien impossible pour le moment. Réessayez.",
-  update: "Mise à jour impossible pour le moment. Réessayez.",
-  resend: "Envoi de l'e-mail impossible pour le moment. Réessayez.",
+  signin: UNKNOWN_MESSAGE,
+  signup: UNKNOWN_MESSAGE,
+  reset: UNKNOWN_MESSAGE,
+  update: UNKNOWN_MESSAGE,
+  resend: UNKNOWN_MESSAGE,
 } as const;
 
 export type AuthErrorContext = keyof typeof FALLBACKS;
@@ -81,6 +89,8 @@ export function authErrorMessage(
       )
     );
   }
+  // Réseau coupé, requête avortée : GoTrue n'a jamais répondu.
+  if (isNetworkError(error)) return NETWORK_MESSAGE;
   if (error.code && MESSAGES[error.code]) return MESSAGES[error.code];
   if (error.status === 429) return MESSAGES.over_request_rate_limit;
   const msg = error.message.toLowerCase();
@@ -100,4 +110,32 @@ export function isEmailNotConfirmed(error: AuthErrorLike): boolean {
     error.code === "email_not_confirmed" ||
     error.message.toLowerCase().includes("email not confirmed")
   );
+}
+
+/**
+ * true si la requête n'a jamais abouti (réseau, DNS, requête avortée).
+ * `AuthRetryableFetchError` porte le statut 0 ; le repli sur le texte couvre
+ * les navigateurs plus anciens.
+ */
+export function isNetworkError(error: AuthErrorLike & { name?: string }): boolean {
+  if (error.status === 0) return true;
+  if (error.name === "AuthRetryableFetchError") return true;
+  const msg = (error.message ?? "").toLowerCase();
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("load failed")
+  );
+}
+
+/**
+ * true quand Supabase dit EXPLICITEMENT que l'adresse a déjà un compte.
+ *
+ * Ce n'est le cas que si la confirmation d'e-mail est désactivée. Avec la
+ * confirmation active — la configuration de Nireo — GoTrue reste
+ * volontairement muet pour empêcher d'énumérer les comptes : on ne devine
+ * rien, l'écran de vérification s'affiche comme pour une adresse inconnue.
+ */
+export function isExistingAccount(error: AuthErrorLike): boolean {
+  return error.code === "user_already_exists" || error.code === "email_exists";
 }

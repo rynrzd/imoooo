@@ -3,74 +3,46 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2, MailCheck } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { CreditCard, Infinity as InfinityIcon, Loader2, Lock, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { EmailField, FormError, PasswordField } from "@/components/auth/auth-fields";
 import { trackFunnel } from "@/lib/funnel";
-import { PRIMARY_CTA_LABEL } from "@/lib/landing/cta";
 import { createClient } from "@/lib/supabase/client";
-import { authErrorMessage } from "@/lib/supabase/auth-errors";
+import {
+  authErrorMessage,
+  isExistingAccount,
+  PASSWORD_MIN_LENGTH,
+} from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
-import { cn } from "@/lib/utils";
 
 /**
- * Création de compte — DEUX CHAMPS.
+ * Création de compte — deux champs, une promesse, rien d'autre.
  *
- * Ne sont demandées que les informations sans lesquelles Supabase Auth ne
- * peut pas créer le compte : une adresse e-mail et un mot de passe. Le nom, le
- * téléphone, l'entreprise ou la SCI se renseignent plus tard dans
- * Paramètres → Profil (`profiles.full_name` a une valeur par défaut vide en
- * base, aucun écran ne dépend de sa présence). Aucun plan, aucune carte,
- * aucune donnée de facturation, aucune question sur la taille du patrimoine :
- * tout nouveau compte est sur le plan Gratuit, qui est simplement l'absence
- * d'abonnement (cf. `DEFAULT_PLAN_ID` dans src/config/plans.ts).
+ * Ne sont demandées que les informations sans lesquelles Supabase Auth ne peut
+ * pas créer le compte : une adresse et un mot de passe. Pas de nom, pas de
+ * téléphone, pas de patrimoine, pas de formule, pas de carte, pas de code
+ * promotionnel. Le compte démarre sur le plan Gratuit — c'est-à-dire l'absence
+ * d'abonnement (`DEFAULT_PLAN_ID`), rien n'est créé ici.
  *
- * Rien n'a été retiré côté sécurité : mot de passe de 8 caractères minimum
- * (règle Supabase du projet) avec indicateur de force, validation Zod avant
- * envoi, confirmation d'e-mail obligatoire, réponse identique que l'adresse
- * existe ou non (aucune énumération de comptes).
+ * Sécurité inchangée : validation avant envoi, mot de passe de
+ * `PASSWORD_MIN_LENGTH` caractères minimum, confirmation d'e-mail obligatoire,
+ * et réponse identique que l'adresse existe ou non (Supabase reste muet quand
+ * la confirmation est active : on n'invente pas ce qu'il refuse de dire).
+ *
+ * Après un envoi réussi, le formulaire cède la place à un vrai écran de
+ * confirmation dans la MÊME mise en page — renvoi avec délai, correction de
+ * l'adresse, retour à la connexion. Personne ne reste bloqué sur un toast.
  */
 
-const schema = z.object({
-  email: z.string().email("E-mail invalide."),
-  password: z.string().min(8, "8 caractères minimum."),
-});
+/** Délai anti-abus entre deux renvois (Supabase applique aussi le sien). */
+const RESEND_COOLDOWN = 60;
 
-type FormValues = z.infer<typeof schema>;
-
-/* Force du mot de passe : longueur + variété de caractères (0 → 4). */
-function passwordScore(pw: string): number {
-  if (!pw) return 0;
-  let s = 0;
-  if (pw.length >= 8) s++;
-  if (pw.length >= 12) s++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
-  if (/\d/.test(pw)) s++;
-  if (/[^a-zA-Z0-9]/.test(pw)) s++;
-  return Math.min(4, s);
-}
-const SCORE_LABEL = ["", "Très faible", "Faible", "Correct", "Excellent"];
-const SCORE_COLOR = ["bg-white/10", "bg-rose-400", "bg-amber-400", "bg-sky-400", "bg-emerald-400"];
-
-function PasswordStrength({ value }: { value: string }) {
-  const score = passwordScore(value);
-  return (
-    <div className="mt-2" aria-live="polite">
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4].map((i) => (
-          <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= score ? SCORE_COLOR[score] : "bg-white/10")} />
-        ))}
-      </div>
-      {value ? <p className="mt-1.5 text-[11px] text-muted-foreground">Sécurité : <span className="text-foreground">{SCORE_LABEL[score]}</span></p> : null}
-    </div>
-  );
-}
+const REASSURANCE = [
+  { icon: CreditCard, label: "Sans carte" },
+  { icon: InfinityIcon, label: "Sans limite de durée" },
+  { icon: Lock, label: "Données privées" },
+];
 
 /** Destination après inscription : uniquement un chemin interne. */
 function safeNext(raw: string | null): string {
@@ -80,139 +52,276 @@ function safeNext(raw: string | null): string {
 function SignupForm() {
   const searchParams = useSearchParams();
   const next = safeNext(searchParams.get("next"));
+
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [emailError, setEmailError] = React.useState<string | null>(null);
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [existing, setExisting] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [sentTo, setSentTo] = React.useState<string | null>(null);
-  const [showPw, setShowPw] = React.useState(false);
 
-  // Tunnel de conversion : « inscription démarrée » (anonyme, non bloquant,
-  // dédoublonné — React Strict Mode monte ce composant deux fois).
+  // Tunnel de conversion : « inscription démarrée » (anonyme, dédoublonné).
   React.useEffect(() => {
     trackFunnel("signup_started");
   }, []);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    mode: "onChange",
-    defaultValues: { email: "", password: "" },
-  });
+  const redirectTo = `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`;
 
-  const password = useWatch({ control, name: "password" }) ?? "";
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (pending) return; // double clic / double soumission clavier
 
-  const onSubmit = handleSubmit(async (values) => {
-    if (pending) return;
+    const address = email.trim();
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address);
+    setEmailError(validEmail ? null : "Saisissez une adresse e-mail valide.");
+    setPasswordError(
+      password.length >= PASSWORD_MIN_LENGTH
+        ? null
+        : `Mot de passe trop court : ${PASSWORD_MIN_LENGTH} caractères minimum.`
+    );
+    setFormError(null);
+    setExisting(false);
+    if (!validEmail || password.length < PASSWORD_MIN_LENGTH) return;
+
     setPending(true);
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        // `next` permet à un autre produit Nireo (ex. Nireo ID) de ramener
-        // l'utilisateur à son parcours après confirmation. Sans destination
-        // particulière, le compte confirmé arrive directement dans son
-        // espace, sur l'ajout du premier logement.
-        emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
-    setPending(false);
-    if (error) {
-      toast.error(authErrorMessage(error, "signup"));
-      return;
+    try {
+      const { data, error } = await createClient().auth.signUp({
+        email: address,
+        password,
+        // `next` permet à un autre produit Nireo de ramener l'utilisateur à son
+        // parcours après confirmation. Sans destination particulière, le compte
+        // confirmé arrive dans son espace, où le guide prend le relais.
+        options: { emailRedirectTo: redirectTo },
+      });
+
+      if (error) {
+        if (isExistingAccount(error)) {
+          setExisting(true);
+          setFormError("Un compte existe déjà avec cette adresse.");
+        } else {
+          setFormError(authErrorMessage(error, "signup"));
+        }
+        return;
+      }
+
+      if (data.session) {
+        // Confirmation désactivée : la session est immédiate.
+        window.location.assign(next);
+        return;
+      }
+      setSentTo(address);
+    } finally {
+      setPending(false);
     }
-    if (data.session) {
-      // Confirmation d'e-mail désactivée : la session est immédiate.
-      window.location.assign(next);
-      return;
-    }
-    setSentTo(values.email);
-  });
+  };
+
+  if (sentTo) {
+    return (
+      <ConfirmEmail
+        email={sentTo}
+        redirectTo={redirectTo}
+        onChangeEmail={() => {
+          setSentTo(null);
+          setPassword("");
+        }}
+      />
+    );
+  }
 
   return (
     <AuthShell
-      title="Créer votre espace"
-      description="Deux informations suffisent : votre e-mail et un mot de passe."
+      label="Commencer"
+      title="Votre premier logement est gratuit."
+      description="Deux informations, et votre espace est prêt."
       footer={
-        <p>
-          Déjà un compte ?{" "}
-          <Link
-            href={next === "/" ? "/connexion" : `/connexion?next=${encodeURIComponent(next)}`}
-            className="font-medium text-foreground underline-offset-2 hover:underline"
-          >
-            Se connecter
+        <div className="space-y-3 text-center">
+          <p className="text-sm text-muted-foreground">
+            Déjà un compte ?{" "}
+            <Link
+              href={next === "/" ? "/connexion" : `/connexion?next=${encodeURIComponent(next)}`}
+              className="inline-flex min-h-11 items-center font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Se connecter
+            </Link>
+          </p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            En continuant, vous acceptez les{" "}
+            <Link href="/cgu" target="_blank" className="inline-block py-1.5 text-primary underline-offset-2 hover:underline">
+              CGU
+            </Link>{" "}
+            et la{" "}
+            <Link
+              href="/confidentialite"
+              target="_blank"
+              className="inline-block py-1.5 text-primary underline-offset-2 hover:underline"
+            >
+              politique de confidentialité
+            </Link>
+            .
+          </p>
+        </div>
+      }
+    >
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <FormError
+          message={formError}
+          action={existing ? { href: "/connexion", label: "Se connecter" } : undefined}
+        />
+
+        <EmailField
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={emailError ?? undefined}
+          autoFocus
+        />
+
+        <PasswordField
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+          error={passwordError ?? undefined}
+          hint={`${PASSWORD_MIN_LENGTH} caractères minimum.`}
+        />
+
+        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+          {pending ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+              Création de votre espace…
+            </>
+          ) : (
+            "Ouvrir mon espace Nireo"
+          )}
+        </Button>
+
+        {/* Trois faits vérifiables, sur une ligne, séparés par un filet.
+            `flex-wrap` est le garde-fou : à 320 px la ligne se coupe plutôt
+            que de déborder. Aucun avis, aucun compteur, aucun label inventé. */}
+        <ul className="flex flex-wrap items-center justify-center gap-y-2 pt-1 text-[0.7rem] text-muted-foreground">
+          {REASSURANCE.map((item, index) => (
+            <li key={item.label} className="flex items-center">
+              {index > 0 ? (
+                <span aria-hidden className="mx-2.5 h-3 w-px bg-border" />
+              ) : null}
+              <span className="flex items-center gap-1.5">
+                <item.icon className="size-3.5 shrink-0 text-muted-foreground/70" aria-hidden />
+                {item.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </form>
+    </AuthShell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Confirmation de l'adresse — un vrai écran, pas une notification    */
+/* ------------------------------------------------------------------ */
+
+function ConfirmEmail({
+  email,
+  redirectTo,
+  onChangeEmail,
+}: {
+  email: string;
+  redirectTo: string;
+  onChangeEmail: () => void;
+}) {
+  const [cooldown, setCooldown] = React.useState(RESEND_COOLDOWN);
+  const [pending, setPending] = React.useState(false);
+  const [message, setMessage] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => window.clearInterval(id);
+  }, [cooldown]);
+
+  const resend = async () => {
+    if (pending || cooldown > 0) return;
+    setPending(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const { error: resendError } = await createClient().auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: redirectTo },
+      });
+      if (resendError) {
+        setError(authErrorMessage(resendError, "resend"));
+        return;
+      }
+      setCooldown(RESEND_COOLDOWN);
+      setMessage("Un nouveau lien vient d'être envoyé.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <AuthShell
+      label="Presque terminé"
+      title="Vérifiez votre boîte mail."
+      footer={
+        <p className="text-center text-sm text-muted-foreground">
+          <Link href="/connexion" className="font-medium text-primary underline-offset-4 hover:underline">
+            Retour à la connexion
           </Link>
         </p>
       }
     >
-      {sentTo ? (
-        <div className="flex flex-col items-center gap-3 py-4 text-center">
-          <span className="grid size-12 place-items-center rounded-2xl bg-emerald-400/12 text-emerald-300">
-            <MailCheck className="size-6" />
+      <div className="space-y-5">
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
+          <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-emerald-600/10 text-emerald-700">
+            <MailCheck className="size-5" aria-hidden />
           </span>
-          <p className="text-sm text-foreground">
-            Si l’adresse <span className="font-medium">{sentTo}</span> peut être utilisée, vous allez recevoir un e-mail de confirmation.
+          <p className="text-sm leading-relaxed text-foreground">
+            Nous avons envoyé un lien de confirmation à{" "}
+            <span className="font-medium break-all">{email}</span>.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Cliquez sur le lien reçu pour activer votre compte. Rien après quelques minutes ? Cette adresse a peut-être déjà un compte.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            <Button variant="outline" size="sm" render={<Link href="/connexion" />}>Se connecter</Button>
-            <Button variant="ghost" size="sm" render={<Link href="/mot-de-passe-oublie" />}>Mot de passe oublié</Button>
-          </div>
         </div>
-      ) : (
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Adresse e-mail</Label>
-            <Input id="email" type="email" autoComplete="email" autoFocus placeholder="vous@exemple.fr" aria-invalid={!!errors.email} {...register("email")} />
-            {errors.email ? <p className="text-xs text-destructive">{errors.email.message}</p> : null}
-          </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Mot de passe</Label>
-            <div className="relative">
-              <Input id="password" type={showPw ? "text" : "password"} autoComplete="new-password" className="pr-10" aria-invalid={!!errors.password} {...register("password")} />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-              </button>
-            </div>
-            <PasswordStrength value={password} />
-            {errors.password ? <p className="text-xs text-destructive">{errors.password.message}</p> : null}
-          </div>
+        <p className="text-sm text-muted-foreground">
+          Ouvrez-le depuis cet appareil pour activer votre espace. Rien après
+          quelques minutes ? Regardez dans les indésirables.
+        </p>
 
-          <Button type="submit" className="nireo-sheen w-full" disabled={!isSupabaseConfigured || pending}>
-            {pending ? (
-              <>
-                <Loader2 className="size-4 animate-spin" /> Création…
-              </>
-            ) : (
-              PRIMARY_CTA_LABEL
-            )}
+        <FormError message={error} />
+        <div aria-live="polite">
+          {message ? (
+            <p className="text-sm text-emerald-700">{message}</p>
+          ) : null}
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full"
+            onClick={() => void resend()}
+            disabled={pending || cooldown > 0}
+          >
+            {pending
+              ? "Envoi…"
+              : cooldown > 0
+                ? `Renvoyer l'e-mail (${cooldown} s)`
+                : "Renvoyer l'e-mail"}
           </Button>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Gratuit pour 1 logement. Aucune carte demandée.
-          </p>
-
-          {/* Acceptation par l'acte de création — l'ancienne case à cocher
-              obligatoire a disparu, les deux textes restent accessibles d'un
-              clic depuis l'endroit exact où l'engagement est pris. */}
-          <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-            En créant votre espace, vous acceptez les{" "}
-            <Link href="/cgu" target="_blank" className="text-foreground underline-offset-2 hover:underline">conditions d’utilisation</Link>{" "}
-            et la{" "}
-            <Link href="/confidentialite" target="_blank" className="text-foreground underline-offset-2 hover:underline">politique de confidentialité</Link>.
-          </p>
-        </form>
-      )}
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-12 w-full"
+            onClick={onChangeEmail}
+          >
+            Modifier l&apos;adresse e-mail
+          </Button>
+        </div>
+      </div>
     </AuthShell>
   );
 }
