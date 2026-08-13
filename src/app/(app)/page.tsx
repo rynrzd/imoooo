@@ -2,7 +2,6 @@
 
 import {
   AlertTriangle,
-  ArrowRight,
   Building2,
   Landmark,
   ListTodo,
@@ -11,15 +10,12 @@ import {
   Receipt,
   TrendingUp,
 } from "lucide-react";
-import Link from "next/link";
 import { ActionCenter } from "@/components/dashboard/action-center";
 import { AddMenu } from "@/components/dashboard/add-menu";
 import { DocumentsPreview } from "@/components/dashboard/documents-preview";
 import { FirstPropertyCta } from "@/components/dashboard/first-property";
-import { PropertiesShortList } from "@/components/dashboard/properties-short-list";
-import { RentSummary } from "@/components/dashboard/rent-summary";
+import { MobileDashboard } from "@/components/dashboard/mobile-dashboard";
 import { SetupChecklist } from "@/components/dashboard/setup-checklist";
-import { TodayTasks } from "@/components/dashboard/today-tasks";
 import dynamic from "next/dynamic";
 import { HealthScore } from "@/components/dashboard/health-score";
 import { PriorityProperties } from "@/components/dashboard/priority-properties";
@@ -51,7 +47,6 @@ import {
   formatCurrency,
   formatDateLong,
   formatDelta,
-  formatMonth,
   formatMonthShort,
   formatPercent,
 } from "@/lib/format";
@@ -116,14 +111,12 @@ export default function DashboardPage() {
   if (!loading && data.properties.length === 0) {
     return (
       <>
-        <PageHeader
-          eyebrow={
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {formatDateLong(new Date())}
-            </p>
-          }
-          title={firstName ? `Bonjour ${firstName}` : "Bienvenue"}
-        />
+        <p className="text-[0.7rem] font-semibold tracking-[0.08em] text-primary uppercase">
+          {formatDateLong(new Date())}
+        </p>
+        <h1 className="pt-2 text-[2rem] leading-[1.1] font-semibold tracking-[-0.035em] text-foreground">
+          {firstName ? `Bonjour ${firstName}.` : "Bienvenue."}
+        </h1>
         <FirstPropertyCta />
       </>
     );
@@ -131,44 +124,39 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow={
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            {formatDateLong(new Date())}
-          </p>
-        }
-        title={firstName ? `Bonjour ${firstName}` : "Tableau de bord"}
-        description={synthesis}
-      >
-        <AddMenu />
-      </PageHeader>
+      {/* ================= TÉLÉPHONE =================
+          L'écran de la maquette : date, salutation, état réel du jour, résumé
+          du mois, une action, les logements reliés à ce qui leur appartient,
+          puis l'activité. Aucun module du bureau n'est rétréci ici — ils sont
+          à leur place, sur l'écran Statistiques. */}
+      <MobileDashboard />
 
       {/* Mise en route — disparaît d'elle-même une fois le compte configuré. */}
-      <SetupChecklist />
-
-      {/* ================= TÉLÉPHONE ET TABLETTE =================
-          Ce qui aide à décider aujourd'hui, dans cet ordre : à faire, loyers
-          du mois, logements, activité, puis le lien vers l'analyse complète.
-          Les modules d'analyse du bureau ne sont pas rétrécis ici, ils sont
-          simplement à leur place — sur l'écran Statistiques. */}
-      <div className="space-y-5 lg:hidden">
-        <TodayTasks items={actions} />
-        <RentSummary payments={monthPayments} monthLabel={formatMonth(month)} />
-        <PropertiesShortList data={data} />
-        <RecentActivity items={data.activity} limit={5} />
-        <Link
-          href="/statistiques"
-          className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-accent/50"
-        >
-          Voir les statistiques complètes
-          <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
-        </Link>
+      <div className="lg:hidden">
+        <SetupChecklist />
       </div>
 
       {/* ================= BUREAU =================
-          Le tableau de bord riche est conservé à l'identique au-dessus de
-          1024 px : aucun module n'a été retiré. */}
-      <div className="hidden space-y-6 lg:block">
+          Le tableau de bord riche est conservé à l'identique : aucun module
+          n'a été retiré, l'en-tête éditorial lui reste propre. */}
+      <div className="hidden lg:block">
+        <PageHeader
+          eyebrow={
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {formatDateLong(new Date())}
+            </p>
+          }
+          title={firstName ? `Bonjour ${firstName}` : "Tableau de bord"}
+          description={synthesis}
+        >
+          <AddMenu />
+        </PageHeader>
+        <div className="pt-6">
+          <SetupChecklist />
+        </div>
+      </div>
+
+      <div className="hidden space-y-6 pt-6 lg:block">
       <section aria-label="Santé du patrimoine">
         <HealthScore report={health} />
       </section>

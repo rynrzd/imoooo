@@ -100,7 +100,7 @@ export function EditDocumentDialog({ document }: { document: PropertyDocument })
       >
         <Pencil />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="nireo-form sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Modifier le document</DialogTitle>
           <DialogDescription>

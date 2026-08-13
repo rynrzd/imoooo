@@ -36,9 +36,11 @@ export default function TenantsPage() {
       {data.tenants.length === 0 ? (
         <EmptyState
           icon={UserRound}
-          title="Aucun locataire pour le moment"
-          description="Ajoutez votre premier locataire pour démarrer le suivi des loyers."
-        />
+          title="Aucun locataire pour le moment."
+          description="Ajoutez un locataire à l'un de vos logements : Nireo créera le bail et suivra les loyers mois après mois."
+        >
+          <AddTenantDialog />
+        </EmptyState>
       ) : (
         <>
           <div className="relative w-full sm:max-w-xs">

@@ -15,12 +15,17 @@ import { cn } from "@/lib/utils";
 
 type Tone = "positive" | "neutral" | "warning" | "negative" | "info";
 
+/**
+ * Les cinq tons viennent des JETONS sémantiques (globals.css), plus d'une
+ * palette Tailwind brute : le thème sombre reprend donc exactement la même
+ * identité, sans qu'aucune variante `dark:` soit écrite ici.
+ */
 const TONE_CLASSES: Record<Tone, string> = {
-  positive: "border-emerald-200 bg-emerald-50 text-emerald-800 [&_.dot]:bg-emerald-500",
+  positive: "border-transparent bg-success-soft text-success [&_.dot]:bg-success",
   neutral: "border-border bg-muted text-muted-foreground [&_.dot]:bg-muted-foreground/60",
-  warning: "border-amber-200 bg-amber-50 text-amber-800 [&_.dot]:bg-amber-500",
-  negative: "border-red-200 bg-red-50 text-red-800 [&_.dot]:bg-red-500",
-  info: "border-blue-200 bg-blue-50 text-blue-800 [&_.dot]:bg-blue-500",
+  warning: "border-transparent bg-warning-soft text-warning [&_.dot]:bg-warning",
+  negative: "border-transparent bg-danger-soft text-danger [&_.dot]:bg-danger",
+  info: "border-transparent bg-primary-soft text-primary [&_.dot]:bg-primary",
 };
 
 function DotBadge({ tone, label }: { tone: Tone; label: string }) {

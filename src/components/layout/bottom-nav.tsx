@@ -24,12 +24,22 @@ import { cn } from "@/lib/utils";
  * - la barre réserve la zone gestuelle iPhone (`env(safe-area-inset-bottom)`)
  *   et le layout applicatif réserve sa hauteur en bas de page, donc elle ne
  *   recouvre jamais le contenu (cf. `--nireo-bottom-nav-h`) ;
- * - l'entrée active est portée par la couleur ET le poids du texte, jamais par
- *   la couleur seule.
+ * - l'entrée active est posée dans une CAPSULE bleu très pâle, et portée aussi
+ *   par le poids du texte : jamais par la couleur seule.
  */
 
 /** Hauteur de la barre, hors marge de sécurité — partagée avec le layout. */
 export const BOTTOM_NAV_HEIGHT = "3.5rem";
+
+/**
+ * Une entrée de la barre. La cible tactile fait 52 px de haut sur toute la
+ * largeur de sa colonne, bien au-delà des 44 px exigés ; la capsule, elle,
+ * n'est qu'un fond — elle ne réduit jamais la zone cliquable.
+ */
+const TAB =
+  "flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] transition-colors duration-200";
+const TAB_ACTIVE = "bg-primary-soft font-semibold text-primary";
+const TAB_IDLE = "font-normal text-muted-foreground hover:text-foreground";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -48,7 +58,7 @@ export function BottomNav() {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <ul className="mx-auto flex max-w-lg items-stretch">
+        <ul className="mx-auto flex max-w-lg items-stretch px-1 py-1">
           {BOTTOM_NAV.map((item) => {
             const active = isNavItemActive(pathname, item.href);
             return (
@@ -56,12 +66,7 @@ export function BottomNav() {
                 <Link
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] transition-colors",
-                    active
-                      ? "font-semibold text-primary"
-                      : "font-normal text-muted-foreground"
-                  )}
+                  className={cn(TAB, active ? TAB_ACTIVE : TAB_IDLE)}
                 >
                   <item.icon className="size-5 shrink-0" aria-hidden />
                   {item.title}
@@ -77,10 +82,9 @@ export function BottomNav() {
               aria-haspopup="dialog"
               aria-expanded={moreOpen}
               className={cn(
-                "flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-1.5 text-[11px] transition-colors",
-                moreActive || moreOpen
-                  ? "font-semibold text-primary"
-                  : "font-normal text-muted-foreground"
+                TAB,
+                "w-full",
+                moreActive || moreOpen ? TAB_ACTIVE : TAB_IDLE
               )}
             >
               <MORE_ICON className="size-5 shrink-0" aria-hidden />
@@ -119,14 +123,17 @@ export function BottomNav() {
                           onClick={() => setMoreOpen(false)}
                           aria-current={active ? "page" : undefined}
                           className={cn(
-                            "flex min-h-12 items-center gap-3 rounded-lg px-2 text-sm transition-colors",
+                            "flex min-h-12 items-center gap-3 rounded-lg px-2.5 text-sm transition-colors duration-200",
                             active
-                              ? "bg-accent font-medium text-foreground"
+                              ? "bg-primary-soft font-semibold text-primary"
                               : "text-foreground hover:bg-accent/60"
                           )}
                         >
                           <item.icon
-                            className="size-4 shrink-0 text-muted-foreground"
+                            className={cn(
+                              "size-4 shrink-0",
+                              active ? "text-primary" : "text-muted-foreground"
+                            )}
                             aria-hidden
                           />
                           {item.title}

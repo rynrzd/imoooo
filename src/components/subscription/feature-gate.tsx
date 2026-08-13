@@ -1,50 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { Lock } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 import type { FeatureId } from "@/config/plans";
 import { hasFeature } from "@/lib/stripe/entitlements";
 import { useAppStore } from "@/lib/store";
 
 /**
- * Verrou d'affichage par fonctionnalité de plan.
- * Affichage uniquement : la contrainte dure reste côté serveur
- * (routes API, triggers, RLS) — ce composant informe et guide vers
- * la page Abonnement au lieu de montrer une fonction inutilisable.
+ * VERROU DE FONCTIONNALITÉ — une ligne, plus un écran entier.
+ *
+ * Avant, une fonction non incluse dans le plan remplaçait tout le contenu par
+ * une grande carte pointillée avec un cadenas : l'utilisateur payant pour
+ * Starter voyait la moitié de sa page Statistiques occupée par une publicité.
+ *
+ * Ici, la fonction verrouillée devient une ligne discrète qui dit le BÉNÉFICE
+ * réel (pas « Statistiques avancées » mais ce qu'elles apportent) et propose
+ * « Découvrir Pro ». Le reste de la page continue de vivre.
+ *
+ * Affichage uniquement : la contrainte dure reste côté serveur (routes API,
+ * triggers, RLS).
  */
 export function FeatureGate({
   feature,
-  title,
+  benefit,
   children,
 }: {
   feature: FeatureId;
-  /** Nom lisible de la fonction verrouillée (affiché dans le message). */
-  title: string;
+  /** Ce que la fonction apporte, en une phrase concrète. */
+  benefit: string;
   children: React.ReactNode;
 }) {
   const { profile, isLive } = useAppStore();
   // Mode démo (Supabase non configuré) : tout est visible.
-  const check = isLive ? hasFeature(profile?.plan, feature) : { allowed: true, reason: null };
+  const check = isLive
+    ? hasFeature(profile?.plan, feature)
+    : { allowed: true, reason: null };
   if (check.allowed) return <>{children}</>;
 
+  return <UpgradeLine benefit={benefit} />;
+}
+
+/** La ligne seule, réutilisable là où il n'y a rien à envelopper. */
+export function UpgradeLine({ benefit }: { benefit: string }) {
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-        <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Lock className="size-4" />
-        </span>
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">{title}</p>
-          <p className="mx-auto max-w-md text-xs leading-relaxed text-muted-foreground">
-            {check.reason}
-          </p>
-        </div>
-        <Link href="/abonnement" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Voir les plans
-        </Link>
-      </CardContent>
-    </Card>
+    <Link
+      href="/abonnement"
+      className="flex min-h-12 items-center justify-between gap-4 rounded-[0.625rem] bg-primary-soft px-3.5 py-2.5 transition-opacity duration-200 hover:opacity-90"
+    >
+      <span className="min-w-0 text-sm text-foreground">{benefit}</span>
+      <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-primary">
+        Découvrir Pro
+        <ArrowRight className="size-4" aria-hidden />
+      </span>
+    </Link>
   );
 }

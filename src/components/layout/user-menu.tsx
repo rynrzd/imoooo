@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
+import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -95,9 +95,9 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-        <DropdownMenuItem render={<Link href="/parametres" />}>
-          <Settings />
-          Paramètres
+        <DropdownMenuItem render={<Link href="/profil" />}>
+          <UserRound />
+          Profil
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

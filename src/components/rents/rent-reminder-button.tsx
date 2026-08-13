@@ -4,6 +4,7 @@ import * as React from "react";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FeatureGate } from "@/components/subscription/feature-gate";
 import { hasFeature } from "@/lib/stripe/entitlements";
 import { useAppStore } from "@/lib/store";
 import type { RentPayment } from "@/lib/types";
@@ -13,17 +14,30 @@ import type { RentPayment } from "@/lib/types";
  * au propriétaire). L'API répond 503 « provider_not_configured » tant
  * qu'aucun fournisseur e-mail n'est branché : l'erreur est affichée telle
  * quelle — jamais de succès simulé.
+ *
+ * Le bouton n'est JAMAIS rendu à un plan qui n'inclut pas la fonction : il
+ * s'affichait auparavant pour tout le monde et un utilisateur Gratuit ne
+ * récoltait qu'un message d'erreur au clic. `FeatureGate` met à la place la
+ * ligne d'upgrade discrète, comme partout ailleurs dans l'application. La
+ * contrainte dure reste côté serveur (403).
  */
 export function RentReminderButton({ payment }: { payment: RentPayment }) {
+  return (
+    <FeatureGate
+      feature="manual_reminders"
+      benefit="Relancez un locataire en retard par e-mail, en un clic."
+    >
+      <ReminderAction payment={payment} />
+    </FeatureGate>
+  );
+}
+
+function ReminderAction({ payment }: { payment: RentPayment }) {
   const { profile, isLive } = useAppStore();
   const [confirming, setConfirming] = React.useState(false);
   const [message, setMessage] = React.useState("");
   const [sending, setSending] = React.useState(false);
 
-  // Pré-contrôle d'affichage (le serveur reste l'autorité : 403 sinon).
-  const reminderCheck = isLive
-    ? hasFeature(profile?.plan, "manual_reminders")
-    : { allowed: true, reason: null };
   // Message personnalisé : plan Pro (sinon le serveur l'ignore).
   const canCustomize = !isLive || hasFeature(profile?.plan, "custom_email_templates").allowed;
 
@@ -60,13 +74,7 @@ export function RentReminderButton({ payment }: { payment: RentPayment }) {
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => {
-          if (!reminderCheck.allowed) {
-            toast.error(reminderCheck.reason ?? "Fonction non incluse dans votre plan.");
-            return;
-          }
-          setConfirming(true);
-        }}
+        onClick={() => setConfirming(true)}
       >
         <Send data-icon="inline-start" />
         Relancer le locataire par e-mail

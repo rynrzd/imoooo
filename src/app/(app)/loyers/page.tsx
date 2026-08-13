@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDownToLine, Wallet } from "lucide-react";
+import { ArrowDownToLine, Plus, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { CollectRentSheet } from "@/components/rents/collect-rent-sheet";
 import { RentList } from "@/components/rents/rent-list";
 import { RentTable } from "@/components/rents/rent-table";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -24,6 +25,7 @@ import { useAppStore } from "@/lib/store";
 export default function RentsPage() {
   const { data } = useAppStore();
   const [propertyFilter, setPropertyFilter] = React.useState<string>("tous");
+  const [collectOpen, setCollectOpen] = React.useState(false);
 
   const payments =
     propertyFilter === "tous"
@@ -37,6 +39,23 @@ export default function RentsPage() {
   return (
     <>
       <PageHeader title="Loyers">
+        {/* L'action principale de cet écran : encaisser. Elle ouvre la feuille
+            partagée, la même que depuis le tableau de bord. */}
+        {data.rentPayments.some((p) => p.received < p.expected) ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setCollectOpen(true)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-[0.625rem] bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity duration-200 hover:opacity-95"
+            >
+              <Plus className="size-4" aria-hidden />
+              Ajouter un encaissement
+            </button>
+            {collectOpen ? (
+              <CollectRentSheet open onOpenChange={setCollectOpen} />
+            ) : null}
+          </>
+        ) : null}
         {data.properties.length > 1 ? (
           <FilterSheet
             label="Logement"
@@ -60,8 +79,8 @@ export default function RentsPage() {
       {data.rentPayments.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title="Aucun loyer enregistré"
-          description="Les échéances apparaîtront dès qu'un bail sera actif sur un logement."
+          title="Aucune échéance pour l'instant."
+          description="Les loyers apparaîtront automatiquement, mois après mois, dès qu'un bail sera actif sur l'un de vos logements."
         />
       ) : (
         <>

@@ -1,4 +1,3 @@
-import { DEFAULT_PROPERTY_PHOTO } from "@/lib/constants";
 import type {
   Expense,
   Property,
@@ -139,7 +138,8 @@ export function mapProperty(row: PropertyRow, activeLeaseId: string | null): Pro
     type: row.type as Property["type"],
     surface: toNumber(row.surface),
     rooms: row.rooms,
-    photo: row.photo_url || DEFAULT_PROPERTY_PHOTO,
+    // Chaîne vide = aucune photo. On n'invente jamais une image à la place.
+    photo: row.photo_url ?? "",
     purchasePrice: toNumber(row.purchase_price),
     purchaseDate: row.purchase_date,
     rent: toNumber(row.rent),
@@ -218,9 +218,9 @@ export function mapPhoto(
   return {
     id: row.id,
     propertyId: row.property_id,
-    url: isExternal
-      ? row.file_path
-      : (signedUrls?.get(row.file_path) ?? DEFAULT_PROPERTY_PHOTO),
+    // URL signée absente (échec ponctuel) : mieux vaut aucune image qu'une
+    // image qui n'est pas celle du logement.
+    url: isExternal ? row.file_path : (signedUrls?.get(row.file_path) ?? ""),
     caption: row.caption,
     category: row.category as PropertyPhoto["category"],
     takenAt: row.taken_at,

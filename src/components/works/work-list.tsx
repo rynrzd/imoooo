@@ -33,8 +33,9 @@ const STATUS_PROGRESS: Record<WorkStatus, number> = {
 
 const STATUS_PROGRESS_CLASS: Record<WorkStatus, string> = {
   planifie: "bg-muted-foreground/50",
-  en_cours: "bg-blue-600",
-  termine: "bg-emerald-600",
+  // Jetons sémantiques : le bleu est l'action en cours, le vert la validation.
+  en_cours: "bg-primary",
+  termine: "bg-success",
 };
 
 const GROUPS: { status: WorkStatus; title: string }[] = [

@@ -72,8 +72,8 @@ function CurrentTenant({ property, tenant }: { property: Property; tenant: Tenan
                   variant="outline"
                   className={
                     problems === 0
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
-                      : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
+                      ? "border-transparent bg-success-soft text-success"
+                      : "border-transparent bg-warning-soft text-warning"
                   }
                 >
                   {problems === 0
@@ -114,7 +114,7 @@ function CurrentTenant({ property, tenant }: { property: Property; tenant: Tenan
             </Button>
             <Button
               size="sm"
-              render={<Link href={`/locataires/${tenant.id}`} />}
+              nativeButton={false} render={<Link href={`/locataires/${tenant.id}`} />}
             >
               Dossier complet
               <ArrowRight data-icon="inline-end" />

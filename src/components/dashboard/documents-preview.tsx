@@ -29,7 +29,7 @@ export function DocumentsPreview() {
       <CardHeader>
         <CardTitle className="text-sm font-medium">Documents</CardTitle>
         <CardAction>
-          <Button variant="ghost" size="sm" render={<Link href="/documents" />}>
+          <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/documents" />}>
             Bibliothèque
             <ArrowRight data-icon="inline-end" />
           </Button>
@@ -53,7 +53,7 @@ export function DocumentsPreview() {
                   </span>
                   <Badge
                     variant="outline"
-                    className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
+                    className="border-transparent bg-warning-soft text-warning"
                   >
                     Manquant
                   </Badge>

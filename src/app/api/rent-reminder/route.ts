@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { rentDaysLate } from "@/lib/dates";
 import { isEmailProviderConfigured, sendEmail } from "@/lib/email/provider";
 import { rentLateEmail } from "@/lib/email/templates";
 import { formatCurrency } from "@/lib/format";
@@ -123,10 +124,9 @@ export async function POST(request: Request) {
 
   const propertyName = payment.leases?.properties?.name ?? "votre logement";
   const remaining = Number(payment.expected) - Number(payment.received);
-  const daysLate = Math.max(
-    1,
-    Math.floor((Date.now() - new Date(`${payment.month.slice(0, 7)}-01`).getTime()) / 86_400_000)
-  );
+  // Même origine que le cron et que le statut `retard` : la fin du mois
+  // couvert. Le locataire lit un nombre de jours qu'il reconnaît.
+  const daysLate = Math.max(1, rentDaysLate(payment.month));
   // Message personnalisé : réservé au plan Pro (custom_email_templates).
   // Sans ce plan, il est ignoré — le modèle standard est envoyé.
   const canCustomize = await userHasFeature(supabase, user.id, "custom_email_templates");

@@ -1,63 +1,51 @@
 "use client";
 
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { toUserMessage } from "@/components/form/errors";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { FormField } from "@/components/shared/form-field";
-import { PropertySelectItems } from "@/components/shared/property-select";
+  DateField,
+  FileField,
+  MoreDetails,
+  SelectField,
+  TextField,
+} from "@/components/form/fields";
+import { SheetForm } from "@/components/form/sheet-form";
+import { SubmitButton } from "@/components/form/submit-button";
 import { DOCUMENT_CATEGORY_LABELS, toOptions } from "@/lib/labels";
 import { useAppStore } from "@/lib/store";
+import type { DocumentCategory } from "@/lib/types";
 
-const schema = z.object({
-  name: z.string().min(2, "Nom du document requis."),
-  propertyId: z.string().min(1, "Choisissez un logement."),
-  category: z.enum([
-    "bail",
-    "etat_des_lieux",
-    "assurance",
-    "diagnostics",
-    "factures",
-    "garanties",
-    "autres",
-  ]),
-});
-
-type FormValues = z.infer<typeof schema>;
+/**
+ * AJOUT D'UN DOCUMENT — dans l'ordre où l'on pense.
+ *
+ *   1. le logement concerné   4. le nom du document
+ *   2. le fichier             5. l'échéance, si elle a un sens
+ *   3. la catégorie
+ *
+ * Le fichier vient AVANT le nom parce qu'il le pré-remplit : demander le nom
+ * d'abord obligeait à le saisir, puis à le corriger. Les catégories sont celles
+ * de la base (`DOCUMENT_CATEGORY_LABELS`), aucune n'a été ajoutée ni retirée.
+ *
+ * Le fichier part réellement dans le bucket privé `property-documents`, sous
+ * `{owner}/{logement}/{uuid}.{ext}`, et n'est relu que par URL signée.
+ */
 
 interface AddDocumentDialogProps {
-  /** Pré-sélectionne un logement (fiche logement). */
+  /** Pré-sélectionne et verrouille le logement (fiche logement). */
   propertyId?: string;
   /** Fichier déjà choisi (glisser-déposer depuis la bibliothèque). */
   droppedFile?: File | null;
-  /** Mode contrôlé (ouverture pilotée par le parent). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Masque le bouton déclencheur (mode contrôlé). */
   showTrigger?: boolean;
 }
 
-/** Ajout d'un document : fichier envoyé dans le bucket privé + métadonnées. */
+/** Catégories pour lesquelles une date d'échéance a un sens réel. */
+const EXPIRING: DocumentCategory[] = ["assurance", "diagnostics", "garanties"];
+
 export function AddDocumentDialog({
   propertyId,
   droppedFile = null,
@@ -65,139 +53,190 @@ export function AddDocumentDialog({
   onOpenChange,
   showTrigger = true,
 }: AddDocumentDialogProps) {
-  const { addDocument, isLive } = useAppStore();
+  const { data, addDocument, isLive } = useAppStore();
+
   const [internalOpen, setInternalOpen] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (next: boolean) => {
     setInternalOpen(next);
     onOpenChange?.(next);
   };
-  const fileRef = React.useRef<HTMLInputElement>(null);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { propertyId: propertyId ?? "", category: "autres" },
-  });
+  const [target, setTarget] = React.useState(propertyId ?? "");
+  const [file, setFile] = React.useState<File | null>(droppedFile);
+  const [category, setCategory] = React.useState<DocumentCategory>("autres");
+  const [name, setName] = React.useState("");
+  const [expiresAt, setExpiresAt] = React.useState("");
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [busy, setBusy] = React.useState(false);
+  const [progress, setProgress] = React.useState<number | null>(null);
 
-  // Un fichier déposé pré-remplit le nom du document.
+  // Chaque ouverture repart d'un état propre. Différé d'un tick : aucun
+  // setState synchrone dans le corps de l'effet.
   React.useEffect(() => {
-    if (open && droppedFile) {
-      setValue("name", droppedFile.name.replace(/\.[^.]+$/, ""));
-    }
-  }, [open, droppedFile, setValue]);
-
-  // handleSubmit est appelé dans le gestionnaire d'événement (accès au ref autorisé).
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) =>
-    handleSubmit(async (values) => {
-    try {
-      const file = droppedFile ?? fileRef.current?.files?.[0];
-      await addDocument(values, file);
-      toast.success(
-        file ? "Document et fichier ajoutés." : "Document ajouté à la bibliothèque."
+    if (!open) return;
+    const id = window.setTimeout(() => {
+      setTarget(
+        propertyId ??
+          (data.properties.length === 1 ? data.properties[0].id : "")
       );
-      reset({ propertyId: propertyId ?? "", category: "autres", name: "" });
-      if (fileRef.current) fileRef.current.value = "";
+      setFile(droppedFile);
+      setCategory("autres");
+      setName(droppedFile ? droppedFile.name.replace(/\.[^.]+$/, "") : "");
+      setExpiresAt("");
+      setErrors({});
+      setProgress(null);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [open, propertyId, droppedFile, data.properties]);
+
+  const submit = async () => {
+    if (busy) return;
+    const next: Record<string, string> = {};
+    if (!target) next.target = "Choisissez le logement concerné.";
+    if (name.trim().length < 2) next.name = "Donnez un nom à ce document.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setBusy(true);
+    if (file) setProgress(8);
+    const ticker = file
+      ? window.setInterval(() => {
+          setProgress((p) => (p === null ? null : Math.min(90, p + 7)));
+        }, 220)
+      : null;
+    try {
+      await addDocument(
+        {
+          propertyId: target,
+          name: name.trim(),
+          category,
+          // Uniquement pour les catégories qui expirent réellement.
+          expiresAt: EXPIRING.includes(category) ? expiresAt || null : null,
+        },
+        file ?? undefined
+      );
+      if (file) setProgress(100);
+      toast.success(
+        file ? "Document importé." : "Document ajouté à la bibliothèque."
+      );
       setOpen(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ajout impossible.");
+      // L'import a échoué : le fichier choisi RESTE sélectionné, l'utilisateur
+      // n'a qu'à réessayer sans tout ressaisir.
+      toast.error(toUserMessage(e, "Ajout impossible."));
+      setProgress(null);
+    } finally {
+      if (ticker) window.clearInterval(ticker);
+      setBusy(false);
     }
-    })(event);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       {showTrigger ? (
-        <DialogTrigger render={<Button />}>
+        <Button onClick={() => setOpen(true)}>
           <Plus data-icon="inline-start" />
           Ajouter un document
-        </DialogTrigger>
+        </Button>
       ) : null}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Nouveau document</DialogTitle>
-          <DialogDescription>
-            {isLive
-              ? "Le fichier est stocké de façon privée : vous seul pouvez y accéder."
-              : "Mode démo : le fichier n'est pas conservé, seules les métadonnées le sont."}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField label="Nom du document" htmlFor="doc-name" error={errors.name?.message}>
-            <Input id="doc-name" placeholder="Bail de location — ..." {...register("name")} />
-          </FormField>
 
-          {!propertyId ? (
-            <FormField label="Logement" htmlFor="doc-property" error={errors.propertyId?.message}>
-              <Controller
-                control={control}
-                name="propertyId"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="doc-property" className="w-full">
-                      <SelectValue placeholder="Choisir un logement" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <PropertySelectItems />
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </FormField>
-          ) : null}
-
-          <FormField label="Catégorie" htmlFor="doc-category" error={errors.category?.message}>
-            <Controller
-              control={control}
-              name="category"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="doc-category" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {toOptions(DOCUMENT_CATEGORY_LABELS).map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+      <SheetForm
+        open={open}
+        onOpenChange={(next) => {
+          if (!busy) setOpen(next);
+        }}
+        title="Nouveau document"
+        description={
+          isLive
+            ? "Le fichier est stocké de façon privée : vous seul pouvez y accéder."
+            : "Mode démo : le fichier n'est pas conservé, seules les métadonnées le sont."
+        }
+        actions={
+          <>
+            <SubmitButton
+              type="button"
+              pending={busy}
+              pendingLabel={file ? "Import…" : "Ajout…"}
+              onClick={() => void submit()}
+            >
+              Ajouter
+            </SubmitButton>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={busy}
+              className="mx-auto block min-h-11 px-3 text-sm font-medium text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              Annuler
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          {propertyId ? null : (
+            <SelectField
+              id="doc-property"
+              label="Logement concerné"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Choisir un logement"
+              options={data.properties.map((p) => ({
+                value: p.id,
+                label: p.name,
+              }))}
+              error={errors.target}
             />
-          </FormField>
-
-          {droppedFile ? (
-            <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-              Fichier sélectionné :{" "}
-              <span className="font-medium text-foreground">{droppedFile.name}</span>
-            </p>
-          ) : (
-            <FormField label="Fichier (optionnel)" htmlFor="doc-file">
-              <Input
-                id="doc-file"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.docx"
-                ref={fileRef}
-              />
-            </FormField>
           )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Ajout…" : "Ajouter"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <FileField
+            id="doc-file"
+            label="Fichier"
+            optional
+            file={file}
+            onFile={(next) => {
+              setFile(next);
+              if (next && !name.trim()) {
+                setName(next.name.replace(/\.[^.]+$/, ""));
+              }
+            }}
+            progress={progress}
+            hint="Sans fichier, seule la fiche du document est créée."
+          />
+
+          <SelectField
+            id="doc-category"
+            label="Catégorie"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+            options={toOptions(DOCUMENT_CATEGORY_LABELS)}
+          />
+
+          <TextField
+            id="doc-name"
+            label="Nom du document"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Bail de location"
+            error={errors.name}
+          />
+
+          {/* L'échéance n'est proposée que là où elle veut dire quelque chose :
+              une assurance expire, un bail signé non. */}
+          {EXPIRING.includes(category) ? (
+            <MoreDetails label="Ajouter une échéance">
+              <DateField
+                id="doc-expires"
+                label="Expire le"
+                optional
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                hint="Nireo vous préviendra 30 jours avant."
+              />
+            </MoreDetails>
+          ) : null}
+        </div>
+      </SheetForm>
+    </>
   );
 }

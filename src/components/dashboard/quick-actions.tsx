@@ -16,11 +16,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddDocumentDialog } from "@/components/documents/add-document-dialog";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { AddPhotoDialog } from "@/components/photos/add-photo-dialog";
-import { PropertyWizard } from "@/components/properties/property-wizard";
 import { AddTenantDialog } from "@/components/tenants/add-tenant-dialog";
 import { AddWorkDialog } from "@/components/works/add-work-dialog";
 
-type DialogKind = "property" | "tenant" | "expense" | "document" | "photo" | "work";
+type DialogKind = "tenant" | "expense" | "document" | "photo" | "work";
 
 interface QuickAction {
   title: string;
@@ -37,7 +36,8 @@ const ACTIONS: QuickAction[] = [
     title: "Nouveau logement",
     description: "Étendre votre patrimoine",
     icon: Building2,
-    dialog: "property",
+    // Parcours en trois étapes sur sa propre page, jamais une modale.
+    href: "/logements/nouveau",
   },
   {
     title: "Nouveau locataire",
@@ -131,9 +131,6 @@ export function QuickActions() {
 
       {/* Dialogues contrôlés, montés uniquement à l'ouverture (aucun
           formulaire initialisé à vide en arrière-plan). */}
-      {dialog === "property" ? (
-        <PropertyWizard showTrigger={false} open onOpenChange={close} />
-      ) : null}
       {dialog === "tenant" ? (
         <AddTenantDialog showTrigger={false} open onOpenChange={close} />
       ) : null}

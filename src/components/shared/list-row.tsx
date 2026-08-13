@@ -21,11 +21,12 @@ import { cn } from "@/lib/utils";
 
 export type ListRowTone = "default" | "positive" | "warning" | "danger";
 
+/* Jetons sémantiques : le vert valide, l'ambre attend, le rouge alerte. */
 const TONES: Record<ListRowTone, string> = {
   default: "text-muted-foreground",
-  positive: "text-emerald-700 dark:text-emerald-400",
-  warning: "text-amber-700 dark:text-amber-400",
-  danger: "text-red-700 dark:text-red-400",
+  positive: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
 };
 
 export interface ListRowProps {

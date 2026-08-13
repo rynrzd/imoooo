@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Building2,
   Hammer,
   LayoutGrid,
   List,
   Percent,
+  Plus,
   Search,
   SlidersHorizontal,
   Wallet,
@@ -33,7 +35,6 @@ import {
   type PropertyEntry,
 } from "@/components/properties/property-card";
 import { PropertyTable } from "@/components/properties/property-table";
-import { PropertyWizard } from "@/components/properties/property-wizard";
 import { currentMonthKey } from "@/lib/dates";
 import {
   getLastPaymentDate,
@@ -44,10 +45,22 @@ import {
 import { getAverageGrossYield, getPortfolioValue } from "@/lib/insights";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { PROPERTY_STATUS_LABELS, toOptions } from "@/lib/labels";
+import { PROPERTY_TYPES } from "@/lib/property-types";
 import { useAppStore } from "@/lib/store";
 import type { PropertyStatus, PropertyType } from "@/lib/types";
 
-const PROPERTY_TYPES: PropertyType[] = ["Studio", "T1", "T2", "T3", "T4", "T5", "Maison"];
+/** Accès au parcours de création — un lien, pas une modale. */
+function NewPropertyLink() {
+  return (
+    <Link
+      href="/logements/nouveau"
+      className="inline-flex min-h-11 items-center gap-2 rounded-[0.625rem] bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity duration-200 hover:opacity-95"
+    >
+      <Plus className="size-4" aria-hidden />
+      Ajouter un logement
+    </Link>
+  );
+}
 
 const YIELD_OPTIONS = [
   { value: "0", label: "Toutes rentabilités" },
@@ -189,7 +202,7 @@ export default function PropertiesPage() {
           </div>
           <ImportPropertiesDialog />
         </div>
-        <PropertyWizard />
+        <NewPropertyLink />
       </PageHeader>
 
       {data.properties.length > 0 ? (
@@ -264,29 +277,27 @@ export default function PropertiesPage() {
       ) : null}
 
       {data.properties.length === 0 ? (
-        <div className="animate-panel-in flex flex-col items-center justify-center gap-5 rounded-xl border border-dashed border-border bg-card/50 px-6 py-20 text-center">
-          <div className="relative" aria-hidden>
-            <span className="flex size-16 items-center justify-center rounded-2xl border border-border bg-background shadow-xs">
-              <Building2 className="size-7 text-muted-foreground" />
-            </span>
-            <span className="absolute -right-3 -bottom-2 flex size-8 items-center justify-center rounded-xl border border-border bg-background shadow-xs">
-              <Wallet className="size-3.5 text-muted-foreground" />
-            </span>
-          </div>
-          <div className="space-y-1.5">
-            <p className="text-base font-semibold text-foreground">
-              Construisez votre patrimoine
-            </p>
-            <p className="mx-auto max-w-md text-sm text-muted-foreground">
-              Ajoutez votre premier logement : photos, documents, finances et
-              locataire — tout son dossier sera créé en quelques étapes.
+        // État vide : ce qu'il faut faire, et ce que Nireo fera ensuite.
+        <section className="animate-panel-in space-y-6 py-6">
+          <span
+            aria-hidden
+            className="grid size-12 place-items-center rounded-xl bg-primary-soft text-primary"
+          >
+            <Building2 className="size-6" />
+          </span>
+          <div className="space-y-2">
+            <h2 className="text-2xl leading-tight font-semibold tracking-[-0.03em] text-foreground">
+              Ajoutez votre premier logement.
+            </h2>
+            <p className="max-w-md text-[0.95rem] leading-relaxed text-muted-foreground">
+              Nireo organisera ensuite sa location, ses documents et ses dépenses.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <PropertyWizard />
+          <div className="flex flex-wrap items-center gap-3">
+            <NewPropertyLink />
             <ImportPropertiesDialog />
           </div>
-        </div>
+        </section>
       ) : (
         <>
           {/* Synthèse du portefeuille */}

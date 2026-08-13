@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -15,13 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PropertyStatusBadge, RentStatusBadge } from "@/components/shared/status-badge";
-import { needsUnoptimized } from "@/lib/constants";
 import type { PropertyFinancials } from "@/lib/finance";
 import { formatCurrency, formatDate, formatPercent, formatSurface } from "@/lib/format";
 import { RENT_STATUS_LABELS } from "@/lib/labels";
 import type { Property, RentPayment, Tenant } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { PropertyActions } from "./property-actions";
+import { PropertyThumb } from "./property-thumb";
 
 /** Données pré-calculées d'un logement (partagées carte / vue liste). */
 export interface PropertyEntry {
@@ -64,18 +63,23 @@ export function PropertyCard({ entry }: PropertyCardProps) {
           aria-label={`Ouvrir le dossier — ${property.name}`}
           className="absolute inset-0"
         >
-          <Image
+          {/* L'emplacement occupe la même place avec ou sans photo :
+              c'est le conteneur qui porte les dimensions. */}
+          <PropertyThumb
             src={property.photo}
             alt={`Photo — ${property.name}`}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            unoptimized={needsUnoptimized(property.photo)}
-            className="object-cover transition-transform duration-300 hover:scale-[1.03]"
+            className="size-full"
+            label="Aucune photo"
           />
-          <div
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/45 to-transparent"
-          />
+          {/* Le dégradé n'a de sens que sous une vraie photo : sur le
+              placeholder il assombrirait une surface déjà calme. */}
+          {property.photo ? (
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/45 to-transparent"
+            />
+          ) : null}
         </Link>
         <div className="pointer-events-none absolute top-3 left-3">
           <PropertyStatusBadge status={property.status} />
@@ -83,7 +87,14 @@ export function PropertyCard({ entry }: PropertyCardProps) {
         <div className="absolute top-2 right-2">
           <PropertyActions property={property} variant="overlay" />
         </div>
-        <p className="pointer-events-none absolute bottom-2.5 left-3 text-xs font-medium text-white/95">
+        {/* Sur une photo, le texte est blanc sur dégradé ; sur le placeholder
+            clair, il repasse à l'encre — sinon il deviendrait invisible. */}
+        <p
+          className={cn(
+            "pointer-events-none absolute bottom-2.5 left-3 text-xs font-medium",
+            property.photo ? "text-white/95" : "text-muted-foreground"
+          )}
+        >
           Rentabilité brute {formatPercent(financials.grossYield)}
         </p>
       </div>
@@ -138,8 +149,8 @@ export function PropertyCard({ entry }: PropertyCardProps) {
               className={cn(
                 "font-medium tabular-nums",
                 financials.net >= 0
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-red-700 dark:text-red-400"
+                  ? "text-success"
+                  : "text-danger"
               )}
             >
               {formatCurrency(financials.net)}
@@ -180,7 +191,7 @@ export function PropertyCard({ entry }: PropertyCardProps) {
             variant="outline"
             size="sm"
             className="w-full"
-            render={<Link href={`/logements/${property.id}`} />}
+            nativeButton={false} render={<Link href={`/logements/${property.id}`} />}
           >
             Ouvrir le dossier
             <ArrowRight data-icon="inline-end" />

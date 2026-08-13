@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Check, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { todayISO } from "@/lib/dates";
 import { formatCurrency, formatMonth } from "@/lib/format";
 import { trackFunnel } from "@/lib/funnel";
 import { logger } from "@/lib/logger";
-import { ONBOARDING_TOTAL_STEPS } from "@/lib/onboarding";
+import { ONBOARDING_EVENT, ONBOARDING_TOTAL_STEPS } from "@/lib/onboarding";
 import { useAppStore } from "@/lib/store";
 import type { Property, PropertyType } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,7 @@ import { cn } from "@/lib/utils";
  *
  * Fermeture : « Je terminerai plus tard » enregistre l'étape et marque le
  * guide comme ignoré — il ne se rouvre plus tout seul. Le relais est pris par
- * la checklist discrète du tableau de bord, et par Paramètres → Aide.
+ * la checklist discrète du tableau de bord, et par Profil → Guide de démarrage.
  */
 
 /* ------------------------------------------------------------------ */
@@ -184,6 +184,7 @@ export function OnboardingFlow() {
   const { data, profile, loading, addProperty, updateProperty, addTenant, addDocument, refresh, completeOnboarding, skipOnboarding, saveOnboardingStep } =
     useAppStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState(WELCOME);
@@ -212,6 +213,9 @@ export function OnboardingFlow() {
     if (profile.onboardingCompleted || profile.onboardingSkipped) return;
     // Un espace déjà rempli n'a pas besoin d'un guide de premier logement.
     if (data.properties.length > 0) return;
+    // L'utilisateur est DÉJÀ en train de créer son logement : lui poser le
+    // guide par-dessus son formulaire lui ferait perdre sa saisie.
+    if (pathname === "/logements/nouveau") return;
     autoOpened.current = true;
     const resume = Math.min(Math.max(profile.onboardingCurrentStep ?? 0, 0), STEP_SUMMARY);
     // Différé d'un tick : aucun setState synchrone dans le corps de l'effet
@@ -221,9 +225,9 @@ export function OnboardingFlow() {
       setOpen(true);
     }, 80);
     return () => window.clearTimeout(id);
-  }, [loading, profile, data.properties.length]);
+  }, [loading, profile, data.properties.length, pathname]);
 
-  // Relance manuelle : Paramètres → Aide, ou la checklist du tableau de bord.
+  // Relance manuelle : Profil → Guide de démarrage, ou la checklist du tableau de bord.
   React.useEffect(() => {
     const relaunch = () => {
       autoOpened.current = true;
@@ -232,17 +236,17 @@ export function OnboardingFlow() {
       setStep(data.properties.length === 0 ? WELCOME : saved);
       setOpen(true);
     };
-    window.addEventListener("immopilot:onboarding", relaunch);
-    return () => window.removeEventListener("immopilot:onboarding", relaunch);
+    window.addEventListener(ONBOARDING_EVENT, relaunch);
+    return () => window.removeEventListener(ONBOARDING_EVENT, relaunch);
   }, [profile, data.properties.length]);
 
   /* ---------------- Mesure du tunnel ---------------- */
 
   /**
-   * Le guide crée le premier logement SANS passer par `PropertyWizard` :
+   * Le guide crée le premier logement SANS passer par `/logements/nouveau` :
    * sans ces deux appels, les deux dernières étapes du tunnel resteraient
    * vides pour le chemin le plus fréquent d'un nouveau compte. `trackFunnel`
-   * dédoublonne, donc rien n'est compté deux fois si l'assistant complet est
+   * dédoublonne, donc rien n'est compté deux fois si le parcours complet est
    * ouvert ensuite.
    */
   const planLabel: PlanId =
@@ -1064,7 +1068,7 @@ function SummaryScreen({
             <dd className="flex min-w-0 items-center gap-2 text-right text-sm font-medium text-foreground">
               <span className="truncate">{row.value}</span>
               {row.done ? (
-                <Check className="size-4 shrink-0 text-emerald-600" aria-hidden />
+                <Check className="size-4 shrink-0 text-success" aria-hidden />
               ) : null}
             </dd>
           </div>

@@ -52,7 +52,7 @@ function buildEntries(data: AppData): TodayEntry[] {
     entries.push({
       id: `work-${work.id}`,
       icon: Hammer,
-      iconClass: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+      iconClass: "bg-primary-soft text-primary",
       label: `${work.status === "en_cours" ? "Chantier en cours" : "Intervention prévue"} — ${propertyName(work.propertyId)}`,
       detail: `${work.title} · ${formatDate(work.date)}`,
       href: "/travaux",
@@ -67,8 +67,8 @@ function buildEntries(data: AppData): TodayEntry[] {
       id: `doc-${document.id}`,
       icon: FileWarning,
       iconClass: expired
-        ? "bg-red-500/10 text-red-700 dark:text-red-400"
-        : "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+        ? "bg-danger-soft text-danger"
+        : "bg-warning-soft text-warning",
       label: `${document.name} — ${expired ? "expiré" : "expire bientôt"}`,
       detail: `${propertyName(document.propertyId)} · ${formatDate(document.expiresAt)}`,
       href: "/documents",

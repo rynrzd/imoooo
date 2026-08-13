@@ -1,12 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { CalendarClock, MapPin, Percent, PiggyBank, UserRound, Wallet } from "lucide-react";
 import { StatCard } from "@/components/shared/stat-card";
 import { PropertyStatusBadge } from "@/components/shared/status-badge";
 import { RecordPaymentDialog } from "@/components/rents/record-payment-dialog";
-import { needsUnoptimized } from "@/lib/constants";
 import {
   getPropertyFinancials,
   getPropertyPayments,
@@ -18,6 +16,7 @@ import { useAppStore } from "@/lib/store";
 import type { Property } from "@/lib/types";
 import { EditPropertySheet } from "./edit-property-sheet";
 import { PropertyActions } from "./property-actions";
+import { PropertyThumb } from "./property-thumb";
 
 interface PropertyHeaderProps {
   property: Property;
@@ -43,17 +42,16 @@ export function PropertyHeader({ property }: PropertyHeaderProps) {
           photographie n'est qu'un bandeau, et l'identité se lit sur le fond
           de la carte. Aucune information n'a été retirée. */}
       <div className="overflow-hidden rounded-xl border border-border bg-card lg:hidden">
-        <div className="relative h-28 bg-muted">
-          <Image
-            src={property.photo}
-            alt={`Photo — ${property.name}`}
-            fill
-            priority
-            sizes="100vw"
-            unoptimized={needsUnoptimized(property.photo)}
-            className="object-cover"
-          />
-        </div>
+        {/* Le bandeau existe TOUJOURS, avec ou sans photo : sa hauteur ne
+            change pas, donc rien ne saute au chargement. */}
+        <PropertyThumb
+          src={property.photo}
+          alt={`Photo — ${property.name}`}
+          sizes="100vw"
+          priority
+          className="block h-28 w-full"
+          label="Aucune photo pour ce logement"
+        />
         <div className="space-y-2 p-4">
           <PropertyStatusBadge status={property.status} />
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -89,17 +87,20 @@ export function PropertyHeader({ property }: PropertyHeaderProps) {
         </div>
       </div>
 
-      {/* ---------------- BUREAU : la bannière d'origine ---------------- */}
+      {/* ---------------- BUREAU ----------------
+          UNE seule mise en page, avec ou sans photo. Sans photo, l'emplacement
+          reçoit le placeholder BLEU NUIT : le titre blanc et le dégradé
+          restent lisibles, la bannière garde exactement sa hauteur, et aucune
+          image d'emprunt n'apparaît. */}
       <div className="relative overflow-hidden rounded-xl border border-border bg-muted max-lg:hidden">
         <div className="relative aspect-[3/1] min-h-52">
-          <Image
+          <PropertyThumb
             src={property.photo}
             alt=""
-            fill
-            priority
             sizes="(max-width: 1152px) 100vw, 1152px"
-            unoptimized={needsUnoptimized(property.photo)}
-            className="object-cover"
+            priority
+            tone="deep"
+            className="size-full"
           />
           <div
             aria-hidden

@@ -11,7 +11,7 @@ import {
   LifeBuoy,
   Receipt,
   ScrollText,
-  Settings,
+  UserRound,
   Users,
   Wallet,
   type LucideIcon,
@@ -83,9 +83,15 @@ export const SIDEBAR_SECTIONS: NavSection[] = NAV_SECTIONS.map((section) =>
 /** Liste à plat (recherches, menu mobile…). */
 export const MAIN_NAV: NavItem[] = SIDEBAR_SECTIONS.flatMap((s) => s.items);
 
-/** Navigation secondaire (compte). */
+/**
+ * Navigation secondaire (compte).
+ *
+ * « Paramètres » a disparu de toute la navigation : ses sept onglets sont
+ * devenus les sous-pages de Profil. La route `/parametres` existe encore mais
+ * ne fait plus que rediriger — les anciens liens et favoris restent valides.
+ */
 export const ACCOUNT_NAV: NavItem[] = [
-  { title: "Paramètres", href: "/parametres", icon: Settings },
+  { title: "Profil", href: "/profil", icon: UserRound },
   { title: "Abonnement", href: "/abonnement", icon: CreditCard },
 ];
 
@@ -118,8 +124,11 @@ export const BOTTOM_NAV: NavItem[] = [
 export const MORE_ICON = Ellipsis;
 
 /**
- * Tout le reste, dans la feuille « Plus ». L'ordre suit la fréquence d'usage
- * réelle : le quotidien d'abord, le compte ensuite.
+ * Tout le reste, dans la feuille « Plus » — les modules secondaires, dans
+ * l'ordre d'usage réel : le quotidien d'abord, le compte ensuite.
+ *
+ * « Paramètres » n'y figure plus : tout ce qu'il contenait vit désormais dans
+ * Profil et ses sous-pages.
  */
 export const MORE_NAV: NavSection[] = [
   {
@@ -142,9 +151,21 @@ export const MORE_NAV: NavSection[] = [
   {
     label: "Compte",
     items: [
-      { title: "Abonnement", href: "/abonnement", icon: CreditCard },
-      { title: "Paramètres", href: "/parametres", icon: Settings },
-      { title: "Aide", href: "/parametres?onglet=aide", icon: LifeBuoy },
+      { title: "Profil", href: "/profil", icon: UserRound },
+      { title: "Aide et contact", href: "/profil/aide", icon: LifeBuoy },
     ],
   },
+];
+
+/**
+ * Garde-fou de couverture : toute destination du téléphone est atteignable
+ * depuis la barre inférieure OU la feuille « Plus ». Si une route applicative
+ * n'apparaît nulle part, elle est injoignable au doigt — ce test le dit.
+ *
+ * Exporté pour être vérifiable, et lu par personne d'autre : c'est une
+ * assertion sur la configuration, pas un composant.
+ */
+export const MOBILE_REACHABLE_HREFS: string[] = [
+  ...BOTTOM_NAV.map((i) => i.href),
+  ...MORE_NAV.flatMap((s) => s.items.map((i) => i.href)),
 ];

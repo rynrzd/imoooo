@@ -124,7 +124,7 @@ export function EditWorkDialog({ work }: { work: Work }) {
       >
         <Pencil />
       </DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="nireo-form max-h-[90svh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Modifier le chantier</DialogTitle>
           <DialogDescription>

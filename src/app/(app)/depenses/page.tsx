@@ -41,9 +41,11 @@ export default function ExpensesPage() {
       {data.expenses.length === 0 ? (
         <EmptyState
           icon={Receipt}
-          title="Aucune dépense enregistrée"
-          description="Taxe foncière, assurance, travaux, honoraires : chaque dépense saisie alimente vos statistiques et votre cash-flow."
-        />
+          title="Aucune dépense enregistrée."
+          description="Votre résultat se précisera dès votre première dépense : taxe foncière, assurance, travaux, honoraires."
+        >
+          <AddExpenseDialog />
+        </EmptyState>
       ) : (
         <>
           <div className="flex items-center justify-between gap-3">

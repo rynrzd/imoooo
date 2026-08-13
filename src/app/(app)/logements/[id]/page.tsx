@@ -84,7 +84,7 @@ export default function PropertyDetailPage({
   return (
     <>
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" render={<Link href="/logements" />}>
+        <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/logements" />}>
           <ArrowLeft data-icon="inline-start" />
           Retour aux logements
         </Button>

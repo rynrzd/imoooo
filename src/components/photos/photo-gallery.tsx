@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PaginationBar, usePagination } from "@/components/shared/pagination-bar";
+import { PropertyThumb } from "@/components/properties/property-thumb";
 import { needsUnoptimized } from "@/lib/constants";
 import { getProperty } from "@/lib/finance";
 import { formatDate } from "@/lib/format";
@@ -242,13 +243,16 @@ export function PhotoGallery({
                   }
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                    <Image
+                    {/* `missing` : la photo EXISTE en base, mais son URL
+                        signée n'a pas pu être obtenue — ce n'est pas la même
+                        chose qu'un logement sans photo, et on le dit. */}
+                    <PropertyThumb
                       src={photo.url}
                       alt={photo.caption}
-                      fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                      unoptimized={needsUnoptimized(photo.url)}
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="size-full"
+                      missing
+                      label="Image indisponible"
                     />
                     <Badge
                       variant="secondary"
@@ -333,17 +337,25 @@ export function PhotoGallery({
                 )}
                 onClick={() => setZoomed((z) => !z)}
               >
-                <Image
-                  src={current.url}
-                  alt={current.caption}
-                  fill
-                  sizes="96vw"
-                  unoptimized={needsUnoptimized(current.url)}
-                  className={cn(
-                    "object-contain transition-transform duration-300",
-                    zoomed && "scale-[1.8]"
-                  )}
-                />
+                {current.url ? (
+                  <Image
+                    src={current.url}
+                    alt={current.caption}
+                    fill
+                    sizes="96vw"
+                    unoptimized={needsUnoptimized(current.url)}
+                    className={cn(
+                      "object-contain transition-transform duration-300",
+                      zoomed && "scale-[1.8]"
+                    )}
+                  />
+                ) : (
+                  // Visionneuse : le fond est déjà noir, le placeholder Nireo
+                  // y serait invisible — un simple message suffit.
+                  <span className="grid size-full place-items-center text-sm text-white/70">
+                    Image indisponible
+                  </span>
+                )}
                 {pageItems.length > 1 ? (
                   <>
                     <Button
@@ -443,13 +455,13 @@ export function PhotoGallery({
             {comparePhotos.map((photo) => (
               <figure key={photo.id} className="space-y-2">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted">
-                  <Image
+                  <PropertyThumb
                     src={photo.url}
                     alt={photo.caption}
-                    fill
                     sizes="(max-width: 640px) 96vw, 48vw"
-                    unoptimized={needsUnoptimized(photo.url)}
-                    className="object-cover"
+                    className="size-full"
+                    missing
+                    label="Image indisponible"
                   />
                   <Badge
                     variant="secondary"

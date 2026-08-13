@@ -173,7 +173,7 @@ export function ImportPropertiesDialog() {
         <FileUp data-icon="inline-start" />
         Importer
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="nireo-form sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Importer des logements</DialogTitle>
           <DialogDescription>

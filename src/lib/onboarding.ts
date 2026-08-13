@@ -23,6 +23,13 @@ export const ONBOARDING_TOTAL_STEPS = 5;
  */
 export const ONBOARDING_VERSION = 2;
 
+/**
+ * Événement de relance du guide. Il était écrit en dur (« immopilot:onboarding »)
+ * dans trois fichiers : une faute de frappe dans l'un d'eux et le bouton ne
+ * faisait plus rien, sans la moindre erreur. Une constante, un seul nom.
+ */
+export const ONBOARDING_EVENT = "nireo:onboarding";
+
 /** Actions de persistance acceptées par POST /api/onboarding. */
 export type OnboardingAction = "step" | "skip" | "complete";
 

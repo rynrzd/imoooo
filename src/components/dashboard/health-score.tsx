@@ -8,10 +8,10 @@ interface HealthScoreProps {
 }
 
 const SCORE_TONE: Record<HealthReport["label"], string> = {
-  Excellent: "text-emerald-700 dark:text-emerald-400",
-  Bon: "text-emerald-700 dark:text-emerald-400",
-  "À surveiller": "text-amber-700 dark:text-amber-400",
-  Fragile: "text-red-700 dark:text-red-400",
+  Excellent: "text-success",
+  Bon: "text-success",
+  "À surveiller": "text-warning",
+  Fragile: "text-danger",
 };
 
 /** Bloc « Santé du patrimoine » : score global et facteurs explicites. */
@@ -37,12 +37,12 @@ export function HealthScore({ report }: HealthScoreProps) {
             <li key={factor.id} className="flex items-center gap-2 text-sm">
               {factor.ok ? (
                 <CheckCircle2
-                  className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                  className="size-4 shrink-0 text-success"
                   aria-hidden
                 />
               ) : (
                 <CircleAlert
-                  className="size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                  className="size-4 shrink-0 text-warning"
                   aria-hidden
                 />
               )}

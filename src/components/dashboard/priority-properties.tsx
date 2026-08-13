@@ -1,12 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PropertyStatusBadge } from "@/components/shared/status-badge";
-import { needsUnoptimized } from "@/lib/constants";
+import { PropertyThumb } from "@/components/properties/property-thumb";
 import { getPropertyFinancials } from "@/lib/finance";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 import type { PriorityProperty } from "@/lib/insights";
@@ -37,13 +36,11 @@ export function PriorityProperties({ entries }: PriorityPropertiesProps) {
           return (
             <Card key={property.id} className="card-lift gap-0 overflow-hidden py-0">
               <div className="relative h-32 overflow-hidden bg-muted">
-                <Image
+                <PropertyThumb
                   src={property.photo}
                   alt={`Photo — ${property.name}`}
-                  fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                  unoptimized={needsUnoptimized(property.photo)}
-                  className="object-cover"
+                  className="size-full"
                 />
                 <div className="absolute top-2.5 left-2.5">
                   <PropertyStatusBadge status={property.status} />
@@ -60,7 +57,7 @@ export function PriorityProperties({ entries }: PriorityPropertiesProps) {
                   </p>
                 </div>
 
-                <p className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+                <p className="flex items-center gap-1.5 rounded-lg bg-warning-soft px-2.5 py-1.5 text-xs font-medium text-warning">
                   <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
                   {alert}
                 </p>
@@ -91,7 +88,7 @@ export function PriorityProperties({ entries }: PriorityPropertiesProps) {
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    render={<Link href={`/logements/${property.id}`} />}
+                    nativeButton={false} render={<Link href={`/logements/${property.id}`} />}
                   >
                     Ouvrir le dossier
                     <ArrowRight data-icon="inline-end" />

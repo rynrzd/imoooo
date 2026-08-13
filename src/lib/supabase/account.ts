@@ -123,7 +123,8 @@ export async function requestEmailChange(
     { email: newEmail },
     // NEXT_PUBLIC_SITE_URL : les liens des e-mails pointent toujours vers
     // l'URL canonique du site (obligatoire en production).
-    { emailRedirectTo: `${SITE_URL}/auth/callback?next=/parametres` }
+    // Le lien de confirmation ramène là où le changement a été demandé.
+    { emailRedirectTo: `${SITE_URL}/auth/callback?next=/profil/informations` }
   );
   if (error) {
     throw new Error(

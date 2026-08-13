@@ -15,7 +15,6 @@ import { seedData } from "./data";
 import { todayISO } from "./dates";
 import { ONBOARDING_TOTAL_STEPS, type OnboardingAction } from "./onboarding";
 import { tenantFullName } from "./finance";
-import { DEFAULT_PROPERTY_PHOTO } from "./constants";
 import { createClient } from "./supabase/client";
 import { isSupabaseConfigured } from "./supabase/config";
 import { fetchAppData, type UserProfile } from "./supabase/queries";
@@ -32,6 +31,7 @@ import {
   insertExpense,
   insertPhoto,
   insertProperty,
+  insertLeaseForTenant,
   insertTenantWithLease,
   insertWork,
   recordPayment,
@@ -43,6 +43,7 @@ import {
   updateTenantLease,
   updateWorkRow,
   type DocumentUpdateInput,
+  type ExistingTenantLeaseInput,
   type ExpenseInput,
   type PaymentUpdateInput,
   type ProfileInput,
@@ -88,6 +89,13 @@ interface AppStore {
   error: string | null;
   /** true si les données viennent de Supabase (mode production). */
   isLive: boolean;
+  /**
+   * Identifiant de l'utilisateur authentifié (null tant que la session n'est
+   * pas résolue). Sert UNIQUEMENT à isoler des données locales par compte
+   * (brouillons de formulaire) : aucune écriture serveur ne s'y fie — les
+   * mutations lisent toujours la session côté Supabase, jamais le navigateur.
+   */
+  userId: string | null;
   profile: (UserProfile & { email: string }) | null;
   refresh: () => Promise<void>;
   /** Met à jour le profil (nom, téléphone, entreprise) et le persiste en base. */
@@ -105,13 +113,27 @@ interface AppStore {
   updateProperty: (propertyId: string, input: PropertyInput) => Promise<void>;
   deleteProperty: (propertyId: string) => Promise<void>;
   addTenant: (input: TenantInput) => Promise<void>;
+  /**
+   * Nouveau bail pour une personne DÉJÀ enregistrée (elle change de logement,
+   * ou revient) — aucune fiche locataire dupliquée.
+   */
+  addLeaseForExistingTenant: (input: ExistingTenantLeaseInput) => Promise<void>;
   /** Met à jour un locataire et son bail. */
   updateTenant: (tenantId: string, input: TenantUpdateInput) => Promise<void>;
   /** Résilie un bail : date de sortie + logement vacant. */
   endLease: (tenantId: string, exitDate: string) => Promise<void>;
   /** Supprime un bail et ses échéances. */
   deleteTenant: (tenantId: string) => Promise<void>;
-  markRentPaid: (paymentId: string, amount: number) => Promise<void>;
+  /**
+   * Encaissement d'une échéance. `paidAt` permet de saisir la date RÉELLE de
+   * réception (un virement du 3 saisi le 8 reste daté du 3) ; `comment` la note
+   * facultative. Sans eux, le comportement historique est conservé.
+   */
+  markRentPaid: (
+    paymentId: string,
+    amount: number,
+    options?: { paidAt?: string; comment?: string }
+  ) => Promise<void>;
   /** Modifie une échéance (montants, commentaire). */
   updatePayment: (paymentId: string, input: PaymentUpdateInput) => Promise<void>;
   deletePayment: (paymentId: string) => Promise<void>;
@@ -130,6 +152,8 @@ interface AppStore {
       propertyId: string;
       name: string;
       category: PropertyDocument["category"];
+      /** Échéance (assurance, diagnostic…) — null ou absente si sans objet. */
+      expiresAt?: string | null;
     },
     file?: File
   ) => Promise<void>;
@@ -183,6 +207,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(isLive);
   const [error, setError] = React.useState<string | null>(null);
   const [profile, setProfile] = React.useState<AppStore["profile"]>(null);
+  const [userId, setUserId] = React.useState<string | null>(null);
   const userIdRef = React.useRef<string | null>(null);
 
   const refresh = React.useCallback(async () => {
@@ -196,6 +221,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Session expirée. Reconnectez-vous.");
       userIdRef.current = user.id;
+      setUserId(user.id);
       const result = await fetchAppData(supabase, user.id);
       setData(result.data);
       setProfile({
@@ -295,7 +321,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         type: input.type as Property["type"],
         status: input.status as Property["status"],
         id: nextId("p"),
-        photo: input.photo || DEFAULT_PROPERTY_PHOTO,
+        photo: input.photo ?? "",
         currentTenantId: null,
       };
     }
@@ -417,20 +443,58 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
-  const markRentPaid: AppStore["markRentPaid"] = async (paymentId, amount) => {
+  const addLeaseForExistingTenant: AppStore["addLeaseForExistingTenant"] = async (
+    input
+  ) => {
+    if (!isLive) {
+      throw new Error(
+        "Mode démo : configurez Supabase pour rattacher un locataire existant."
+      );
+    }
+    // Même plafond que pour une création : un bail actif est un locataire actif.
+    const activeCount = data.tenants.filter((t) => !t.exitDate).length;
+    const entitlement = canCreateTenant(profile?.plan, activeCount);
+    if (!entitlement.allowed) throw new Error(entitlement.reason ?? "Limite atteinte.");
+    const { supabase, userId } = liveContext();
+    const tenant = await insertLeaseForTenant(supabase, userId, input);
+    setData((prev) => ({
+      ...prev,
+      tenants: [...prev.tenants, tenant],
+      properties: prev.properties.map((p) =>
+        p.id === tenant.propertyId
+          ? { ...p, status: "loue" as const, currentTenantId: tenant.id }
+          : p
+      ),
+      activity: [
+        activityItem(
+          "locataire",
+          `Nouveau bail : ${tenantFullName(tenant)}`,
+          tenant.propertyId
+        ),
+        ...prev.activity,
+      ],
+    }));
+  };
+
+  const markRentPaid: AppStore["markRentPaid"] = async (
+    paymentId,
+    amount,
+    options = {}
+  ) => {
     const payment = data.rentPayments.find((p) => p.id === paymentId);
     if (!payment) throw new Error("Paiement introuvable.");
 
-    let patch: Pick<RentPayment, "received" | "paidAt" | "status">;
+    let patch: Pick<RentPayment, "received" | "paidAt" | "status" | "comment">;
     if (isLive) {
       const { supabase } = liveContext();
-      patch = await recordPayment(supabase, payment, amount);
+      patch = await recordPayment(supabase, payment, amount, options);
     } else {
       const received = payment.received + amount;
       patch = {
         received,
-        paidAt: todayISO(),
+        paidAt: options.paidAt || todayISO(),
         status: received >= payment.expected ? "paye" : "partiel",
+        comment: options.comment ?? payment.comment,
       };
     }
     const property = data.properties.find((p) => p.id === payment.propertyId);
@@ -837,6 +901,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     } else {
       document = {
         ...input,
+        expiresAt: input.expiresAt ?? null,
         id: nextId("d"),
         addedAt: todayISO(),
         size: file ? formatBytes(file.size) : "—",
@@ -940,6 +1005,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     loading,
     error,
     isLive,
+    userId,
     profile,
     refresh,
     updateProfile,
@@ -951,6 +1017,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     updateProperty,
     deleteProperty,
     addTenant,
+    addLeaseForExistingTenant,
     updateTenant,
     endLease,
     deleteTenant,

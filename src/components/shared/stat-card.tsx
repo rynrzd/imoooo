@@ -31,23 +31,25 @@ interface StatCardProps {
   href?: string;
 }
 
+/* Jetons sémantiques : une couleur = un sens, en clair comme en sombre. */
+
 const TONE_CLASSES: Record<NonNullable<StatCardProps["tone"]>, string> = {
   default: "bg-muted text-foreground/70",
-  positive: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  negative: "bg-red-500/10 text-red-700 dark:text-red-400",
-  warning: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  positive: "bg-success-soft text-success",
+  negative: "bg-danger-soft text-danger",
+  warning: "bg-warning-soft text-warning",
 };
 
 const PROGRESS_CLASSES: Record<NonNullable<StatCardProps["tone"]>, string> = {
-  default: "bg-foreground",
-  positive: "bg-emerald-600",
-  negative: "bg-red-600",
-  warning: "bg-amber-500",
+  default: "bg-primary",
+  positive: "bg-success",
+  negative: "bg-danger",
+  warning: "bg-warning",
 };
 
 const TREND_CLASSES: Record<StatTrend["tone"], string> = {
-  positive: "text-emerald-700 dark:text-emerald-400",
-  negative: "text-red-700 dark:text-red-400",
+  positive: "text-success",
+  negative: "text-danger",
   neutral: "text-muted-foreground",
 };
 

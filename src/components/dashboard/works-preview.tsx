@@ -39,7 +39,7 @@ export function WorksPreview() {
       <CardHeader>
         <CardTitle className="text-sm font-medium">Travaux en cours</CardTitle>
         <CardAction>
-          <Button variant="ghost" size="sm" render={<Link href="/travaux" />}>
+          <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/travaux" />}>
             Tout voir
             <ArrowRight data-icon="inline-end" />
           </Button>
@@ -47,7 +47,7 @@ export function WorksPreview() {
       </CardHeader>
       <CardContent>
         {visible.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-lg bg-emerald-500/5 px-3 py-4 text-sm text-emerald-700 dark:text-emerald-400">
+          <div className="flex items-center gap-3 rounded-lg bg-success-soft px-3 py-4 text-sm text-success">
             <CheckCircle2 className="size-4 shrink-0" aria-hidden />
             Aucun chantier en cours.
           </div>
@@ -67,7 +67,7 @@ export function WorksPreview() {
                     value={STATUS_PROGRESS[work.status]}
                     indicatorClassName={
                       work.status === "en_cours"
-                        ? "bg-blue-600"
+                        ? "bg-primary"
                         : "bg-muted-foreground/50"
                     }
                     aria-label={`Avancement — ${work.title}`}

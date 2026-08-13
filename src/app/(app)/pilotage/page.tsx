@@ -49,7 +49,10 @@ export default function PilotagePage() {
         description="Vue consolidée Business+ : patrimoine, finances, carte et alertes"
       />
 
-      <FeatureGate feature="command_center" title="Centre de pilotage — plan Business+">
+      <FeatureGate
+        feature="command_center"
+        benefit="Suivez tout votre patrimoine sur un seul écran consolidé."
+      >
         <section
           aria-label="Indicateurs du patrimoine"
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
@@ -98,7 +101,10 @@ export default function PilotagePage() {
           />
         </section>
 
-        <FeatureGate feature="patrimony_map" title="Carte du patrimoine — plan Business+">
+        <FeatureGate
+          feature="patrimony_map"
+          benefit="Visualisez vos biens sur une carte et repérez vos zones les plus rentables."
+        >
           <PatrimonyMap />
         </FeatureGate>
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { rentDaysLate } from "@/lib/dates";
 import { isEmailProviderConfigured, sendEmail } from "@/lib/email/provider";
 import { rentLateEmail } from "@/lib/email/templates";
 import { formatCurrency } from "@/lib/format";
@@ -91,9 +92,9 @@ export async function POST(request: Request) {
           } | null;
         };
         const remaining = Number(payment.expected) - Number(payment.received);
-        const daysLate = Math.floor(
-          (Date.now() - new Date(`${payment.month.slice(0, 7)}-01`).getTime()) / 86_400_000
-        );
+        // Compté depuis la fin du mois couvert, comme le statut `retard`
+        // lui-même : sans cela, J+3/J+7/J+15 n'étaient jamais atteints.
+        const daysLate = rentDaysLate(payment.month);
         const days: number[] = pref.rent_reminder_days ?? [3, 7, 15];
         // Bail actif, montant restant, jalon atteint.
         if (payment.leases?.exit_date !== null || remaining <= 0 || !days.includes(daysLate)) {

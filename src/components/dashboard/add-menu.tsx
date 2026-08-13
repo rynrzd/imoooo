@@ -24,11 +24,10 @@ import {
 import { AddDocumentDialog } from "@/components/documents/add-document-dialog";
 import { AddExpenseDialog } from "@/components/expenses/add-expense-dialog";
 import { AddPhotoDialog } from "@/components/photos/add-photo-dialog";
-import { PropertyWizard } from "@/components/properties/property-wizard";
 import { AddTenantDialog } from "@/components/tenants/add-tenant-dialog";
 import { AddWorkDialog } from "@/components/works/add-work-dialog";
 
-type DialogKind = "property" | "tenant" | "work" | "expense" | "document" | "photo";
+type DialogKind = "tenant" | "work" | "expense" | "document" | "photo";
 
 /** Action principale du cockpit : menu « Ajouter » ouvrant les vrais dialogues. */
 export function AddMenu() {
@@ -46,7 +45,9 @@ export function AddMenu() {
           <ChevronDown data-icon="inline-end" className="opacity-70" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
-          <DropdownMenuItem onClick={() => setDialog("property")}>
+          {/* Créer un logement est un PARCOURS, pas une boîte de dialogue :
+              il a sa propre page en trois étapes. */}
+          <DropdownMenuItem render={<Link href="/logements/nouveau" />}>
             <Building2 />
             Logement
           </DropdownMenuItem>
@@ -80,9 +81,6 @@ export function AddMenu() {
 
       {/* Dialogues contrôlés, montés uniquement à l'ouverture (aucun
           formulaire initialisé à vide en arrière-plan). */}
-      {dialog === "property" ? (
-        <PropertyWizard showTrigger={false} open onOpenChange={close} />
-      ) : null}
       {dialog === "tenant" ? (
         <AddTenantDialog showTrigger={false} open onOpenChange={close} />
       ) : null}

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, FileText, Pencil } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -29,12 +28,12 @@ import {
 import { AddDocumentDialog } from "@/components/documents/add-document-dialog";
 import { AddPhotoDialog } from "@/components/photos/add-photo-dialog";
 import { FormField } from "@/components/shared/form-field";
-import { needsUnoptimized } from "@/lib/constants";
 import { PROPERTY_STATUS_LABELS, toOptions } from "@/lib/labels";
 import { useAppStore } from "@/lib/store";
 import type { Property, PropertyType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { DeletePropertyDialog } from "./delete-property-dialog";
+import { PropertyThumb } from "./property-thumb";
 
 const PROPERTY_TYPES: PropertyType[] = ["Studio", "T1", "T2", "T3", "T4", "T5", "Maison"];
 
@@ -148,7 +147,7 @@ export function EditPropertySheet({
         ) : null}
         <SheetContent
           side="right"
-          className="w-full gap-0 overflow-y-auto sm:max-w-lg data-[side=right]:sm:max-w-lg"
+          className="nireo-form w-full gap-0 overflow-y-auto sm:max-w-lg data-[side=right]:sm:max-w-lg"
         >
           <SheetHeader className="border-b border-border">
             <SheetTitle>Modifier {property.name}</SheetTitle>
@@ -275,13 +274,12 @@ export function EditPropertySheet({
                             : "border-transparent hover:border-border"
                         )}
                       >
-                        <Image
+                        <PropertyThumb
                           src={photo.url}
                           alt={photo.caption}
-                          fill
                           sizes="140px"
-                          unoptimized={needsUnoptimized(photo.url)}
-                          className="object-cover"
+                          className="size-full"
+                          missing
                         />
                       </button>
                     ))}

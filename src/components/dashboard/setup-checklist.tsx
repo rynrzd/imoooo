@@ -4,8 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, ChevronRight } from "lucide-react";
 import { AddDocumentDialog } from "@/components/documents/add-document-dialog";
-import { PropertyWizard } from "@/components/properties/property-wizard";
 import { AddTenantDialog } from "@/components/tenants/add-tenant-dialog";
+import { ONBOARDING_EVENT } from "@/lib/onboarding";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 export function SetupChecklist() {
   const { data, loading } = useAppStore();
   const router = useRouter();
-  const [dialog, setDialog] = React.useState<"property" | "tenant" | "document" | null>(null);
+  const [dialog, setDialog] = React.useState<"tenant" | "document" | null>(null);
 
   const hasProperty = data.properties.length > 0;
   const activeLeases = data.tenants.filter((t) => !t.exitDate);
@@ -40,7 +40,8 @@ export function SetupChecklist() {
       label: "Logement ajouté",
       done: hasProperty,
       hint: hasProperty ? undefined : "Le point de départ de tout le reste",
-      action: () => setDialog("property"),
+      // Parcours dédié : la création d'un logement n'est pas une modale.
+      action: () => router.push("/logements/nouveau"),
     },
     {
       id: "lease",
@@ -110,7 +111,7 @@ export function SetupChecklist() {
                 className={cn(
                   "grid size-5 shrink-0 place-items-center rounded-full border",
                   item.done
-                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    ? "border-success bg-success text-white"
                     : "border-border"
                 )}
               >
@@ -144,7 +145,7 @@ export function SetupChecklist() {
       <div className="border-t border-border px-3 py-2">
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("immopilot:onboarding"))}
+          onClick={() => window.dispatchEvent(new CustomEvent(ONBOARDING_EVENT))}
           className="min-h-9 text-xs text-primary underline-offset-4 hover:underline"
         >
           Reprendre le guide pas à pas
@@ -152,9 +153,6 @@ export function SetupChecklist() {
       </div>
 
       {/* Les vrais formulaires de l'application — aucun doublon. */}
-      {dialog === "property" ? (
-        <PropertyWizard showTrigger={false} open onOpenChange={(o) => !o && setDialog(null)} />
-      ) : null}
       {dialog === "tenant" ? (
         <AddTenantDialog showTrigger={false} open onOpenChange={(o) => !o && setDialog(null)} />
       ) : null}

@@ -40,7 +40,7 @@ function ExpiryBadge({ document }: { document: PropertyDocument }) {
     return (
       <Badge
         variant="outline"
-        className="border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"
+        className="border-transparent bg-danger-soft text-danger"
       >
         Expiré
       </Badge>
@@ -50,7 +50,7 @@ function ExpiryBadge({ document }: { document: PropertyDocument }) {
     return (
       <Badge
         variant="outline"
-        className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
+        className="border-transparent bg-warning-soft text-warning"
       >
         Expire le {formatDate(document.expiresAt)}
       </Badge>

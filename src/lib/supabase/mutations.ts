@@ -212,6 +212,85 @@ export async function insertTenantWithLease(
   return mapLeaseToTenant(leaseRow as unknown as LeaseRow);
 }
 
+/** Une personne locataire déjà enregistrée (table `tenants`, RLS du propriétaire). */
+export interface TenantPerson {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+/**
+ * Personnes locataires du compte, pour les rattacher à un nouveau logement.
+ *
+ * Rappel du modèle : dans l'interface, un « locataire » est un BAIL (`leases`).
+ * La personne, elle, vit dans `tenants` et peut enchaîner plusieurs baux — un
+ * locataire qui déménage d'un de vos biens vers un autre ne doit pas être
+ * ressaisi. La RLS ne retourne que les personnes du propriétaire connecté.
+ */
+export async function fetchTenantPeople(
+  supabase: SupabaseClient
+): Promise<TenantPerson[]> {
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("id, first_name, last_name, email, phone")
+    .order("last_name");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    firstName: (row.first_name as string) ?? "",
+    lastName: (row.last_name as string) ?? "",
+    email: (row.email as string | null) ?? "",
+    phone: (row.phone as string | null) ?? "",
+  }));
+}
+
+export interface ExistingTenantLeaseInput {
+  propertyId: string;
+  tenantId: string;
+  entryDate: string;
+  rent: number;
+  charges: number;
+  deposit: number;
+}
+
+/**
+ * Nouveau bail pour une personne DÉJÀ enregistrée : aucune fiche locataire
+ * n'est dupliquée. `owner_id` vient du serveur appelant, et la RLS vérifie de
+ * toute façon que le logement comme la personne appartiennent bien à ce compte.
+ */
+export async function insertLeaseForTenant(
+  supabase: SupabaseClient,
+  ownerId: string,
+  input: ExistingTenantLeaseInput
+): Promise<Tenant> {
+  const { data: leaseRow, error: leaseError } = await supabase
+    .from("leases")
+    .insert({
+      owner_id: ownerId,
+      property_id: input.propertyId,
+      tenant_id: input.tenantId,
+      entry_date: input.entryDate,
+      rent: input.rent,
+      charges: input.charges,
+      deposit: input.deposit,
+    })
+    .select(
+      "id, property_id, entry_date, exit_date, rent, charges, deposit, tenants (first_name, last_name, email, phone)"
+    )
+    .single();
+  if (leaseError) throw new Error(leaseError.message);
+
+  const { error: statusError } = await supabase
+    .from("properties")
+    .update({ status: "loue" })
+    .eq("id", input.propertyId);
+  if (statusError) throw new Error(statusError.message);
+
+  return mapLeaseToTenant(leaseRow as unknown as LeaseRow);
+}
+
 export interface TenantUpdateInput {
   firstName: string;
   lastName: string;
@@ -586,21 +665,35 @@ export async function updateDocumentRow(
   return mapDocument(data as DocumentRow);
 }
 
-/** Enregistre un encaissement (total ou partiel) sur un paiement existant. */
+/**
+ * Enregistre un encaissement (total ou partiel) sur une échéance existante.
+ *
+ * `paidAt` et `comment` sont optionnels : sans eux, le comportement est
+ * exactement celui d'avant (encaissement daté du jour, commentaire inchangé).
+ * Ils existent parce que la feuille d'encaissement laisse saisir la vraie date
+ * de réception — un virement du 3 saisi le 8 doit rester daté du 3.
+ */
 export async function recordPayment(
   supabase: SupabaseClient,
   payment: RentPayment,
-  amount: number
-): Promise<{ received: number; paidAt: string; status: RentPayment["status"] }> {
+  amount: number,
+  options: { paidAt?: string; comment?: string } = {}
+): Promise<{
+  received: number;
+  paidAt: string;
+  status: RentPayment["status"];
+  comment: string;
+}> {
   const received = payment.received + amount;
-  const paidAt = new Date().toISOString().slice(0, 10);
+  const paidAt = options.paidAt || new Date().toISOString().slice(0, 10);
   const status = received >= payment.expected ? "paye" : "partiel";
+  const comment = options.comment ?? payment.comment;
   const { error } = await supabase
     .from("rent_payments")
-    .update({ received, paid_at: paidAt, status })
+    .update({ received, paid_at: paidAt, status, comment })
     .eq("id", payment.id);
   if (error) throw new Error(error.message);
-  return { received, paidAt, status };
+  return { received, paidAt, status, comment };
 }
 
 export interface WorkInput {
@@ -661,6 +754,12 @@ export interface DocumentInput {
   filePath?: string | null;
   sizeBytes?: number | null;
   fileType?: string;
+  /**
+   * Date d'expiration (assurance, diagnostic, garantie). La colonne existait
+   * déjà et n'était renseignée qu'À LA MODIFICATION : il fallait ajouter le
+   * document, puis le rouvrir pour dire quand il expirait.
+   */
+  expiresAt?: string | null;
 }
 
 export async function insertDocument(
@@ -678,6 +777,7 @@ export async function insertDocument(
       file_path: input.filePath ?? null,
       size_bytes: input.sizeBytes ?? null,
       file_type: input.fileType ?? "pdf",
+      expires_at: input.expiresAt || null,
     })
     .select("*")
     .single();

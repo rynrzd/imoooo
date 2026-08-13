@@ -121,7 +121,7 @@ export function AddPhotoDialog({
           Ajouter une photo
         </DialogTrigger>
       ) : null}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="nireo-form sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Nouvelle photo</DialogTitle>
           <DialogDescription>

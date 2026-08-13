@@ -18,9 +18,9 @@ import type { ActivityItem, ActivityType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const ACTIVITY_ICONS: Record<ActivityType, { icon: LucideIcon; className: string }> = {
-  paiement: { icon: Banknote, className: "bg-emerald-500/10 text-emerald-700" },
-  retard: { icon: AlertCircle, className: "bg-red-500/10 text-red-700" },
-  travaux: { icon: Hammer, className: "bg-blue-500/10 text-blue-700" },
+  paiement: { icon: Banknote, className: "bg-success-soft text-success" },
+  retard: { icon: AlertCircle, className: "bg-danger-soft text-danger" },
+  travaux: { icon: Hammer, className: "bg-primary-soft text-primary" },
   document: { icon: FileText, className: "bg-muted text-muted-foreground" },
   locataire: { icon: UserRound, className: "bg-violet-500/10 text-violet-700" },
   logement: { icon: Building2, className: "bg-primary/8 text-primary" },

@@ -172,15 +172,19 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
           icon={FileText}
           title={
             scoped.length === 0
-              ? "Aucun document dans ce dossier"
-              : "Aucun document ne correspond"
+              ? "Aucun document pour le moment."
+              : "Aucun document ne correspond."
           }
           description={
             scoped.length === 0
-              ? "Déposez un premier document (bail, diagnostics, factures…) pour constituer le dossier administratif."
+              ? "Ajoutez un bail, une assurance ou un diagnostic au bon logement."
               : "Modifiez votre recherche ou vos filtres pour retrouver un document."
           }
-        />
+        >
+          {scoped.length === 0 ? (
+            <AddDocumentDialog propertyId={propertyId} />
+          ) : null}
+        </EmptyState>
       ) : (
         <>
           <DocumentList

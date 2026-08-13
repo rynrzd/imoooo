@@ -43,6 +43,19 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Jetons SÉMANTIQUES de l'espace connecté — une couleur = un sens.
+     Ils remplacent les `emerald-700` / `red-700` / `amber-500` écrits en dur
+     dans les composants : le thème sombre reprend alors la même identité
+     sans qu'aucune valeur soit ressaisie. */
+  --color-primary-soft: var(--primary-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-expense: var(--expense);
+  --color-expense-soft: var(--expense-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -94,6 +107,20 @@
   --chart-4: oklch(0.72 0.15 85);
   --chart-5: oklch(0.64 0.19 30);
   --radius: 0.75rem;
+  /* Bleu très pâle : capsule de l'onglet actif, bandeau du plan, jamais du texte. */
+  --primary-soft: oklch(0.945 0.028 264);
+  /* Vert : UNIQUEMENT résultats positifs, loyers payés, validations (4,8:1). */
+  --success: oklch(0.49 0.12 155);
+  --success-soft: oklch(0.955 0.032 155);
+  /* Rouge : UNIQUEMENT retards, erreurs, actions destructives (5,1:1). */
+  --danger: oklch(0.52 0.19 27);
+  --danger-soft: oklch(0.962 0.028 25);
+  /* Ambre : ce qui attend, ni bon ni mauvais (4,6:1). */
+  --warning: oklch(0.52 0.11 70);
+  --warning-soft: oklch(0.962 0.035 80);
+  /* Couleur chaude discrète : réservée aux DÉPENSES, nulle part ailleurs. */
+  --expense: oklch(0.53 0.085 55);
+  --expense-soft: oklch(0.958 0.026 60);
   --sidebar: oklch(0.99 0.004 85);
   --sidebar-foreground: oklch(0.21 0.021 260);
   --sidebar-primary: oklch(0.48 0.21 264);
@@ -129,6 +156,17 @@
   --chart-3: oklch(0.7 0.14 150);
   --chart-4: oklch(0.74 0.15 85);
   --chart-5: oklch(0.68 0.18 30);
+  /* Même identité en sombre : les rôles ne changent pas, seule la clarté
+     est remontée pour tenir le contraste sur l'anthracite. */
+  --primary-soft: oklch(0.32 0.055 264);
+  --success: oklch(0.76 0.13 155);
+  --success-soft: oklch(0.3 0.045 155);
+  --danger: oklch(0.72 0.16 27);
+  --danger-soft: oklch(0.31 0.06 25);
+  --warning: oklch(0.79 0.11 75);
+  --warning-soft: oklch(0.31 0.04 75);
+  --expense: oklch(0.77 0.085 60);
+  --expense-soft: oklch(0.3 0.035 60);
   --sidebar: oklch(0.22 0.013 262);
   --sidebar-foreground: oklch(0.96 0.004 255);
   --sidebar-primary: oklch(0.66 0.16 264);
@@ -214,6 +252,86 @@
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
+}
+
+/* ================================================================== */
+/*  NIREO IMMO — SYSTÈME DE FORMULAIRES (scope « .nireo-form »)        */
+/*                                                                    */
+/*  Un seul endroit décide de la taille, du rayon et du fond des       */
+/*  champs de l'espace connecté. Les composants n'écrivent plus une    */
+/*  hauteur au cas par cas : ils héritent d'ici, donc tous les         */
+/*  formulaires se ressemblent par construction.                       */
+/*                                                                    */
+/*  16 px de corps sur mobile : en dessous, iOS zoome à la mise au     */
+/*  point et la page se met à déborder horizontalement.                */
+/* ================================================================== */
+
+.nireo-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.nireo-form select,
+.nireo-form textarea {
+  min-height: 2.75rem; /* 44 px : cible tactile minimale */
+  border-radius: 0.625rem; /* modéré — jamais une pilule */
+  padding-inline: 0.75rem;
+  font-size: 1rem;
+  background: var(--card);
+}
+
+@media (width >= 48rem) {
+  .nireo-form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .nireo-form select,
+  .nireo-form textarea {
+    min-height: 2.5rem;
+    font-size: 0.9375rem;
+  }
+}
+
+.nireo-form textarea {
+  padding-block: 0.6rem;
+}
+
+/* Le focus reste visible partout, y compris au clavier physique. */
+.nireo-form :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+/*
+ * Barre d'actions collée en bas des parcours longs. Elle réserve la zone
+ * gestuelle iPhone, et le corps du formulaire réserve SA hauteur (variable
+ * ci-dessous) : le dernier champ n'est jamais recouvert, clavier ouvert
+ * compris.
+ */
+.nireo-form {
+  --form-actions-h: 5.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Emplacement de photo — le placeholder Nireo                        */
+/*                                                                    */
+/*  Un logement sans photo n'affiche NI une image d'emprunt, NI un     */
+/*  trou blanc : il affiche une surface Nireo, reconnaissable et       */
+/*  volontairement discrète — un quadrillage cobalt à la limite du     */
+/*  perceptible, comme un plan d'architecte non rempli.                */
+/*                                                                    */
+/*  Les deux variantes existent parce que certains emplacements        */
+/*  portent du texte blanc par-dessus (bannière du dossier) : le fond  */
+/*  doit alors être sombre pour rester lisible.                        */
+/* ------------------------------------------------------------------ */
+
+@utility nireo-photo-empty {
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--primary), transparent 92%) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--primary), transparent 92%) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+@utility nireo-photo-empty-deep {
+  background-color: oklch(0.24 0.03 262);
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 /* ================================================================== */

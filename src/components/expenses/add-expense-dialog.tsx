@@ -1,58 +1,47 @@
 "use client";
 
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { toUserMessage } from "@/components/form/errors";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { FormField } from "@/components/shared/form-field";
-import { PropertySelectItems } from "@/components/shared/property-select";
+  AmountField,
+  DateField,
+  FileField,
+  MoreDetails,
+  SelectField,
+  TextField,
+} from "@/components/form/fields";
+import { SheetForm } from "@/components/form/sheet-form";
+import { SubmitButton } from "@/components/form/submit-button";
+import { todayISO } from "@/lib/dates";
 import { EXPENSE_CATEGORY_LABELS, toOptions } from "@/lib/labels";
+import { parseAmount } from "@/lib/property-types";
 import { useAppStore } from "@/lib/store";
-import type { Expense } from "@/lib/types";
+import type { Expense, ExpenseCategory } from "@/lib/types";
 
-const schema = z.object({
-  label: z.string().min(2, "Libellé requis."),
-  propertyId: z.string().min(1, "Choisissez un logement."),
-  category: z.enum(["travaux", "assurance", "taxe_fonciere", "copropriete", "autres"]),
-  amount: z.number({ message: "Montant requis." }).positive("Montant invalide."),
-  date: z.string().min(1, "Date requise."),
-  supplier: z.string(),
-});
-
-type FormValues = z.infer<typeof schema>;
+/**
+ * DÉPENSE — court, et immédiatement répercuté.
+ *
+ * Les catégories sont celles de la base (`EXPENSE_CATEGORY_LABELS`), donc
+ * exactement celles que les statistiques agrègent : une dépense saisie ici
+ * apparaît dans le même seau que celui qu'affiche l'écran Statistiques.
+ *
+ * Le store met à jour `expenses` localement dès l'écriture réussie : résultat
+ * net, statistiques, fiche du logement et activité récente sont tous dérivés
+ * de ce tableau — ils changent donc dans la même image, sans rechargement.
+ */
 
 interface AddExpenseDialogProps {
   propertyId?: string;
   /** En édition, la dépense à modifier. */
   expense?: Expense;
-  /** Mode contrôlé (ouverture pilotée par le parent). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Masque le bouton déclencheur (mode contrôlé). */
   showTrigger?: boolean;
 }
 
-/** Création / modification d'une dépense, avec justificatif optionnel. */
 export function AddExpenseDialog({
   propertyId,
   expense,
@@ -60,183 +49,204 @@ export function AddExpenseDialog({
   onOpenChange,
   showTrigger = true,
 }: AddExpenseDialogProps) {
-  const { addExpense, updateExpense, isLive } = useAppStore();
+  const { data, addExpense, updateExpense } = useAppStore();
+  const isEdit = Boolean(expense);
+
   const [internalOpen, setInternalOpen] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (next: boolean) => {
     setInternalOpen(next);
     onOpenChange?.(next);
   };
-  const fileRef = React.useRef<HTMLInputElement>(null);
-  const isEdit = Boolean(expense);
 
-  const defaults: Partial<FormValues> = expense
-    ? {
-        label: expense.label,
-        propertyId: expense.propertyId,
-        category: expense.category,
-        amount: expense.amount,
-        date: expense.date,
-        supplier: expense.supplier ?? "",
+  const [target, setTarget] = React.useState("");
+  const [label, setLabel] = React.useState("");
+  const [category, setCategory] = React.useState<ExpenseCategory>("autres");
+  const [amount, setAmount] = React.useState("");
+  const [date, setDate] = React.useState(todayISO());
+  const [supplier, setSupplier] = React.useState("");
+  const [file, setFile] = React.useState<File | null>(null);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [busy, setBusy] = React.useState(false);
+
+  // Différé d'un tick : aucun setState synchrone dans le corps de l'effet.
+  React.useEffect(() => {
+    if (!open) return;
+    const id = window.setTimeout(() => {
+      setTarget(
+        expense?.propertyId ??
+          propertyId ??
+          (data.properties.length === 1 ? data.properties[0].id : "")
+      );
+      setLabel(expense?.label ?? "");
+      setCategory(expense?.category ?? "autres");
+      setAmount(expense ? String(expense.amount) : "");
+      setDate(expense?.date ?? todayISO());
+      setSupplier(expense?.supplier ?? "");
+      setFile(null);
+      setErrors({});
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [open, expense, propertyId, data.properties]);
+
+  const submit = async () => {
+    if (busy) return;
+    const next: Record<string, string> = {};
+    if (!target) next.target = "Choisissez le logement concerné.";
+    if (label.trim().length < 2) next.label = "Donnez un libellé à cette dépense.";
+    const value = parseAmount(amount);
+    if (value === null || value <= 0) next.amount = "Indiquez le montant.";
+    if (!date) next.date = "Date requise.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setBusy(true);
+    try {
+      const payload = {
+        propertyId: target,
+        label: label.trim(),
+        category,
+        amount: value as number,
+        date,
+        supplier: supplier.trim(),
+      };
+      if (expense) {
+        await updateExpense(expense.id, payload, file ?? undefined);
+        toast.success("Dépense mise à jour.");
+      } else {
+        await addExpense(payload, file ?? undefined);
+        toast.success("Dépense enregistrée.");
       }
-    : { propertyId: propertyId ?? "", category: "autres", supplier: "" };
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: defaults });
-
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) =>
-    handleSubmit(async (values) => {
-      try {
-        const file = fileRef.current?.files?.[0];
-        if (expense) {
-          await updateExpense(expense.id, values, file);
-          toast.success("Dépense mise à jour.");
-        } else {
-          await addExpense(values, file);
-          toast.success("Dépense enregistrée.");
-          reset(defaults);
-        }
-        if (fileRef.current) fileRef.current.value = "";
-        setOpen(false);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Enregistrement impossible.");
-      }
-    })(event);
+      setOpen(false);
+    } catch (e) {
+      toast.error(toUserMessage(e, "Enregistrement impossible."));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (next) reset(defaults);
-      }}
-    >
+    <>
       {showTrigger ? (
         isEdit ? (
-          <DialogTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Modifier la dépense ${expense?.label ?? ""}`}
-              />
-            }
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Modifier la dépense ${expense?.label ?? ""}`}
+            onClick={() => setOpen(true)}
           >
             <Pencil />
-          </DialogTrigger>
+          </Button>
         ) : (
-          <DialogTrigger render={<Button />}>
+          <Button onClick={() => setOpen(true)}>
             <Plus data-icon="inline-start" />
             Ajouter une dépense
-          </DialogTrigger>
+          </Button>
         )
       ) : null}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier la dépense" : "Nouvelle dépense"}</DialogTitle>
-          <DialogDescription>
-            {isLive
-              ? "Le justificatif est stocké de façon privée dans votre espace."
-              : "Mode démo : la dépense n'est conservée que le temps de la session."}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField label="Libellé" htmlFor="exp-label" error={errors.label?.message}>
-            <Input id="exp-label" placeholder="Taxe foncière 2026" {...register("label")} />
-          </FormField>
 
-          {!propertyId && !expense ? (
-            <FormField label="Logement" htmlFor="exp-property" error={errors.propertyId?.message}>
-              <Controller
-                control={control}
-                name="propertyId"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="exp-property" className="w-full">
-                      <SelectValue placeholder="Choisir un logement" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <PropertySelectItems />
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </FormField>
-          ) : null}
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Montant (€)" htmlFor="exp-amount" error={errors.amount?.message}>
-              <Input
-                id="exp-amount"
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder="890"
-                {...register("amount", { valueAsNumber: true })}
-              />
-            </FormField>
-            <FormField label="Date" htmlFor="exp-date" error={errors.date?.message}>
-              <Input id="exp-date" type="date" {...register("date")} />
-            </FormField>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Catégorie" htmlFor="exp-category" error={errors.category?.message}>
-              <Controller
-                control={control}
-                name="category"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="exp-category" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {toOptions(EXPENSE_CATEGORY_LABELS).map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </FormField>
-            <FormField label="Fournisseur (optionnel)" htmlFor="exp-supplier">
-              <Input id="exp-supplier" placeholder="Trésor public" {...register("supplier")} />
-            </FormField>
-          </div>
-
-          <FormField
-            label={
-              expense?.receiptPath
-                ? "Remplacer le justificatif (optionnel)"
-                : "Justificatif (optionnel)"
-            }
-            htmlFor="exp-receipt"
-          >
-            <Input
-              id="exp-receipt"
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
-              ref={fileRef}
-            />
-          </FormField>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+      <SheetForm
+        open={open}
+        onOpenChange={(next) => {
+          if (!busy) setOpen(next);
+        }}
+        title={isEdit ? "Modifier la dépense" : "Nouvelle dépense"}
+        description="Elle sera immédiatement prise en compte dans votre résultat net et vos statistiques."
+        actions={
+          <>
+            <SubmitButton
+              type="button"
+              pending={busy}
+              onClick={() => void submit()}
+            >
+              {isEdit ? "Enregistrer" : "Ajouter la dépense"}
+            </SubmitButton>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={busy}
+              className="mx-auto block min-h-11 px-3 text-sm font-medium text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+            >
               Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Enregistrement…" : isEdit ? "Enregistrer" : "Ajouter"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          {propertyId && !isEdit ? null : (
+            <SelectField
+              id="exp-property"
+              label="Logement"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Choisir un logement"
+              options={data.properties.map((p) => ({
+                value: p.id,
+                label: p.name,
+              }))}
+              error={errors.target}
+            />
+          )}
+
+          <TextField
+            id="exp-label"
+            label="Libellé"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Taxe foncière 2026"
+            error={errors.label}
+          />
+
+          <SelectField
+            id="exp-category"
+            label="Catégorie"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
+            options={toOptions(EXPENSE_CATEGORY_LABELS)}
+            hint="Elle détermine où la dépense apparaît dans vos statistiques."
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <AmountField
+              id="exp-amount"
+              label="Montant"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="890"
+              error={errors.amount}
+            />
+            <DateField
+              id="exp-date"
+              label="Date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              error={errors.date}
+            />
+          </div>
+
+          <FileField
+            id="exp-receipt"
+            label={
+              expense?.receiptPath ? "Remplacer le justificatif" : "Justificatif"
+            }
+            optional
+            file={file}
+            onFile={setFile}
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.heic"
+          />
+
+          <MoreDetails>
+            <TextField
+              id="exp-supplier"
+              label="Fournisseur"
+              optional
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              placeholder="Trésor public"
+            />
+          </MoreDetails>
+        </div>
+      </SheetForm>
+    </>
   );
 }

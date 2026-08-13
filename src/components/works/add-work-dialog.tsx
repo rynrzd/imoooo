@@ -1,62 +1,53 @@
 "use client";
 
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { toUserMessage } from "@/components/form/errors";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { FormField } from "@/components/shared/form-field";
-import { PropertySelectItems } from "@/components/shared/property-select";
-import { WORK_STATUS_LABELS, toOptions } from "@/lib/labels";
+  AmountField,
+  DateField,
+  SegmentedField,
+  SelectField,
+  TextField,
+} from "@/components/form/fields";
+import { SheetForm } from "@/components/form/sheet-form";
+import { SubmitButton } from "@/components/form/submit-button";
+import { todayISO } from "@/lib/dates";
+import { parseAmount } from "@/lib/property-types";
 import { useAppStore } from "@/lib/store";
+import type { WorkStatus } from "@/lib/types";
 
-const schema = z.object({
-  title: z.string().min(3, "Titre requis."),
-  company: z.string().min(2, "Entreprise requise."),
-  propertyId: z.string().min(1, "Choisissez un logement."),
-  amount: z.number({ message: "Montant requis." }).positive("Montant invalide."),
-  date: z.string().min(1, "Date requise."),
-  status: z.enum(["planifie", "en_cours", "termine"]),
-});
-
-type FormValues = z.infer<typeof schema>;
+/**
+ * TRAVAUX — deux étapes, pas une.
+ *
+ *   1. Le chantier        : où, quoi, par qui.
+ *   2. Budget et suivi    : combien, quand, où ça en est.
+ *
+ * Séparer les deux évite l'écran de sept champs où l'on hésitait entre budget
+ * prévu et coût réel avant même d'avoir nommé le chantier.
+ *
+ * Rappel du modèle : créer un chantier crée AUSSI la dépense associée (même
+ * montant, catégorie « Travaux »). C'est écrit, pas caché — sinon le total des
+ * dépenses semblerait bouger tout seul.
+ */
 
 interface AddWorkDialogProps {
   propertyId?: string;
-  /** Mode contrôlé (ouverture pilotée par le parent). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Masque le bouton déclencheur (mode contrôlé). */
   showTrigger?: boolean;
 }
 
-/** Ajout de travaux — crée aussi la dépense associée. */
 export function AddWorkDialog({
   propertyId,
   open: controlledOpen,
   onOpenChange,
   showTrigger = true,
 }: AddWorkDialogProps) {
-  const { addWork } = useAppStore();
+  const { data, addWork } = useAppStore();
+
   const [internalOpen, setInternalOpen] = React.useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (next: boolean) => {
@@ -64,123 +55,198 @@ export function AddWorkDialog({
     onOpenChange?.(next);
   };
 
-  const defaults: Partial<FormValues> = {
-    propertyId: propertyId ?? "",
-    status: "planifie",
+  const [part, setPart] = React.useState<1 | 2>(1);
+  const [target, setTarget] = React.useState("");
+  const [title, setTitle] = React.useState("");
+  const [company, setCompany] = React.useState("");
+  const [amount, setAmount] = React.useState("");
+  const [date, setDate] = React.useState(todayISO());
+  const [status, setStatus] = React.useState<WorkStatus>("planifie");
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [busy, setBusy] = React.useState(false);
+
+  // Différé d'un tick : aucun setState synchrone dans le corps de l'effet.
+  React.useEffect(() => {
+    if (!open) return;
+    const id = window.setTimeout(() => {
+      setPart(1);
+      setTarget(
+        propertyId ?? (data.properties.length === 1 ? data.properties[0].id : "")
+      );
+      setTitle("");
+      setCompany("");
+      setAmount("");
+      setDate(todayISO());
+      setStatus("planifie");
+      setErrors({});
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [open, propertyId, data.properties]);
+
+  const validatePart1 = () => {
+    const next: Record<string, string> = {};
+    if (!target) next.target = "Choisissez le logement concerné.";
+    if (title.trim().length < 3) next.title = "Nommez ce chantier.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: defaults,
-  });
+  const submit = async () => {
+    if (busy) return;
+    const next: Record<string, string> = {};
+    const value = parseAmount(amount);
+    if (value === null || value <= 0) next.amount = "Indiquez le budget prévu.";
+    if (!date) next.date = "Date requise.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
 
-  const onSubmit = handleSubmit(async (values) => {
+    setBusy(true);
     try {
-      await addWork(values);
-      toast.success("Travaux ajoutés (dépense créée automatiquement).");
-      reset(defaults);
+      await addWork({
+        propertyId: target,
+        title: title.trim(),
+        company: company.trim(),
+        amount: value as number,
+        date,
+        status,
+      });
+      toast.success("Chantier ajouté — la dépense correspondante est créée.");
       setOpen(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ajout impossible.");
+      toast.error(toUserMessage(e, "Ajout impossible."));
+    } finally {
+      setBusy(false);
     }
-  });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       {showTrigger ? (
-        <DialogTrigger render={<Button />}>
+        <Button onClick={() => setOpen(true)}>
           <Plus data-icon="inline-start" />
           Ajouter des travaux
-        </DialogTrigger>
+        </Button>
       ) : null}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Nouveaux travaux</DialogTitle>
-          <DialogDescription>
-            Le montant sera automatiquement comptabilisé dans vos dépenses.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField label="Titre" htmlFor="work-title" error={errors.title?.message}>
-            <Input id="work-title" placeholder="Réfection de la salle de bain" {...register("title")} />
-          </FormField>
 
-          <FormField label="Entreprise" htmlFor="work-company" error={errors.company?.message}>
-            <Input id="work-company" placeholder="SARL Habitat Plus" {...register("company")} />
-          </FormField>
-
-          {!propertyId ? (
-            <FormField label="Logement" htmlFor="work-property" error={errors.propertyId?.message}>
-              <Controller
-                control={control}
-                name="propertyId"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="work-property" className="w-full">
-                      <SelectValue placeholder="Choisir un logement" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <PropertySelectItems />
-                    </SelectContent>
-                  </Select>
-                )}
+      <SheetForm
+        open={open}
+        onOpenChange={(next) => {
+          if (!busy) setOpen(next);
+        }}
+        title={part === 1 ? "Le chantier" : "Budget et suivi"}
+        description={
+          part === 1
+            ? "Étape 1 sur 2 — de quoi s'agit-il, et sur quel logement."
+            : "Étape 2 sur 2 — le montant sera aussi enregistré comme dépense de catégorie « Travaux »."
+        }
+        actions={
+          part === 1 ? (
+            <>
+              <SubmitButton
+                type="button"
+                onClick={() => {
+                  if (validatePart1()) setPart(2);
+                }}
+              >
+                Continuer
+              </SubmitButton>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="mx-auto block min-h-11 px-3 text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
+              >
+                Annuler
+              </button>
+            </>
+          ) : (
+            <>
+              <SubmitButton
+                type="button"
+                pending={busy}
+                onClick={() => void submit()}
+              >
+                Ajouter le chantier
+              </SubmitButton>
+              <button
+                type="button"
+                onClick={() => setPart(1)}
+                disabled={busy}
+                className="mx-auto block min-h-11 px-3 text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-50"
+              >
+                Revenir au chantier
+              </button>
+            </>
+          )
+        }
+      >
+        {part === 1 ? (
+          <div className="space-y-5">
+            {propertyId ? null : (
+              <SelectField
+                id="work-property"
+                label="Logement"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                placeholder="Choisir un logement"
+                options={data.properties.map((p) => ({
+                  value: p.id,
+                  label: p.name,
+                }))}
+                error={errors.target}
               />
-            </FormField>
-          ) : null}
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Montant (€)" htmlFor="work-amount" error={errors.amount?.message}>
-              <Input
-                id="work-amount"
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder="4 900"
-                {...register("amount", { valueAsNumber: true })}
-              />
-            </FormField>
-            <FormField label="Date" htmlFor="work-date" error={errors.date?.message}>
-              <Input id="work-date" type="date" {...register("date")} />
-            </FormField>
-          </div>
-
-          <FormField label="Statut" htmlFor="work-status" error={errors.status?.message}>
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="work-status" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {toOptions(WORK_STATUS_LABELS).map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            )}
+            <TextField
+              id="work-title"
+              label="Nom des travaux"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Réfection de la salle de bain"
+              error={errors.title}
             />
-          </FormField>
+            <TextField
+              id="work-company"
+              label="Entreprise ou contact"
+              optional
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="SARL Habitat Plus"
+            />
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <AmountField
+                id="work-amount"
+                label="Budget prévu"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="4900"
+                error={errors.amount}
+              />
+              <DateField
+                id="work-date"
+                label="Date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                error={errors.date}
+              />
+            </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Ajout…" : "Ajouter"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <SegmentedField
+              name="work-status"
+              label="Où en est le chantier ?"
+              value={status}
+              onChange={setStatus}
+              options={[
+                { value: "planifie", label: "Planifié" },
+                { value: "en_cours", label: "En cours" },
+                { value: "termine", label: "Terminé" },
+              ]}
+              hint="Le coût réel, les photos et les factures s'ajoutent ensuite depuis la fiche du chantier."
+            />
+          </div>
+        )}
+      </SheetForm>
+    </>
   );
 }

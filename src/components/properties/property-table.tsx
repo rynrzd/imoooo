@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   Table,
@@ -11,10 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PropertyStatusBadge } from "@/components/shared/status-badge";
-import { needsUnoptimized } from "@/lib/constants";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PropertyActions } from "./property-actions";
+import { PropertyThumb } from "./property-thumb";
 import type { PropertyEntry } from "./property-card";
 
 interface PropertyTableProps {
@@ -48,16 +47,12 @@ export function PropertyTable({ entries }: PropertyTableProps) {
                     href={`/logements/${property.id}`}
                     className="flex items-center gap-3"
                   >
-                    <span className="relative block size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      <Image
-                        src={property.photo}
-                        alt=""
-                        fill
-                        sizes="40px"
-                        unoptimized={needsUnoptimized(property.photo)}
-                        className="object-cover"
-                      />
-                    </span>
+                    <PropertyThumb
+                      src={property.photo}
+                      alt=""
+                      sizes="40px"
+                      className="size-10 rounded-lg"
+                    />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-foreground">
                         {property.name}
@@ -81,8 +76,8 @@ export function PropertyTable({ entries }: PropertyTableProps) {
                   className={cn(
                     "text-right font-medium tabular-nums max-lg:hidden",
                     financials.net >= 0
-                      ? "text-emerald-700 dark:text-emerald-400"
-                      : "text-red-700 dark:text-red-400"
+                      ? "text-success"
+                      : "text-danger"
                   )}
                 >
                   {formatCurrency(financials.net)}

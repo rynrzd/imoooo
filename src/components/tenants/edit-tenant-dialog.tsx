@@ -79,7 +79,7 @@ export function EditTenantDialog({ tenant }: { tenant: Tenant }) {
         <Pencil data-icon="inline-start" />
         Modifier
       </DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="nireo-form max-h-[90svh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Modifier le locataire</DialogTitle>
           <DialogDescription>

@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -16,6 +17,21 @@ import { AppStoreProvider } from "@/lib/store";
 import { isAdminConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+
+/**
+ * `viewport-fit=cover` : sans lui, `env(safe-area-inset-*)` vaut ZÉRO sur
+ * iPhone — la barre de navigation inférieure et les barres d'actions des
+ * formulaires réservaient donc une marge inexistante, et passaient sous la
+ * zone gestuelle. Déclaré ici, pour l'espace connecté uniquement.
+ *
+ * Aucun `maximumScale` ni `userScalable: false` : bloquer le zoom rendrait
+ * l'application inutilisable pour qui a besoin d'agrandir le texte.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 /** Coquille de l'application : sidebar fixe, header mobile, contenu centré. */
 export default async function AppLayout({
@@ -94,8 +110,14 @@ export default async function AppLayout({
               dessous. Au-dessus de 1024 px la barre n'existe pas et la marge
               redevient normale. */}
           <div
-            className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 pb-[calc(var(--nireo-bottom-nav-h)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 lg:px-8 lg:py-8 lg:pb-8"
-            style={{ ["--nireo-bottom-nav-h" as string]: "3.5rem" }}
+            className="mx-auto w-full max-w-6xl space-y-6 py-6 pb-[calc(var(--nireo-bottom-nav-h)+env(safe-area-inset-bottom)+1.5rem)] lg:py-8 lg:pb-8"
+            style={{
+              ["--nireo-bottom-nav-h" as string]: "3.5rem",
+              // `viewport-fit=cover` étend la page sous l'encoche : en paysage
+              // sur iPhone, le contenu doit rester à l'écart des bords.
+              paddingInlineStart: "max(1rem, env(safe-area-inset-left))",
+              paddingInlineEnd: "max(1rem, env(safe-area-inset-right))",
+            }}
           >
             {settings.announcement_message ? (
               <div className="flex items-start gap-2.5 rounded-xl bg-primary/5 px-4 py-3 text-sm text-foreground ring-1 ring-primary/15">

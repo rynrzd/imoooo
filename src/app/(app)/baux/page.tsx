@@ -45,9 +45,11 @@ export default function LeasesPage() {
       {data.tenants.length === 0 ? (
         <EmptyState
           icon={ScrollText}
-          title="Aucun bail pour le moment"
-          description="Un bail se crée en ajoutant un locataire à l'un de vos logements."
-        />
+          title="Aucun bail pour le moment."
+          description="Un bail se crée en ajoutant un locataire à l'un de vos logements : conditions de la location, puis document signé."
+        >
+          <AddTenantDialog />
+        </EmptyState>
       ) : (
         <div className="space-y-6">
           {active.length > 0 ? (

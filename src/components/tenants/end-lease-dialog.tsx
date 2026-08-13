@@ -58,7 +58,7 @@ export function EndLeaseDialog({ tenant }: { tenant: Tenant }) {
         <LogOut data-icon="inline-start" />
         Terminer le bail
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="nireo-form sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Terminer le bail de {tenantFullName(tenant)} ?</DialogTitle>
           <DialogDescription>

@@ -22,27 +22,27 @@ import type { ActionItem, ActionKind, ActionSeverity } from "@/lib/insights";
 import { cn } from "@/lib/utils";
 
 const SEVERITY_BADGES: Record<ActionSeverity, { label: string; className: string }> = {
-  critique: { label: "Critique", className: "bg-red-500/10 text-red-700 dark:text-red-400" },
-  important: { label: "Important", className: "bg-amber-500/10 text-amber-700 dark:text-amber-400" },
+  critique: { label: "Critique", className: "bg-danger-soft text-danger" },
+  important: { label: "Important", className: "bg-warning-soft text-warning" },
   info: { label: "Info", className: "bg-muted text-muted-foreground" },
 };
 
 const KIND_ICONS: Record<ActionKind, { icon: LucideIcon; className: string }> = {
   loyer_retard: {
     icon: AlertTriangle,
-    className: "bg-red-500/10 text-red-700 dark:text-red-400",
+    className: "bg-danger-soft text-danger",
   },
   loyer_partiel: {
     icon: Wallet,
-    className: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
   bail_bientot_termine: {
     icon: CalendarClock,
-    className: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
   logement_vacant: {
     icon: Building2,
-    className: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
   document_manquant: {
     icon: FileText,
@@ -50,11 +50,11 @@ const KIND_ICONS: Record<ActionKind, { icon: LucideIcon; className: string }> = 
   },
   document_expire: {
     icon: FileText,
-    className: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
   chantier_en_cours: {
     icon: Hammer,
-    className: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    className: "bg-primary-soft text-primary",
   },
 };
 
@@ -81,7 +81,7 @@ export function ActionCenter({ items }: ActionCenterProps) {
       </CardHeader>
       <CardContent className="px-3">
         {items.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-lg bg-emerald-500/5 px-4 py-5 text-sm text-emerald-700 dark:text-emerald-400">
+          <div className="flex items-center gap-3 rounded-lg bg-success-soft px-4 py-5 text-sm text-success">
             <CheckCircle2 className="size-4 shrink-0" aria-hidden />
             Rien à traiter aujourd&apos;hui. Votre patrimoine est à jour.
           </div>
@@ -142,7 +142,7 @@ export function ActionCenter({ items }: ActionCenterProps) {
                       <Button
                         size="sm"
                         variant="outline"
-                        render={<Link href={`/locataires/${item.tenantId}`} />}
+                        nativeButton={false} render={<Link href={`/locataires/${item.tenantId}`} />}
                       >
                         Voir le bail
                         <ArrowRight data-icon="inline-end" />
@@ -159,7 +159,7 @@ export function ActionCenter({ items }: ActionCenterProps) {
                         <ArrowRight data-icon="inline-end" />
                       </Button>
                     ) : (
-                      <Button size="sm" variant="outline" render={<Link href="/travaux" />}>
+                      <Button size="sm" variant="outline" nativeButton={false} render={<Link href="/travaux" />}>
                         Suivre
                         <ArrowRight data-icon="inline-end" />
                       </Button>

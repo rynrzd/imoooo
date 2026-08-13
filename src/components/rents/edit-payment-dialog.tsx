@@ -102,7 +102,7 @@ export function EditPaymentDialog({ payment }: { payment: RentPayment }) {
       >
         <Pencil />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="nireo-form sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Loyer de {formatMonth(payment.month)}</DialogTitle>
           <DialogDescription>

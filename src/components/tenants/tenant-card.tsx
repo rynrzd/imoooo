@@ -52,7 +52,7 @@ export function TenantCard({ tenant, showProperty = false }: TenantCardProps) {
             variant="outline"
             className={
               active
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+                ? "border-transparent bg-success-soft text-success"
                 : "border-border bg-muted text-muted-foreground"
             }
           >
@@ -110,7 +110,7 @@ export function TenantCard({ tenant, showProperty = false }: TenantCardProps) {
             variant="outline"
             size="sm"
             className="w-full"
-            render={<Link href={`/locataires/${tenant.id}`} />}
+            nativeButton={false} render={<Link href={`/locataires/${tenant.id}`} />}
           >
             Ouvrir le dossier
             <ArrowRight data-icon="inline-end" />
