@@ -52,7 +52,7 @@ export function StorySection() {
           <div
             data-seq-mask
             style={{ ["--nl-delay" as string]: "180ms" }}
-            className="relative mx-auto aspect-[4/5] w-full max-w-[26rem] overflow-hidden rounded-lg lg:mx-0 lg:max-w-none"
+            className="nl-photo-zoom relative mx-auto aspect-[4/5] w-full max-w-[26rem] overflow-hidden rounded-lg lg:mx-0 lg:max-w-none"
           >
             <Image
               src="/photos/hero-appartement.jpg"
@@ -66,10 +66,18 @@ export function StorySection() {
 
         {/* ---------------- Le fil ---------------- */}
         <div className="lg:col-span-7">
+          {/* Filet qui se trace devant l'intertitre : la signature commune
+              des trois sections éditoriales de la page. */}
           <p
             data-seq
-            className="text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-cobalt)] sm:text-[0.78rem]"
+            className="flex items-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-cobalt)] sm:text-[0.78rem]"
           >
+            <span
+              aria-hidden
+              data-seq-rule
+              style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+              className="h-px w-8 bg-current"
+            />
             TOUT PART DU BIEN
           </p>
 
@@ -95,7 +103,7 @@ export function StorySection() {
               <li key={event.label} className="nl-thread-row">
                 <span
                   aria-hidden
-                  data-seq
+                  data-seq-pop
                   style={{ ["--nl-delay" as string]: `${event.dot}ms` }}
                   className="nl-thread-dot"
                 />
@@ -123,7 +131,7 @@ export function StorySection() {
             <li className="nl-thread-row">
               <span
                 aria-hidden
-                data-seq
+                data-seq-pop
                 style={{ ["--nl-delay" as string]: `${DESTINATION_DELAY}ms` }}
                 className="nl-thread-dot nl-thread-dot--end"
               />
@@ -137,12 +145,23 @@ export function StorySection() {
             </li>
           </ol>
 
+          {/* La conclusion n'arrive qu'une fois le fil complet — et le
+              balayage bleu passe sous « chercher » juste après, comme une
+              rature de ce qu'on n'a plus à faire. */}
           <p
             data-seq
             style={{ ["--nl-delay" as string]: "1500ms" }}
             className="mt-8 max-w-[30rem] text-[clamp(0.95rem,2.4vw,1.08rem)] leading-relaxed text-[var(--nl-gray)]"
           >
-            Plus besoin de chercher où se trouve l’information.
+            Plus besoin de{" "}
+            <span
+              data-sweep
+              style={{ ["--nl-delay" as string]: "1780ms" }}
+              className="text-[var(--nl-ink)]"
+            >
+              chercher
+            </span>{" "}
+            où se trouve l’information.
           </p>
         </div>
       </div>

@@ -71,7 +71,11 @@ export function ProductPreview() {
     >
       <div aria-hidden className="flex text-[13px] md:min-h-[32rem]">
         {/* -------- Barre latérale : la navigation réelle -------- */}
-        <aside className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
+        <aside
+          className="hidden w-56 shrink-0 flex-col border-r border-border bg-sidebar md:flex"
+          data-seq
+          style={{ ["--nl-delay" as string]: "300ms" }}
+        >
           {/* La MÊME marque que l'application : le monogramme Nireo. L'aperçu
               dessinait auparavant sa propre pastille (une icône d'immeuble sur
               carré bleu) — il montrait donc un produit qui n'existe plus. */}
@@ -124,48 +128,55 @@ export function ProductPreview() {
             </p>
           </div>
 
-          {/* Les quatre chiffres comptent jusqu'à leur valeur, une seule fois,
-              quand la tuile entre à l'écran. Ce sont EXACTEMENT les mêmes
-              valeurs qu'avant : `AnimatedFigure` ne fait qu'animer la chaîne
-              qu'on lui donne, il n'en fabrique aucune. */}
-          <div
-            className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 xl:grid-cols-4"
-            data-seq
-            style={{ ["--nl-delay" as string]: "260ms" }}
-          >
-            <StatCard
-              label="Valeur du patrimoine"
-              value={<AnimatedFigure value="840 000 €" />}
-              hint="prix d’acquisition cumulés"
-              icon={Landmark}
-            />
-            <StatCard
-              label="Revenus du mois"
-              value={<AnimatedFigure value="8 650 €" />}
-              icon={TrendingUp}
-              trend={{ direction: "up", label: "+4,2 % vs mai", tone: "positive" }}
-            />
-            <StatCard
-              label="Cash-flow du mois"
-              value={<AnimatedFigure value="5 470 €" />}
-              icon={PiggyBank}
-              tone="positive"
-            />
-            <StatCard
-              label="Taux d’occupation"
-              value={<AnimatedFigure value="94 %" />}
-              icon={Percent}
-              progress={94}
-              hint="6 occupés · 0 vacant"
-            />
+          {/* Les tuiles entrent UNE PAR UNE, de gauche à droite, et chaque
+              chiffre compte alors jusqu'à sa valeur — une seule fois. Ce sont
+              EXACTEMENT les mêmes valeurs qu'avant : `AnimatedFigure` ne fait
+              qu'animer la chaîne qu'on lui donne, il n'en fabrique aucune. */}
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 xl:grid-cols-4">
+            <div data-seq style={{ ["--nl-delay" as string]: "460ms" }}>
+              <StatCard
+                label="Valeur du patrimoine"
+                value={<AnimatedFigure value="840 000 €" />}
+                hint="prix d’acquisition cumulés"
+                icon={Landmark}
+              />
+            </div>
+            <div data-seq style={{ ["--nl-delay" as string]: "520ms" }}>
+              <StatCard
+                label="Revenus du mois"
+                value={<AnimatedFigure value="8 650 €" />}
+                icon={TrendingUp}
+                trend={{ direction: "up", label: "+4,2 % vs mai", tone: "positive" }}
+              />
+            </div>
+            <div data-seq style={{ ["--nl-delay" as string]: "580ms" }}>
+              <StatCard
+                label="Cash-flow du mois"
+                value={<AnimatedFigure value="5 470 €" />}
+                icon={PiggyBank}
+                tone="positive"
+              />
+            </div>
+            {/* La jauge se remplit au lieu d'être déjà pleine — elle part
+                juste après l'entrée de sa tuile (cf. `[role="progressbar"]`
+                dans globals.css). */}
+            <div data-seq style={{ ["--nl-delay" as string]: "640ms" }}>
+              <StatCard
+                label="Taux d’occupation"
+                value={<AnimatedFigure value="94 %" />}
+                icon={Percent}
+                progress={94}
+                hint="6 occupés · 0 vacant"
+              />
+            </div>
           </div>
 
-          <div
-            className="mt-3 grid gap-3 sm:mt-4 xl:grid-cols-3"
-            data-seq
-            style={{ ["--nl-delay" as string]: "400ms" }}
-          >
-            <Card className="xl:col-span-2">
+          <div className="mt-3 grid gap-3 sm:mt-4 xl:grid-cols-3">
+            <Card
+              className="xl:col-span-2"
+              data-seq
+              style={{ ["--nl-delay" as string]: "760ms" }}
+            >
               <CardHeader>
                 <CardTitle>Derniers loyers</CardTitle>
               </CardHeader>
@@ -192,7 +203,11 @@ export function ProductPreview() {
             {/* Bloc long : masqué sur la landing mobile, où l'aperçu s'arrête
                 au début des derniers loyers. Le tableau de bord connecté, lui,
                 n'est pas concerné — ce composant ne sert qu'à la vitrine. */}
-            <Card className="hidden md:flex">
+            <Card
+              className="hidden md:flex"
+              data-seq
+              style={{ ["--nl-delay" as string]: "840ms" }}
+            >
               <CardHeader>
                 <CardTitle>Documents récents</CardTitle>
               </CardHeader>

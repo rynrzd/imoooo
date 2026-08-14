@@ -51,9 +51,9 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
                 aria-expanded={isOpen}
                 aria-controls={`faq-a-${id}`}
                 onClick={() => toggle(id)}
-                className="nl-focus flex min-h-14 w-full items-center justify-between gap-6 py-4 text-left"
+                className="nl-faq-button nl-focus flex min-h-14 w-full items-center justify-between gap-6 py-4 text-left"
               >
-                <span className="text-[1rem] font-medium text-[var(--nl-ink)] sm:text-[1.05rem]">
+                <span className="nl-faq-label text-[1rem] font-medium text-[var(--nl-ink)] sm:text-[1.05rem]">
                   {item.question}
                 </span>
                 <span aria-hidden className="nl-faq-sign shrink-0 text-[var(--nl-cobalt)]" />

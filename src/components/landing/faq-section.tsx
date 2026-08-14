@@ -51,8 +51,14 @@ export function LandingFaq({ items }: { items: FaqItem[] }) {
       <div data-reveal className="nl-seq mx-auto w-full max-w-[82rem] px-6 sm:px-8">
         <p
           data-seq
-          className="text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-cobalt)] sm:text-[0.78rem]"
+          className="flex items-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-cobalt)] sm:text-[0.78rem]"
         >
+          <span
+            aria-hidden
+            data-seq-rule
+            style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+            className="h-px w-8 bg-current"
+          />
           QUESTIONS FRÉQUENTES
         </p>
 
@@ -74,7 +80,7 @@ export function LandingFaq({ items }: { items: FaqItem[] }) {
           Le détail des plans, des quotas et de la facturation est sur la page{" "}
           <Link
             href="/tarifs"
-            className="nl-focus text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
+            className="nl-focus nl-underline text-[var(--nl-cobalt)]"
           >
             Tarifs
           </Link>

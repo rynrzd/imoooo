@@ -49,8 +49,14 @@ export function SecuritySection() {
       <div data-reveal className="nl-seq mx-auto w-full max-w-[82rem] px-6 sm:px-8">
         <p
           data-seq
-          className="text-[0.72rem] font-medium tracking-[0.22em] text-white/75 sm:text-[0.78rem]"
+          className="flex items-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-white/75 sm:text-[0.78rem]"
         >
+          <span
+            aria-hidden
+            data-seq-rule
+            style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+            className="h-px w-8 bg-[var(--nl-cobalt-bright)]"
+          />
           SÉCURITÉ
         </p>
 
@@ -86,7 +92,7 @@ export function SecuritySection() {
               <div key={proof.title} className="nl-proof">
                 <span
                   aria-hidden
-                  data-seq
+                  data-seq-pop
                   style={{ ["--nl-delay" as string]: `${delay}ms` }}
                   className="nl-proof-dot"
                 />

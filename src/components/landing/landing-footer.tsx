@@ -49,7 +49,7 @@ export function LandingFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="nl-focus text-white/80 transition-colors hover:text-white"
+                    className="nl-focus nl-underline text-white/80 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>

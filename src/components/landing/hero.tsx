@@ -121,15 +121,16 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
           {place ? <span className="block">{place}</span> : null}
         </p>
 
-        <div
-          className="nl-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-          style={rise(440)}
-        >
+        {/* Les deux boutons n'entrent pas ensemble : le principal d'abord, le
+            secondaire 90 ms plus tard. C'est ce décalage qui dit lequel des
+            deux compte. */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
             href={cta.href}
             data-lx="hero-cta-primary"
             data-lx-cta=""
-            className="nl-button nl-focus inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#fff)] sm:w-auto"
+            style={rise(440)}
+            className="nl-rise nl-button nl-focus inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#fff)] sm:w-auto"
           >
             {cta.primary}
             {/* La flèche n'avance qu'au survol, de quatre pixels — jamais de
@@ -141,7 +142,8 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
           <SmoothAnchor
             href={cta.secondaryHref}
             data-lx="hero-cta-secondary"
-            className="nl-focus inline-flex h-12 items-center justify-center rounded-md border border-white/40 px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-white/10 sm:w-auto"
+            style={rise(530)}
+            className="nl-rise nl-focus inline-flex h-12 items-center justify-center rounded-md border border-white/40 px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-white/10 sm:w-auto"
           >
             {cta.secondary}
           </SmoothAnchor>
@@ -154,7 +156,7 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
             qu'ils passent côte à côte. */}
         <p
           className="nl-rise mt-8 text-center text-[0.82rem] text-white/80 sm:mt-10 sm:text-left"
-          style={rise(540)}
+          style={rise(620)}
         >
           1 logement inclus · 0 € · Sans carte bancaire
         </p>

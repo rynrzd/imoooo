@@ -926,11 +926,16 @@
     transition-delay: var(--nl-delay, 0ms);
   }
 
-  /* Tracé progressif : le « N » se dévoile, les lignes se dessinent. */
-  .nireo-landing [data-draw="hidden"] {
-    stroke-dashoffset: var(--nl-len, 1000);
-  }
-
+  /*
+   * Tracé progressif : le « N » se dévoile, les lignes se dessinent.
+   *
+   * ORDRE IMPORTANT — l'état de repos vient EN PREMIER, l'état masqué en
+   * dernier. `[data-draw="hidden"]` et `[data-draw]` ont exactement la même
+   * spécificité (0,2,0) : c'est donc la dernière déclarée qui l'emporte.
+   * Écrites dans l'autre sens, `stroke-dashoffset: 0` gagnait toujours et le
+   * tracé ne partait jamais — les filets du schéma et le monogramme du bloc
+   * final apparaissaient d'un bloc au lieu de se dessiner.
+   */
   .nireo-landing [data-draw] {
     stroke-dasharray: var(--nl-len, 1000);
     stroke-dashoffset: 0;
@@ -938,26 +943,30 @@
     transition-delay: var(--nl-delay, 0ms);
   }
 
-  /* Filet horizontal qui se déploie depuis son point d'attache. */
-  .nireo-landing [data-line="hidden"] {
-    transform: scaleX(0);
+  .nireo-landing [data-draw="hidden"] {
+    stroke-dashoffset: var(--nl-len, 1000);
   }
 
+  /* Filet horizontal qui se déploie depuis son point d'attache. */
   .nireo-landing [data-line] {
     transform-origin: left center;
     transition: transform 1.1s cubic-bezier(0.33, 1, 0.68, 1);
     transition-delay: var(--nl-delay, 0ms);
   }
 
-  /* Le masque « N » se remplit du bas vers le haut. */
-  .nireo-landing [data-unmask="hidden"] {
-    clip-path: inset(100% 0 0 0);
+  .nireo-landing [data-line="hidden"] {
+    transform: scaleX(0);
   }
 
+  /* Le masque se remplit du bas vers le haut. */
   .nireo-landing [data-unmask] {
     clip-path: inset(0 0 0 0);
     transition: clip-path 1.1s cubic-bezier(0.33, 1, 0.68, 1);
     transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing [data-unmask="hidden"] {
+    clip-path: inset(100% 0 0 0);
   }
 }
 
@@ -1146,6 +1155,98 @@
   border-radius: 0.35rem;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Micro-interactions                                                 */
+/*                                                                    */
+/*  Rien ne bouge tout seul : ces états ne répondent qu'au pointeur ou */
+/*  au clavier. Sur un écran tactile (`hover: none`), seul le focus    */
+/*  les déclenche — aucun état « collé » après un appui.               */
+/* ------------------------------------------------------------------ */
+
+/* Soulignement qui se déploie sous un lien de texte. */
+.nireo-landing .nl-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  padding-bottom: 0.12em;
+}
+
+.nireo-landing .nl-underline:focus-visible {
+  background-size: 100% 1px;
+}
+
+@media (hover: hover) {
+  .nireo-landing .nl-underline:hover {
+    background-size: 100% 1px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-underline {
+    transition: background-size 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+}
+
+/* Le hamburger : le filet du milieu se raccourcit par la droite. */
+.nireo-landing .nl-burger span {
+  transform-origin: right center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-burger span {
+    transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+}
+
+@media (hover: hover) {
+  .nireo-landing .nl-burger:hover span:nth-child(2) {
+    transform: scaleX(0.6);
+  }
+}
+
+/* Photographie qui respire très lentement sous le pointeur. */
+.nireo-landing .nl-photo-zoom img {
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-photo-zoom img {
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (hover: hover) {
+    .nireo-landing .nl-photo-zoom:hover img {
+      transform: scale(1.045);
+    }
+  }
+}
+
+/* Filet cobalt sous le header, tracé en même temps qu'il devient plein. */
+.nireo-landing .nl-header-rule {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(
+    to right,
+    var(--nl-cobalt) 0%,
+    color-mix(in srgb, var(--nl-cobalt) 35%, transparent) 100%
+  );
+}
+
+.nireo-landing .nl-header-rule[data-on="true"] {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-header-rule {
+    transition: transform 0.55s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+}
+
 /* « Découvrir » vise le tout premier pixel de la page, pas une section. */
 .nireo-landing #decouvrir {
   scroll-margin-top: 0;
@@ -1216,14 +1317,83 @@
     transform: translateY(110%);
   }
 
-  /* Masque vertical d'une photographie. */
+  /*
+   * Masque vertical d'une photographie — le voile remonte.
+   *
+   * L'état de repos DOIT être une forme, pas `none` : `clip-path` ne
+   * s'interpole qu'entre deux formes de même type. Avec `none` d'un côté, le
+   * navigateur bascule d'un coup à mi-parcours — le masque saute au lieu de
+   * se dérouler. C'est déjà la règle de `[data-unmask]` plus haut.
+   */
   .nireo-landing .nl-seq [data-seq-mask] {
+    clip-path: inset(0 0 0 0);
     transition: clip-path 0.95s cubic-bezier(0.33, 1, 0.68, 1);
     transition-delay: var(--nl-delay, 0ms);
   }
 
   .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-mask] {
     clip-path: inset(100% 0 0 0);
+  }
+
+  /*
+   * Le même masque, dans l'autre sens : le bloc se découvre du haut vers le
+   * bas. C'est celui de l'aperçu du produit — l'interface se déroule comme
+   * une fenêtre qu'on ouvre, avant que ses composants n'arrivent.
+   *
+   * Les 6 rem de débord sur trois côtés existent pour UNE raison : l'aperçu
+   * porte une ombre portée large, et un `inset(0)` la trancherait net au
+   * bord du cadre. Le masque ne coupe donc que par le bas.
+   */
+  .nireo-landing .nl-seq [data-seq-mask-down] {
+    clip-path: inset(0 -6rem -6rem -6rem);
+    transition: clip-path 0.9s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-mask-down] {
+    clip-path: inset(0 -6rem 100% -6rem);
+  }
+
+  /*
+   * Point qui se pose : une échelle avec un très léger dépassement. Réservé
+   * aux points d'un tracé — c'est ce qui fait qu'un fil « attrape » quelque
+   * chose au lieu de le faire apparaître.
+   *
+   * Les points sont centrés par la propriété `translate`, jamais par
+   * `transform` : les deux se composent sans se marcher dessus, l'échelle
+   * part donc bien du centre du point déjà positionné.
+   */
+  .nireo-landing .nl-seq [data-seq-pop] {
+    /* Indispensable pour les points dessinés DANS un SVG : sans `fill-box`,
+       une mise à l'échelle SVG part de l'origine du `viewBox`, et le point
+       ne grandit pas sur lui-même mais file vers le coin. Sur un élément
+       HTML, la boîte de remplissage et la boîte de bordure d'une pastille
+       sans marge intérieure sont confondues — aucun effet de bord. */
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      opacity 0.25s ease-out,
+      transform 0.52s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-pop] {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  /* Barre de progression de l'aperçu : elle se remplit au lieu d'être déjà
+     pleine. Le composant `Progress` pose une largeur fixe, on anime donc
+     l'échelle — la valeur affichée et lue par les technologies d'assistance
+     ne change jamais. */
+  .nireo-landing .nl-seq [role="progressbar"] > div {
+    transform-origin: left center;
+    transition: transform 0.9s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [role="progressbar"] > div {
+    transform: scaleX(0);
   }
 
   /* Fil vertical qui se dessine de haut en bas. */
@@ -1356,6 +1526,34 @@
   line-height: 1.04;
   letter-spacing: -0.035em;
   color: #fff;
+}
+
+/*
+ * Les trois entrées non actives reçoivent au survol le MÊME trait que
+ * « Découvrir » — c'est le repère de la maquette, pas un effet en plus. La
+ * première entrée en est exclue : elle porte déjà son trait, en permanence.
+ */
+.nireo-landing .nl-menu-item:not(:first-of-type) .nl-menu-link {
+  background-image: linear-gradient(var(--nl-cobalt-bright), var(--nl-cobalt-bright));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-menu-item:not(:first-of-type) .nl-menu-link {
+    transition: background-size 0.34s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+}
+
+.nireo-landing .nl-menu-item:not(:first-of-type) .nl-menu-link:focus-visible {
+  background-size: 100% 3px;
+}
+
+@media (hover: hover) {
+  .nireo-landing .nl-menu-item:not(:first-of-type) .nl-menu-link:hover {
+    background-size: 100% 3px;
+  }
 }
 
 .nireo-landing .nl-menu-underline {
@@ -1754,16 +1952,33 @@
   }
 }
 
-/* Transition de couleur entre la section sombre et le papier qui suit :
-   un dégradé de 6 rem, pas une arête. */
-.nireo-landing .nl-fade-to-paper::after {
+/*
+ * Transitions de couleur entre sections : un dégradé de 6 rem au bas de la
+ * section qui précède, jamais une arête. `--nl-fade` porte la couleur de la
+ * section SUIVANTE — c'est elle qui monte dans celle-ci.
+ */
+.nireo-landing .nl-fade-to-paper,
+.nireo-landing .nl-fade-to-deep {
+  position: relative;
+}
+
+.nireo-landing .nl-fade-to-paper::after,
+.nireo-landing .nl-fade-to-deep::after {
   content: "";
   position: absolute;
   inset-inline: 0;
   bottom: 0;
   height: 6rem;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--nl-paper));
+  background: linear-gradient(to bottom, transparent, var(--nl-fade));
+}
+
+.nireo-landing .nl-fade-to-paper {
+  --nl-fade: var(--nl-paper);
+}
+
+.nireo-landing .nl-fade-to-deep {
+  --nl-fade: var(--nl-deep);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1788,12 +2003,59 @@
   overflow: hidden;
 }
 
-/* Le « + » devient « − » : c'est le trait vertical qui s'efface. */
+/* La réponse ne se contente pas de grandir : elle se pose. */
+.nireo-landing .nl-faq-panel > div > * {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.nireo-landing .nl-faq-panel[data-open="true"] > div > * {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-faq-panel > div > * {
+    transition:
+      opacity 0.26s ease-out,
+      transform 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  .nireo-landing .nl-faq-panel[data-open="true"] > div > * {
+    transition-delay: 0.12s;
+  }
+}
+
+/* La question prend la couleur d'action sous le pointeur. */
+@media (hover: hover) {
+  .nireo-landing .nl-faq-button:hover .nl-faq-label {
+    color: var(--nl-cobalt);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-faq-label {
+    transition: color 0.2s ease;
+  }
+}
+
+/* Le « + » devient « − » : le trait vertical s'efface pendant que le signe
+   pivote d'un quart de tour. */
 .nireo-landing .nl-faq-sign {
   position: relative;
   display: block;
   width: 0.85rem;
   height: 0.85rem;
+}
+
+.nireo-landing [aria-expanded="true"] .nl-faq-sign {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-faq-sign {
+    transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 .nireo-landing .nl-faq-sign::before,

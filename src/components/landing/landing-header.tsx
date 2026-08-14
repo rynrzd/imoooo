@@ -281,9 +281,11 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
             aria-controls={MENU_ID}
             aria-label="Ouvrir le menu"
             onClick={openMenu}
-            className="nl-focus -mr-2 inline-grid size-11 place-items-center rounded-md text-white transition-opacity hover:opacity-70"
+            className="nl-burger nl-focus -mr-2 inline-grid size-11 place-items-center rounded-md text-white"
           >
-            {/* Trois filets nets — le trait de la maquette, pas une icône générique. */}
+            {/* Trois filets nets — le trait de la maquette, pas une icône
+                générique. Sous le pointeur, celui du milieu se raccourcit par
+                la droite (cf. `.nl-burger`, globals.css). */}
             <span aria-hidden className="flex w-6 flex-col gap-[5px]">
               <span className="h-[2px] w-full bg-current" />
               <span className="h-[2px] w-full bg-current" />
@@ -291,6 +293,10 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
             </span>
           </button>
         </div>
+
+        {/* Filet cobalt qui se trace sous la barre au premier défilement :
+            c'est ce qui dit que le header s'est « posé » sur la page. */}
+        <span aria-hidden className="nl-header-rule" data-on={solid} />
       </header>
 
       {open ? (

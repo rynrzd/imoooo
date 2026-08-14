@@ -159,7 +159,13 @@ export default async function LandingPage({
               <span>Vous ouvrez Nireo.</span>
             </span>
             <span data-mask-line style={{ ["--nl-delay" as string]: "100ms" }}>
-              <span>Tout est déjà clair.</span>
+              <span>
+                Tout est{" "}
+                <span data-sweep style={{ ["--nl-delay" as string]: "620ms" }}>
+                  déjà clair
+                </span>
+                .
+              </span>
             </span>
           </h2>
           <p
@@ -177,8 +183,12 @@ export default async function LandingPage({
               hauteur automatique, aucun fondu.
               `PointerShift` n'ajoute que quatre pixels de déplacement au
               pointeur, sur ordinateur uniquement. */}
+          {/* L'aperçu se DÉROULE du haut vers le bas comme une fenêtre qu'on
+              ouvre (`data-seq-mask-down`), puis ses composants arrivent l'un
+              après l'autre : barre latérale, accueil, quatre tuiles, cartes.
+              La séquence complète tient en 1,3 s. */}
           <PointerShift className="relative mt-10 h-[clamp(480px,62vh,540px)] overflow-hidden rounded-lg sm:mt-14 md:h-auto md:overflow-visible">
-            <div data-seq style={{ ["--nl-delay" as string]: "120ms" }}>
+            <div data-seq-mask-down style={{ ["--nl-delay" as string]: "120ms" }}>
               <ProductPreview />
             </div>
             <div
@@ -190,7 +200,7 @@ export default async function LandingPage({
           {/* L'honnêteté est dite une fois, discrètement, sous l'aperçu. */}
           <p
             data-seq
-            style={{ ["--nl-delay" as string]: "460ms" }}
+            style={{ ["--nl-delay" as string]: "960ms" }}
             className="mt-5 text-[0.78rem] text-[var(--nl-gray)]"
           >
             Aperçu de l’interface Nireo. Les logements et les montants affichés sont
@@ -203,12 +213,12 @@ export default async function LandingPage({
               tactile de 44 px garantie par `min-h-11`, la flèche n'avance
               qu'au survol (jamais au chargement, jamais en mouvement réduit).
               Les paramètres de campagne présents sur l'URL sont conservés. */}
-          <p data-seq style={{ ["--nl-delay" as string]: "520ms" }} className="mt-6">
+          <p data-seq style={{ ["--nl-delay" as string]: "1040ms" }} className="mt-6">
             <Link
               href={withUtm(cta.href, params)}
               data-lx={CTA_MARKER.product_preview}
               data-lx-cta=""
-              className="nl-focus group inline-flex min-h-11 items-center gap-2 text-[0.98rem] font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
+              className="nl-focus nl-underline group inline-flex min-h-11 items-center gap-2 text-[0.98rem] font-medium text-[var(--nl-cobalt)]"
             >
               Essayer avec mon premier logement
               <span
