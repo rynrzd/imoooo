@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Minus,
@@ -17,7 +18,12 @@ export interface StatTrend {
 
 interface StatCardProps {
   label: string;
-  value: string;
+  /**
+   * La valeur, DÉJÀ formatée. Un nœud est accepté (et non seulement une
+   * chaîne) pour que la vitrine puisse envelopper le chiffre dans son
+   * compteur animé sans dupliquer la tuile ni changer son rendu.
+   */
+  value: ReactNode;
   icon: LucideIcon;
   /** Précision affichée sous la valeur (ex. "sur 3 180 € attendus"). */
   hint?: string;

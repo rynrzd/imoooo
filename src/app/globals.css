@@ -847,13 +847,29 @@
   }
 }
 
+/*
+ * Hero : la photographie est DÉVOILÉE par un masque, elle n'apparaît pas en
+ * fondu. Aucune animation d'opacité ici — c'est l'élément LCP de la page, et
+ * un fondu depuis `opacity: 0` retarde sa prise en compte. Le masque et le
+ * zoom (1,035 → 1) sont deux propriétés composées, sans repeinture.
+ */
 @keyframes nl-photo-in {
   from {
-    opacity: 0;
-    transform: scale(1.045);
+    transform: scale(1.035);
+    clip-path: inset(0 0 100% 0);
   }
   to {
-    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/** Une ligne de titre qui monte derrière son cache. */
+@keyframes nl-mask-rise {
+  from {
+    transform: translateY(108%);
+  }
+  to {
     transform: none;
   }
 }
@@ -866,7 +882,29 @@
 
 @utility nl-photo-in {
   @media (prefers-reduced-motion: no-preference) {
-    animation: nl-photo-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: nl-photo-in 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+/*
+ * Révélation ligne à ligne : le cache est le bloc, la ligne glisse dedans.
+ * Le rembourrage bas (compensé par une marge négative) évite que les
+ * jambages et les accents soient rognés — la mise en page est inchangée.
+ */
+.nireo-landing .nl-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.nireo-landing .nl-line > span {
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-line > span {
+    animation: nl-mask-rise 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 
@@ -1096,6 +1134,740 @@
 
 .nl-intro[data-play] .nl-intro-word {
   animation: nl-intro-word 380ms ease-out 180ms both;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Focus — net, discret, jamais l'ancienne grande bordure bleue       */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-focus:focus-visible {
+  outline: 2px solid var(--nl-cobalt-bright);
+  outline-offset: 3px;
+  border-radius: 0.35rem;
+}
+
+/* « Découvrir » vise le tout premier pixel de la page, pas une section. */
+.nireo-landing #decouvrir {
+  scroll-margin-top: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mouvements liés au geste (cf. components/landing/motion.tsx)       */
+/*                                                                    */
+/*  Deux variables, deux `translate3d`. Le cadre de la photographie du */
+/*  hero est volontairement 20 % plus haut que la section et remonté   */
+/*  de 10 % : la parallaxe (plafonnée à 10 % de la hauteur d'écran) ne */
+/*  peut donc jamais découvrir un bord.                                */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-parallax {
+  top: -10%;
+  height: 120%;
+  transform: translate3d(0, var(--nl-parallax, 0px), 0);
+}
+
+.nireo-landing .nl-shift {
+  transform: translate3d(var(--nl-shift-x, 0px), var(--nl-shift-y, 0px), 0);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nireo-landing .nl-shift {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Séquences — UN déclencheur, plusieurs entrées ordonnées            */
+/*                                                                    */
+/*  Même principe que la section signature : le conteneur `.nl-seq`    */
+/*  porte le `data-reveal` de l'observateur unique et ne bouge PAS ;   */
+/*  ce sont ses enfants marqués qui entrent, chacun avec son propre    */
+/*  `--nl-delay`. Une section = une narration, pas dix fondus          */
+/*  déclenchés séparément au gré du défilement.                        */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-seq[data-reveal="hidden"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Entrée simple : fondu + quelques pixels. */
+  .nireo-landing .nl-seq [data-seq] {
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq] {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  /* Découpe verticale : la ligne monte derrière son cache. */
+  .nireo-landing .nl-seq [data-mask-line] > span {
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-mask-line] > span {
+    transform: translateY(110%);
+  }
+
+  /* Masque vertical d'une photographie. */
+  .nireo-landing .nl-seq [data-seq-mask] {
+    transition: clip-path 0.95s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-mask] {
+    clip-path: inset(100% 0 0 0);
+  }
+
+  /* Fil vertical qui se dessine de haut en bas. */
+  .nireo-landing .nl-seq [data-seq-thread] {
+    transform-origin: top center;
+    transition: transform var(--nl-dur, 1.15s) cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-thread] {
+    transform: scaleY(0);
+  }
+
+  /* Filet horizontal qui se déploie depuis son attache. */
+  .nireo-landing .nl-seq [data-seq-rule] {
+    transform-origin: left center;
+    transition: transform var(--nl-dur, 0.9s) cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-rule] {
+    transform: scaleX(0);
+  }
+
+  /* Balayage bleu sous un mot important. */
+  .nireo-landing .nl-seq [data-sweep] {
+    transition: background-size 0.7s cubic-bezier(0.33, 1, 0.68, 1);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-sweep] {
+    background-size: 0% 0.09em;
+  }
+}
+
+/* L'état de repos du balayage est l'état FINAL : sans JavaScript ou en
+   mouvement réduit, le mot est déjà souligné. */
+.nireo-landing [data-sweep] {
+  background-image: linear-gradient(var(--nl-cobalt-bright), var(--nl-cobalt-bright));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 0.09em;
+  padding-bottom: 0.06em;
+}
+
+.nireo-landing [data-mask-line] {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.nireo-landing [data-mask-line] > span {
+  display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Menu plein écran                                                   */
+/*                                                                    */
+/*  Superposition `100dvh` posée PAR-DESSUS le header : elle porte sa  */
+/*  propre marque et sa propre croix. Le grand « N » vit dans sa       */
+/*  bande, entre les liens et l'action — il ne peut donc jamais        */
+/*  recouvrir quoi que ce soit, et il disparaît quand la place manque. */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--nl-night);
+  overscroll-behavior: contain;
+  outline: none;
+  /* Sans `viewport-fit=cover` ces marges valent 0 : elles ne coûtent rien
+     et couvrent le jour où le segment passerait en plein écran iOS. */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nireo-landing .nl-menu-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-top: clamp(0.75rem, 3vh, 2rem);
+}
+
+.nireo-landing .nl-menu-eyebrow {
+  color: var(--nl-cobalt-bright);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+
+.nireo-landing .nl-menu-list {
+  margin-top: clamp(0.75rem, 3vh, 1.5rem);
+}
+
+/* Composition légèrement décalée : chaque entrée est rentrée d'un
+   pourcentage de la largeur utile, jamais d'une valeur fixe — le rythme tient
+   donc à toutes les tailles, et la largeur maximale déduit ce décalage, si
+   bien qu'aucune entrée ne peut déborder. */
+.nireo-landing .nl-menu-item {
+  width: fit-content;
+  max-width: calc(100% - var(--nl-offset, 0%));
+  margin-left: var(--nl-offset, 0%);
+}
+
+.nireo-landing .nl-menu-item + .nl-menu-item {
+  margin-top: clamp(0.1rem, 1.2vh, 0.55rem);
+}
+
+/* Le mot et son trait — c'est cette boîte qui donne sa largeur au trait. */
+.nireo-landing .nl-menu-head {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.nireo-landing .nl-menu-link {
+  display: block;
+  padding-block: clamp(0.2rem, 0.9vh, 0.45rem);
+  font-size: clamp(2.3rem, 11.5vw, 4.25rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: #fff;
+}
+
+.nireo-landing .nl-menu-underline {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  margin-top: 0.1rem;
+  color: var(--nl-cobalt-bright);
+}
+
+.nireo-landing .nl-menu-rule {
+  flex: 1 1 auto;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  transform-origin: left center;
+}
+
+.nireo-landing .nl-menu-arrow {
+  flex: none;
+  width: 0.6rem;
+  height: 0.85rem;
+  margin-left: -0.15rem;
+}
+
+.nireo-landing .nl-menu-note {
+  margin-top: clamp(0.55rem, 1.6vh, 1rem);
+  max-width: 23rem;
+  font-size: clamp(0.86rem, 3.4vw, 0.98rem);
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.nireo-landing .nl-menu-nzone {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  place-items: center;
+  overflow: hidden;
+  padding-block: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+.nireo-landing .nl-menu-n {
+  width: auto;
+  height: min(100%, clamp(150px, 32vh, 340px));
+  opacity: 0.75;
+}
+
+/*
+ * Écran court : le monogramme cède la place plutôt que de se réduire à un
+ * trait de quelques pixels. La bande a besoin d'environ 150 px pour que le
+ * « N » soit un signe et non un résidu — en dessous de 740 px de hauteur,
+ * les quatre liens et l'action prennent toute la place, et c'est très bien.
+ */
+@media (height < 740px) {
+  .nireo-landing .nl-menu-nzone {
+    display: none;
+  }
+}
+
+/*
+ * À partir de 1024 px, la bande horizontale ne fonctionne plus : l'écran est
+ * large et court, il ne reste rien entre « FAQ » et le bouton. Le monogramme
+ * passe donc DANS la marge droite, à la hauteur des liens — la moitié droite
+ * de l'écran cesse d'être vide, et l'action se cale à gauche, à sa largeur
+ * naturelle, au lieu de barrer toute la fenêtre.
+ */
+@media (width >= 64rem) {
+  .nireo-landing .nl-menu-body {
+    position: relative;
+  }
+
+  .nireo-landing .nl-menu-nzone {
+    position: absolute;
+    inset-block: 0;
+    right: max(2rem, calc((100% - 82rem) / 2 + 2rem));
+    display: grid;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .nireo-landing .nl-menu-n {
+    height: min(62%, 26rem);
+    opacity: 0.55;
+  }
+}
+
+.nireo-landing .nl-menu-foot {
+  padding-top: clamp(0.75rem, 2vh, 1.25rem);
+  padding-bottom: clamp(1rem, 3vh, 2rem);
+}
+
+@media (width >= 48rem) {
+  /* Le bouton n'a aucune raison de barrer une fenêtre de 1440 px. */
+  .nireo-landing .nl-menu-foot > * {
+    max-width: 24rem;
+  }
+}
+
+.nireo-landing .nl-menu-cta {
+  display: flex;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.6rem;
+  background: var(--nl-cobalt);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.nireo-landing .nl-menu-cta:hover {
+  background: color-mix(in srgb, var(--nl-cobalt) 85%, #fff);
+}
+
+.nireo-landing .nl-menu-cta:active {
+  transform: scale(0.98);
+}
+
+.nireo-landing .nl-menu-login {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.4rem;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.nireo-landing .nl-menu-reassure {
+  margin-top: 0.25rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.5);
+}
+
+/*
+ * Ouverture — 700 ms au total, pas une de plus.
+ *
+ *   000–400  le fond noir se révèle depuis le haut droit
+ *   140–340  la marque et la croix
+ *   200–400  « NAVIGATION »
+ *   250–640  les quatre liens (50 ms d'écart)
+ *   260–700  le grand « N » se dessine
+ *   420–600  le trait bleu de « Découvrir »
+ *   520–640  sa flèche
+ *   540–700  la phrase explicative
+ *   560–700  le bouton principal
+ *   600–700  « Se connecter » et la réassurance
+ *
+ * `animation-fill-mode: backwards` (et non `both`) partout : une fois jouée,
+ * l'animation rend la main aux styles normaux — sinon la dernière image
+ * figerait `transform`, et la pression tactile du bouton n'aurait plus
+ * aucun effet.
+ */
+@keyframes nl-menu-in {
+  from {
+    clip-path: circle(0% at 92% 4%);
+  }
+  to {
+    clip-path: circle(145% at 92% 4%);
+  }
+}
+
+@keyframes nl-menu-out {
+  from {
+    opacity: 1;
+    clip-path: circle(145% at 92% 4%);
+  }
+  to {
+    opacity: 0;
+    clip-path: circle(0% at 92% 4%);
+  }
+}
+
+@keyframes nl-menu-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nl-menu-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes nl-menu-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes nl-menu-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes nl-menu-arrow {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nireo-landing .nl-menu[data-state="open"] {
+    animation: nl-menu-in 400ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-brand {
+    animation: nl-menu-fade 200ms ease-out 140ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-eyebrow {
+    animation: nl-menu-up 200ms cubic-bezier(0.16, 1, 0.3, 1) 200ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-item {
+    animation: nl-menu-up 260ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(250ms + var(--nl-i, 0) * 50ms);
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-n-path {
+    stroke-dasharray: 100;
+    animation: nl-menu-draw 440ms cubic-bezier(0.33, 1, 0.68, 1) 260ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-rule {
+    animation: nl-menu-grow 180ms cubic-bezier(0.33, 1, 0.68, 1) 420ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-arrow {
+    animation: nl-menu-arrow 120ms ease-out 520ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-note {
+    animation: nl-menu-up 160ms ease-out 540ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-cta {
+    animation: nl-menu-up 140ms ease-out 560ms backwards;
+  }
+
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-login,
+  .nireo-landing .nl-menu[data-state="open"] .nl-menu-reassure {
+    animation: nl-menu-fade 100ms ease-out 600ms backwards;
+  }
+
+  /* Fermeture : la même chose à l'envers, en 240 ms. */
+  .nireo-landing .nl-menu[data-state="closing"] {
+    pointer-events: none;
+    animation: nl-menu-out 240ms cubic-bezier(0.55, 0, 0.68, 0.2) both;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Un logement, toute son histoire — le fil                           */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Le fil n'est PAS un trait unique posé derrière la liste : c'est un segment
+ * par rangée, qui va du point de la rangée à celui de la suivante. Sa hauteur
+ * vaut donc exactement `100%` de sa rangée — aucune arithmétique de hauteur,
+ * aucun dépassement possible quelle que soit la longueur des libellés. Et
+ * c'est ce découpage qui permet au tracé d'avancer événement par événement.
+ */
+.nireo-landing .nl-thread-row {
+  position: relative;
+  padding: 0.55rem 0 0.55rem 1.75rem;
+  font-size: clamp(1rem, 2.6vw, 1.15rem);
+  line-height: 1.25;
+  /* Ordonnée du CENTRE du point : rembourrage haut + demi-interligne. Les
+     points restent donc alignés sur la première ligne de chaque libellé,
+     même quand celui-ci passe sur deux lignes. */
+  --nl-dot: calc(0.55rem + 0.625em);
+}
+
+.nireo-landing .nl-thread-dot {
+  position: absolute;
+  top: var(--nl-dot);
+  left: 0.3rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--nl-cobalt);
+  translate: -50% -50%;
+}
+
+/* Le point d'arrivée : le même signe, plus affirmé. */
+.nireo-landing .nl-thread-dot--end {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.nireo-landing .nl-thread-link {
+  position: absolute;
+  top: var(--nl-dot);
+  left: 0.3rem;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--nl-cobalt);
+  translate: -50% 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sécurité — trois preuves sur un même filet                         */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-proofs {
+  --nl-gap: 2.5rem;
+  gap: 2rem;
+}
+
+.nireo-landing .nl-proof {
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.nireo-landing .nl-proof-dot {
+  position: absolute;
+  top: 0.72rem;
+  left: 0.3rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--nl-cobalt-bright);
+  translate: -50% -50%;
+}
+
+/* Segment vers la preuve suivante : hauteur de la preuve + la gouttière de
+   la grille, c'est-à-dire exactement la distance entre les deux points. */
+.nireo-landing .nl-proof-link {
+  position: absolute;
+  top: 0.72rem;
+  left: 0.3rem;
+  width: 2px;
+  height: calc(100% + 2rem);
+  border-radius: 1px;
+  background: var(--nl-cobalt-bright);
+  translate: -50% 0;
+}
+
+@media (width >= 48rem) {
+  .nireo-landing .nl-proofs {
+    gap: var(--nl-gap);
+  }
+
+  .nireo-landing .nl-proof {
+    padding-top: 2.25rem;
+    padding-left: 0;
+  }
+
+  .nireo-landing .nl-proof-dot {
+    top: 0.35rem;
+  }
+
+  /* Du premier point au dernier : deux colonnes et deux gouttières. */
+  .nireo-landing .nl-proofs-rule {
+    position: absolute;
+    top: 0.35rem;
+    left: 0.3rem;
+    height: 2px;
+    width: calc(200% / 3 + var(--nl-gap) * 2 / 3);
+    border-radius: 1px;
+    background: var(--nl-cobalt-bright);
+    translate: 0 -50%;
+    transform-origin: left center;
+  }
+}
+
+/* Transition de couleur entre la section sombre et le papier qui suit :
+   un dégradé de 6 rem, pas une arête. */
+.nireo-landing .nl-fade-to-paper::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 6rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--nl-paper));
+}
+
+/* ------------------------------------------------------------------ */
+/*  FAQ — accordéon dont la hauteur s'anime sans à-coup                */
+/*                                                                    */
+/*  `grid-template-rows: 0fr → 1fr` : la hauteur réelle du contenu est */
+/*  calculée par la grille, il n'y a donc rien à mesurer en JavaScript */
+/*  et aucune valeur arbitraire de `max-height` qui saute à la fin.    */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nireo-landing .nl-faq-panel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.nireo-landing .nl-faq-panel > div {
+  overflow: hidden;
+}
+
+/* Le « + » devient « − » : c'est le trait vertical qui s'efface. */
+.nireo-landing .nl-faq-sign {
+  position: relative;
+  display: block;
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.nireo-landing .nl-faq-sign::before,
+.nireo-landing .nl-faq-sign::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.nireo-landing .nl-faq-sign::before {
+  width: 100%;
+  height: 1.5px;
+}
+
+.nireo-landing .nl-faq-sign::after {
+  width: 1.5px;
+  height: 100%;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nireo-landing [aria-expanded="true"] .nl-faq-sign::after {
+  transform: scaleY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nireo-landing .nl-faq-panel,
+  .nireo-landing .nl-faq-sign::after {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Boutons d'action — relevé au survol, pression tactile              */
+/* ------------------------------------------------------------------ */
+
+.nireo-landing .nl-button {
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.18s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.nireo-landing .nl-button .nl-button-arrow {
+  transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+@media (hover: hover) {
+  .nireo-landing .nl-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px -16px rgb(27 82 232 / 0.85);
+  }
+
+  .nireo-landing .nl-button:hover .nl-button-arrow {
+    transform: translateX(4px);
+  }
+}
+
+.nireo-landing .nl-button:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nireo-landing .nl-button,
+  .nireo-landing .nl-button .nl-button-arrow {
+    transition: none;
+  }
+
+  .nireo-landing .nl-button:hover {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 /* ================================================================== */

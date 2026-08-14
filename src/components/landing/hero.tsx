@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HeroParallax } from "@/components/landing/motion";
 import { SmoothAnchor } from "@/components/landing/smooth-anchor";
 
 /**
@@ -10,9 +11,16 @@ import { SmoothAnchor } from "@/components/landing/smooth-anchor";
  * réassurance sont du vrai texte HTML posé par-dessus. Le contraste est tenu
  * par un voile d'encre dégradé depuis la gauche, jamais par la photo.
  *
- * Entrée volontairement discrète : la photo monte de 4,5 % d'échelle, le texte
- * arrive ligne à ligne. Aucune parallaxe, aucun effet qui suit le défilement.
- * Les deux animations sont désactivées par « prefers-reduced-motion ».
+ * Entrée : la photographie est DÉVOILÉE par un masque vertical pendant qu'elle
+ * revient de 1,035 à 1 d'échelle — aucun fondu d'opacité, c'est l'élément LCP
+ * de la page. Le hook arrive ensuite ligne à ligne, chaque ligne glissant
+ * derrière son propre cache, puis le sous-titre et les boutons.
+ *
+ * Au défilement, la photographie prend une parallaxe très légère (un dixième
+ * du défilement, plafonnée) — sur tablette et ordinateur seulement.
+ *
+ * Tout est désactivé par « prefers-reduced-motion », et rien n'est masqué
+ * lorsque JavaScript ne s'exécute pas.
  */
 
 export interface HeroProps {
@@ -43,26 +51,32 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
   const place = sentences.slice(1).join(" ");
 
   return (
-    <section className="relative isolate flex min-h-svh flex-col justify-end overflow-hidden bg-[var(--nl-night)] md:justify-center">
-      <Image
-        src={HERO_PHOTO}
-        alt="Appartement haussmannien vu depuis une porte entrouverte : parquet en point de Hongrie, cheminée en marbre et fenêtres ouvertes sur les toits"
-        fill
-        priority
-        sizes="100vw"
-        // Cadrage, réglé écran par écran (valeurs vérifiées en composant le
-        // rendu réel, cf. public/photos/CREDITS.md) :
-        // - dès `md`, l'image est presque au format du hero, on reste près du
-        //   centre : le battant sombre tient la gauche — c'est lui qui porte le
-        //   texte — et la lumière reste à droite ;
-        // - sur mobile le recadrage est sévère (on ne voit qu'un tiers de la
-        //   largeur) : 55 % garde l'encadrement de la porte à gauche ET la
-        //   pièce éclairée à droite. Plus bas on ne verrait qu'un battant noir,
-        //   plus haut la porte disparaîtrait.
-        // Tant que l'image n'est pas chargée, c'est le bleu nuit de la section
-        // qui occupe l'écran — aucun saut de mise en page.
-        className="nl-photo-in -z-10 object-cover object-[55%_50%] md:object-[45%_50%]"
-      />
+    // `#decouvrir` : la première entrée du menu ramène ici, tout en haut.
+    <section
+      id="decouvrir"
+      className="relative isolate flex min-h-svh flex-col justify-end overflow-hidden bg-[var(--nl-night)] md:justify-center"
+    >
+      <HeroParallax>
+        <Image
+          src={HERO_PHOTO}
+          alt="Appartement haussmannien vu depuis une porte entrouverte : parquet en point de Hongrie, cheminée en marbre et fenêtres ouvertes sur les toits"
+          fill
+          priority
+          sizes="100vw"
+          // Cadrage, réglé écran par écran (valeurs vérifiées en composant le
+          // rendu réel, cf. public/photos/CREDITS.md) :
+          // - dès `md`, l'image est presque au format du hero, on reste près du
+          //   centre : le battant sombre tient la gauche — c'est lui qui porte
+          //   le texte — et la lumière reste à droite ;
+          // - sur mobile le recadrage est sévère (on ne voit qu'un tiers de la
+          //   largeur) : 55 % garde l'encadrement de la porte à gauche ET la
+          //   pièce éclairée à droite. Plus bas on ne verrait qu'un battant
+          //   noir, plus haut la porte disparaîtrait.
+          // Tant que l'image n'est pas chargée, c'est le bleu nuit de la
+          // section qui occupe l'écran — aucun saut de mise en page.
+          className="nl-photo-in object-cover object-[55%_50%] md:object-[45%_50%]"
+        />
+      </HeroParallax>
 
       {/* Voile d'encre. La photographie apporte déjà sa zone sombre (le
           battant), le voile ne fait donc que GARANTIR le contraste : il reste
@@ -88,10 +102,13 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
             en trois lignes, y compris sur le premier écran mobile.
             La borne haute (4 rem) est aussi ce qui maintient le titre dans la
             zone sombre de la photographie sur les très grands écrans. */}
+        {/* Chaque ligne glisse derrière son propre cache (`.nl-line`) : c'est
+            une découpe, pas un fondu. Le rembourrage compensé de la classe
+            évite que les accents et les jambages soient rognés. */}
         <h1 className="text-[clamp(1.75rem,7.6vw,4rem)] leading-[1.06] font-semibold text-white">
           {HOOK.map((line, i) => (
-            <span key={line} className="nl-rise block" style={rise(60 + i * 90)}>
-              {line}
+            <span key={line} className="nl-line">
+              <span style={rise(60 + i * 90)}>{line}</span>
             </span>
           ))}
         </h1>
@@ -112,14 +129,19 @@ export function LandingHero({ cta, subheadline }: HeroProps) {
             href={cta.href}
             data-lx="hero-cta-primary"
             data-lx-cta=""
-            className="inline-flex h-12 items-center justify-center rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#fff)] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--nl-night)] focus-visible:outline-none sm:w-auto"
+            className="nl-button nl-focus inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.98rem] font-medium whitespace-nowrap text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#fff)] sm:w-auto"
           >
             {cta.primary}
+            {/* La flèche n'avance qu'au survol, de quatre pixels — jamais de
+                mouvement permanent (cf. `.nl-button`, globals.css). */}
+            <span aria-hidden className="nl-button-arrow">
+              →
+            </span>
           </Link>
           <SmoothAnchor
             href={cta.secondaryHref}
             data-lx="hero-cta-secondary"
-            className="inline-flex h-12 items-center justify-center rounded-md border border-white/40 px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--nl-night)] focus-visible:outline-none sm:w-auto"
+            className="nl-focus inline-flex h-12 items-center justify-center rounded-md border border-white/40 px-7 text-[0.98rem] font-medium whitespace-nowrap text-white transition-colors hover:bg-white/10 sm:w-auto"
           >
             {cta.secondary}
           </SmoothAnchor>

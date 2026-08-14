@@ -24,14 +24,19 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
  */
 
 /**
- * La grille tarifaire et la FAQ ne vivent plus sur l'accueil (landing courte) :
- * elles ont leur page dédiée. Seule « Fonctionnalités » reste une ancre de la
- * landing, résolue par `anchor()` selon la page courante.
+ * Le produit, la sécurité et la FAQ vivent DANS la landing, sous forme
+ * d'ancres (`#produit`, `#securite`, `#faq`), résolues par `anchor()` selon
+ * la page courante. Seule la grille tarifaire garde sa page dédiée.
+ *
+ * L'ancienne entrée « Fonctionnalités » pointait sur `#fonctionnalites`, une
+ * ancre qui n'existe plus depuis la landing courte : le lien ne descendait
+ * nulle part.
  */
 const NAV_LINKS: { label: string; hash?: string; href?: string }[] = [
-  { label: "Fonctionnalités", hash: "#fonctionnalites" },
+  { label: "Le produit", hash: "#produit" },
+  { label: "Sécurité", hash: "#securite" },
   { label: "Tarifs", href: "/tarifs" },
-  { label: "FAQ", href: "/tarifs#faq" },
+  { label: "FAQ", hash: "#faq" },
 ];
 
 export function SiteHeader() {

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/shared/stat-card";
+import { AnimatedFigure } from "@/components/landing/animated-figure";
 import { NireoMark } from "@/components/marketing/nireo-logo";
 import { NAV_SECTIONS, ACCOUNT_NAV } from "@/config/nav";
 import { DOCUMENT_CATEGORY_LABELS, RENT_STATUS_LABELS } from "@/lib/labels";
@@ -109,7 +110,7 @@ export function ProductPreview() {
 
         {/* -------- Contenu : le tableau de bord -------- */}
         <div className="min-w-0 flex-1 bg-background p-3 sm:p-6">
-          <div className="space-y-1">
+          <div className="space-y-1" data-seq style={{ ["--nl-delay" as string]: "180ms" }}>
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               Mardi 4 juin
             </p>
@@ -123,35 +124,47 @@ export function ProductPreview() {
             </p>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 xl:grid-cols-4">
+          {/* Les quatre chiffres comptent jusqu'à leur valeur, une seule fois,
+              quand la tuile entre à l'écran. Ce sont EXACTEMENT les mêmes
+              valeurs qu'avant : `AnimatedFigure` ne fait qu'animer la chaîne
+              qu'on lui donne, il n'en fabrique aucune. */}
+          <div
+            className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 xl:grid-cols-4"
+            data-seq
+            style={{ ["--nl-delay" as string]: "260ms" }}
+          >
             <StatCard
               label="Valeur du patrimoine"
-              value="840 000 €"
+              value={<AnimatedFigure value="840 000 €" />}
               hint="prix d’acquisition cumulés"
               icon={Landmark}
             />
             <StatCard
               label="Revenus du mois"
-              value="8 650 €"
+              value={<AnimatedFigure value="8 650 €" />}
               icon={TrendingUp}
               trend={{ direction: "up", label: "+4,2 % vs mai", tone: "positive" }}
             />
             <StatCard
               label="Cash-flow du mois"
-              value="5 470 €"
+              value={<AnimatedFigure value="5 470 €" />}
               icon={PiggyBank}
               tone="positive"
             />
             <StatCard
               label="Taux d’occupation"
-              value="94 %"
+              value={<AnimatedFigure value="94 %" />}
               icon={Percent}
               progress={94}
               hint="6 occupés · 0 vacant"
             />
           </div>
 
-          <div className="mt-3 grid gap-3 sm:mt-4 xl:grid-cols-3">
+          <div
+            className="mt-3 grid gap-3 sm:mt-4 xl:grid-cols-3"
+            data-seq
+            style={{ ["--nl-delay" as string]: "400ms" }}
+          >
             <Card className="xl:col-span-2">
               <CardHeader>
                 <CardTitle>Derniers loyers</CardTitle>

@@ -12,10 +12,16 @@ import { CONTACT_EMAIL } from "@/components/marketing/site-footer";
  * Toutes les destinations sont des routes qui existent déjà.
  */
 
+/**
+ * Les trois premières entrées sont des ANCRES de la landing : elles pointent
+ * vers les sections qui portent réellement ce contenu, plus vers des pages
+ * restées à l'ancienne identité.
+ */
 const LINKS = [
-  { label: "Produit", href: "/#produit" },
+  { label: "Le produit", href: "/#produit" },
+  { label: "Sécurité", href: "/#securite" },
+  { label: "FAQ", href: "/#faq" },
   { label: "Tarifs", href: "/tarifs" },
-  { label: "FAQ", href: "/tarifs#faq" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -23,6 +29,7 @@ const LEGAL = [
   { label: "Confidentialité", href: "/confidentialite" },
   { label: "CGU", href: "/cgu" },
   { label: "Mentions légales", href: "/mentions-legales" },
+  { label: "Cookies", href: "/cookies" },
 ];
 
 export function LandingFooter() {
@@ -42,7 +49,7 @@ export function LandingFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-white/80 transition-colors hover:text-white"
+                    className="nl-focus text-white/80 transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>

@@ -10,12 +10,13 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Produit",
     links: [
-      { label: "Fonctionnalités", href: "/#fonctionnalites" },
-      // La grille tarifaire et la FAQ ne sont plus sur l'accueil : elles
-      // vivent sur /tarifs, qui les porte réellement (et le balisage FAQPage
-      // avec elles). Le lien reste donc discret mais toujours accessible.
+      // Le produit, la sécurité et la FAQ sont des SECTIONS de la landing :
+      // « /#fonctionnalites » pointait sur une ancre disparue. La grille
+      // tarifaire, elle, garde sa page.
+      { label: "Le produit", href: "/#produit" },
+      { label: "Sécurité", href: "/#securite" },
       { label: "Tarifs", href: "/tarifs" },
-      { label: "FAQ", href: "/tarifs#faq" },
+      { label: "FAQ", href: "/#faq" },
       { label: "À propos", href: "/a-propos" },
       { label: "L’entreprise", href: "/entreprise" },
       { label: "Contact", href: "/contact" },

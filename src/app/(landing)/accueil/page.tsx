@@ -1,40 +1,54 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Centralisation } from "@/components/landing/centralisation";
+import { LandingFaq, landingFaqItems } from "@/components/landing/faq-section";
 import { FinalCta } from "@/components/landing/final-cta";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingTracker } from "@/components/landing/landing-tracker";
 import { LinkedSection } from "@/components/landing/linked-section";
+import { PointerShift } from "@/components/landing/motion";
 import { ProductPreview } from "@/components/landing/product-preview";
 import { RevealOnScroll } from "@/components/landing/reveal-on-scroll";
+import { SecuritySection } from "@/components/landing/security-section";
+import { StorySection } from "@/components/landing/story-section";
 import { JsonLd } from "@/components/seo/json-ld";
 import { CTA_MARKER } from "@/lib/funnel";
 import { payloadOf } from "@/lib/landing/catalog";
 import { getLandingResolution } from "@/lib/landing/server";
 import {
+  faqPageJsonLd,
   jsonLdGraph,
   organizationJsonLd,
   softwareApplicationJsonLd,
   webSiteJsonLd,
 } from "@/lib/seo/jsonld";
+import { isStripeConfigured } from "@/lib/stripe/config";
+import { SITE_URL } from "@/lib/supabase/config";
 
 /**
  * Landing publique de Nireo.
  *
- * Cinq temps, dans cet ordre : le hook sur une photographie plein écran, le
- * produit réel, la section signature où l'interface devient le monogramme, la
- * centralisation, l'appel à l'action. Rien d'autre. La grille tarifaire et la
- * FAQ vivent sur /tarifs ; le choix du plan a lieu après l'inscription.
+ * Huit temps, dans cet ordre : le hook sur une photographie plein écran
+ * (#decouvrir), le produit réel (#produit), la section signature, l'histoire
+ * d'un logement, la centralisation, la sécurité (#securite), les questions
+ * fréquentes (#faq) et l'appel à l'action.
+ *
+ * Les quatre ancres du menu vivent donc TOUTES ici : plus aucune entrée de
+ * navigation ne renvoie vers une page restée à l'ancienne identité. La grille
+ * tarifaire complète reste sur /tarifs, avec la FAQ longue qui la commente.
  *
  * Un seul `h1` (le hook). Chaque section a son `h2`. Tout le contenu est rendu
  * côté serveur : les seules parties client sont le header (menu, session), le
- * lien d'ancre fluide et l'observateur de révélations — aucune ne masque de
- * texte.
+ * lien d'ancre fluide, l'accordéon de la FAQ, les deux micro-mouvements et
+ * l'observateur de révélations — aucune ne masque de texte.
  *
  * Ce que le moteur de personnalisation décide encore : la destination et les
  * libellés des appels à l'action (visiteur / membre connecté) et le texte du
- * sous-titre. Les repères de mesure (`data-lx-section`, `data-lx`) sont
- * conservés à l'identique, les statistiques restent donc comparables.
+ * sous-titre. Les repères de mesure existants (`data-lx-section`, `data-lx`)
+ * sont conservés à l'identique — `hero`, `features`, `unify`, `proof`, `cta`
+ * mesurent exactement les mêmes sections qu'avant, les statistiques restent
+ * donc comparables. Les deux nouvelles sections ont leurs propres clés
+ * (`story`, `security`, `faq`).
  */
 
 export const metadata: Metadata = {
@@ -62,10 +76,19 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Le balisage FAQPage suit la FAQ : il vit sur /tarifs, la seule page qui
- * porte réellement les questions. Aucun balisage sans contenu visible.
+ * Les questions REELLEMENT affichées ici — et rien d'autre. Le balisage
+ * FAQPage suit toujours la même règle : il n'existe que là où les questions
+ * sont visibles, et il décrit exactement celles-là (la FAQ longue de /tarifs
+ * garde la sienne, avec son propre jeu de questions).
  */
-const JSON_LD = jsonLdGraph([organizationJsonLd, webSiteJsonLd, softwareApplicationJsonLd]);
+const FAQ_ITEMS = landingFaqItems({ paymentsEnabled: isStripeConfigured });
+
+const JSON_LD = jsonLdGraph([
+  organizationJsonLd,
+  webSiteJsonLd,
+  softwareApplicationJsonLd,
+  faqPageJsonLd(FAQ_ITEMS, `${SITE_URL}/`),
+]);
 
 /** Paramètres de campagne recopiés tels quels vers l'inscription. */
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"] as const;
@@ -126,36 +149,50 @@ export default async function LandingPage({
         data-lx-section="features"
         className="bg-[var(--nl-paper)] py-16 sm:py-28"
       >
-        <div className="mx-auto w-full max-w-[82rem] px-6 sm:px-8">
-          <div data-reveal>
-            <h2 className="text-[clamp(1.9rem,6vw,3.2rem)] font-semibold text-[var(--nl-ink)]">
-              <span className="block">Vous ouvrez Nireo.</span>
-              <span className="block">Tout est déjà clair.</span>
-            </h2>
-            <p className="mt-5 max-w-md text-[clamp(0.95rem,2.4vw,1.08rem)] leading-relaxed text-[var(--nl-gray)]">
-              <span className="block">Vos biens, vos documents et vos chiffres.</span>
-              <span className="block">Rien à recouper.</span>
-            </p>
-          </div>
+        {/* Une SEULE séquence pour toute la section : le titre se découpe
+            ligne à ligne, l'aperçu monte, puis ses composants internes
+            arrivent l'un après l'autre. Un seul déclencheur, donc une
+            narration — pas dix fondus indépendants au gré du défilement. */}
+        <div data-reveal className="nl-seq mx-auto w-full max-w-[82rem] px-6 sm:px-8">
+          <h2 className="text-[clamp(1.9rem,6vw,3.2rem)] font-semibold text-[var(--nl-ink)]">
+            <span data-mask-line>
+              <span>Vous ouvrez Nireo.</span>
+            </span>
+            <span data-mask-line style={{ ["--nl-delay" as string]: "100ms" }}>
+              <span>Tout est déjà clair.</span>
+            </span>
+          </h2>
+          <p
+            data-seq
+            style={{ ["--nl-delay" as string]: "220ms" }}
+            className="mt-5 max-w-md text-[clamp(0.95rem,2.4vw,1.08rem)] leading-relaxed text-[var(--nl-gray)]"
+          >
+            <span className="block">Vos biens, vos documents et vos chiffres.</span>
+            <span className="block">Rien à recouper.</span>
+          </p>
 
           {/* Sur mobile l'aperçu est CADRÉ, pas déroulé : hauteur bornée, ce
               qui dépasse est coupé, et un fondu blanc cassé dit que
               l'interface continue. Le rendu au-dessus de 768 px est intact —
-              hauteur automatique, aucun fondu. */}
-          <div
-            className="relative mt-10 h-[clamp(480px,62vh,540px)] overflow-hidden rounded-lg sm:mt-14 md:h-auto md:overflow-visible"
-            data-reveal
-            style={{ ["--nl-delay" as string]: "120ms" }}
-          >
-            <ProductPreview />
+              hauteur automatique, aucun fondu.
+              `PointerShift` n'ajoute que quatre pixels de déplacement au
+              pointeur, sur ordinateur uniquement. */}
+          <PointerShift className="relative mt-10 h-[clamp(480px,62vh,540px)] overflow-hidden rounded-lg sm:mt-14 md:h-auto md:overflow-visible">
+            <div data-seq style={{ ["--nl-delay" as string]: "120ms" }}>
+              <ProductPreview />
+            </div>
             <div
               aria-hidden
               className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,var(--nl-paper),transparent)] md:hidden"
             />
-          </div>
+          </PointerShift>
 
           {/* L'honnêteté est dite une fois, discrètement, sous l'aperçu. */}
-          <p className="mt-5 text-[0.78rem] text-[var(--nl-gray)]">
+          <p
+            data-seq
+            style={{ ["--nl-delay" as string]: "460ms" }}
+            className="mt-5 text-[0.78rem] text-[var(--nl-gray)]"
+          >
             Aperçu de l’interface Nireo. Les logements et les montants affichés sont
             des exemples&nbsp;: aucune donnée réelle n’est utilisée.
           </p>
@@ -166,12 +203,12 @@ export default async function LandingPage({
               tactile de 44 px garantie par `min-h-11`, la flèche n'avance
               qu'au survol (jamais au chargement, jamais en mouvement réduit).
               Les paramètres de campagne présents sur l'URL sont conservés. */}
-          <p className="mt-6">
+          <p data-seq style={{ ["--nl-delay" as string]: "520ms" }} className="mt-6">
             <Link
               href={withUtm(cta.href, params)}
               data-lx={CTA_MARKER.product_preview}
               data-lx-cta=""
-              className="group inline-flex min-h-11 items-center gap-2 text-[0.98rem] font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-[var(--nl-cobalt)] focus-visible:outline-none"
+              className="nl-focus group inline-flex min-h-11 items-center gap-2 text-[0.98rem] font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
             >
               Essayer avec mon premier logement
               <span
@@ -190,10 +227,21 @@ export default async function LandingPage({
         <LinkedSection />
       </div>
 
+      {/* ---------------- Un logement, toute son histoire ---------------- */}
+      <div data-lx-section="story">
+        <StorySection />
+      </div>
+
       {/* ---------------- Un seul endroit ---------------- */}
       <div data-lx-section="proof">
         <Centralisation />
       </div>
+
+      {/* ---------------- Sécurité ---------------- */}
+      <SecuritySection />
+
+      {/* ---------------- Questions fréquentes ---------------- */}
+      <LandingFaq items={FAQ_ITEMS} />
 
       {/* ---------------- Action ---------------- */}
       <FinalCta href={cta.href} label={cta.primary} />
