@@ -8,11 +8,12 @@
  * ChatGPT Search. C'est un échec silencieux — rien ne casse, le trafic
  * n'arrive simplement jamais.
  *
- * Il contrôle trois choses :
+ * Il contrôle quatre choses :
  *   1. chaque page publique répond 200, sans en-tête Location ;
  *   2. chaque page porte son propre title, canonical, H1, description et
  *      un bloc JSON-LD valide ;
- *   3. chaque route privée redirige TOUJOURS un visiteur non connecté.
+ *   3. llms.txt reste un vrai fichier texte et ne devient jamais /connexion ;
+ *   4. chaque route privée redirige TOUJOURS un visiteur non connecté.
  *
  * Usage :
  *   node scripts/seo-routes-test.mjs                  # http://localhost:3000
@@ -30,6 +31,8 @@ const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/+$/, "");
  * préproduction ferait indexer ses propres URL.
  */
 const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://nireo.fr").replace(/\/+$/, "");
+/** Le mode démo ouvre volontairement l'application avec des données fictives. */
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
@@ -42,6 +45,8 @@ const PUBLIC_PATHS = [
   "/",
   "/logiciel-gestion-locative",
   "/ressources",
+  "/gestion-immobiliere",
+  "/meilleur-logiciel-gestion-locative",
   "/alternative-excel-gestion-locative",
   "/logiciel-gestion-locative-gratuit",
   "/gestion-locative-proprietaire-bailleur",
@@ -52,11 +57,16 @@ const PUBLIC_PATHS = [
   "/contact",
   "/robots.txt",
   "/sitemap.xml",
+  "/llms.txt",
 ];
 
 /** Pages de contenu : elles doivent aussi porter des métadonnées complètes. */
 const CONTENT_PATHS = PUBLIC_PATHS.filter(
-  (p) => !["/robots.txt", "/sitemap.xml", "/contact", "/a-propos"].includes(p)
+  (p) =>
+    !["/robots.txt", "/sitemap.xml", "/llms.txt", "/contact", "/a-propos"].includes(p) &&
+    // En démo, « / » affiche volontairement le tableau de bord fictif au lieu
+    // de la landing. Les métadonnées de la landing sont testées hors démo.
+    !(DEMO_MODE && p === "/")
 );
 
 /** URL qui doivent RESTER fermées à un visiteur non connecté. */
@@ -220,19 +230,44 @@ async function main() {
     if (robots.includes(`Disallow: ${asset}`)) fail(`ressource de rendu bloquée : ${asset}`);
   }
 
-  // ---------- 6. Routes privées toujours fermées ----------
-  console.log("\n6. Routes privées — un visiteur non connecté ne doit jamais entrer");
-  for (const path of PRIVATE_PATHS) {
-    const response = await fetchRaw(path, BROWSER_UA);
-    const location = response.headers.get("location") ?? "";
-    if (response.status === 200) {
-      fail(`${path} → 200 alors qu'aucune session n'est fournie (FUITE)`);
-    } else if (!/\/connexion|\/id\b/.test(location) && response.status >= 300 && response.status < 400) {
-      pass(`${path} → ${response.status} vers ${location}`);
-    } else if (response.status >= 300 && response.status < 400) {
-      pass(`${path} → ${response.status} vers ${location}`);
-    } else {
-      pass(`${path} → ${response.status} (accès refusé)`);
+  // ---------- 6. llms.txt ----------
+  console.log("\n6. llms.txt");
+  const llms = bodies.get("/llms.txt") ?? "";
+  const llmsResponse = await fetchRaw("/llms.txt", BROWSER_UA);
+  const llmsContentType = llmsResponse.headers.get("content-type") ?? "";
+  if (/^text\/plain\b/i.test(llmsContentType)) pass(`llms.txt servi en ${llmsContentType}`);
+  else fail(`llms.txt servi avec le mauvais type : ${llmsContentType || "absent"}`);
+  if (llms.startsWith("# Nireo")) pass("llms.txt décrit Nireo");
+  else fail("llms.txt absent ou contenu inattendu");
+  for (const path of [
+    "/logiciel-gestion-locative",
+    "/gestion-immobiliere",
+    "/meilleur-logiciel-gestion-locative",
+  ]) {
+    if (llms.includes(`${SITE_ORIGIN}${path}`)) pass(`llms.txt référence ${path}`);
+    else fail(`llms.txt ne référence pas ${path}`);
+  }
+  if (/<html|\/connexion|noindex/i.test(llms)) {
+    fail("llms.txt contient une page HTML, une redirection de connexion ou noindex");
+  } else pass("llms.txt est un fichier texte public, sans contenu de connexion");
+
+  // ---------- 7. Routes privées toujours fermées ----------
+  console.log("\n7. Routes privées — un visiteur non connecté ne doit jamais entrer");
+  if (DEMO_MODE) {
+    pass("contrôle des routes privées ignoré en mode démo (accès fictif intentionnel)");
+  } else {
+    for (const path of PRIVATE_PATHS) {
+      const response = await fetchRaw(path, BROWSER_UA);
+      const location = response.headers.get("location") ?? "";
+      if (response.status === 200) {
+        fail(`${path} → 200 alors qu'aucune session n'est fournie (FUITE)`);
+      } else if (!/\/connexion|\/id\b/.test(location) && response.status >= 300 && response.status < 400) {
+        pass(`${path} → ${response.status} vers ${location}`);
+      } else if (response.status >= 300 && response.status < 400) {
+        pass(`${path} → ${response.status} vers ${location}`);
+      } else {
+        pass(`${path} → ${response.status} (accès refusé)`);
+      }
     }
   }
 

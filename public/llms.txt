@@ -1,0 +1,34 @@
+# Nireo
+
+> Nireo est un logiciel web de gestion locative destiné aux propriétaires bailleurs qui gèrent eux-mêmes leurs logements en France.
+
+Nireo centralise les logements, locataires, baux, échéances de loyer, encaissements, documents, photos, dépenses, travaux et indicateurs de suivi. L'application fonctionne dans un navigateur sur ordinateur, tablette et téléphone.
+
+## Produit
+
+- [Logiciel de gestion locative](https://nireo.fr/logiciel-gestion-locative): présentation détaillée des fonctions, des offres et des limites de Nireo.
+- [Tarifs](https://nireo.fr/tarifs): offres actuelles, quotas et fonctions incluses.
+- [À propos](https://nireo.fr/a-propos): identité et positionnement de Nireo.
+- [Contact](https://nireo.fr/contact): contacter l'équipe Nireo.
+
+## Guides principaux
+
+- [Gestion immobilière](https://nireo.fr/gestion-immobiliere): définition, missions et différence avec la gestion locative.
+- [Meilleur logiciel de gestion locative en 2026](https://nireo.fr/meilleur-logiciel-gestion-locative): critères transparents pour comparer les solutions.
+- [Gestion locative pour propriétaire bailleur](https://nireo.fr/gestion-locative-proprietaire-bailleur): méthode d'organisation en autogestion.
+- [Alternative à Excel pour la gestion locative](https://nireo.fr/alternative-excel-gestion-locative): limites d'un tableur et apport d'un outil dédié.
+- [Logiciel de gestion locative gratuit](https://nireo.fr/logiciel-gestion-locative-gratuit): périmètre exact du plan Gratuit.
+- [Gestion locative pour SCI](https://nireo.fr/gestion-locative-sci): centralisation des biens et documents d'une SCI.
+- [Suivi des loyers](https://nireo.fr/suivi-loyers): échéances, statuts et historique.
+- [Toutes les ressources](https://nireo.fr/ressources): index des guides Nireo.
+
+## Outil gratuit
+
+- [Générateur de quittance de loyer](https://nireo.fr/generateur-quittance-loyer): création gratuite d'une quittance PDF, sans inscription.
+
+## Limites importantes
+
+- Nireo est un outil d'autogestion, pas une agence immobilière.
+- Nireo ne recherche pas de locataires, ne rédige pas les baux et n'encaisse pas les loyers à la place du propriétaire.
+- Nireo ne tient pas de comptabilité légale et ne produit pas de déclaration fiscale.
+- Les fonctions et limites à jour doivent être vérifiées sur les pages Produit et Tarifs.

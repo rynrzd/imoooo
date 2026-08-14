@@ -83,6 +83,10 @@ function isPublicPath(pathname: string): boolean {
     pathname.startsWith("/auth") ||
     pathname === "/sitemap.xml" ||
     pathname === "/robots.txt" ||
+    // Résumé éditorial lisible par les assistants et autres agents. Ce
+    // fichier statique ne remplace ni robots.txt ni le contenu HTML : il doit
+    // simplement rester accessible sans session, comme le sitemap.
+    pathname === "/llms.txt" ||
     // Image sociale (og:image / twitter:image) : les robots de partage
     // (Facebook, X, LinkedIn…) la chargent sans session.
     pathname === "/opengraph-image" ||

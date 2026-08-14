@@ -40,12 +40,33 @@ export const RESOURCES_PAGE: ContentPage = {
   title: "Ressources sur la gestion locative",
   shortTitle: "Ressources",
   description:
-    "Les guides Nireo pour organiser sa gestion locative : alternative à Excel, plan gratuit, propriétaire bailleur, SCI et suivi des loyers.",
-  summary: "Le point de départ : tous les guides Nireo, classés par situation.",
-  updatedAt: "2026-08-09",
+    "Guides Nireo sur la gestion immobilière et locative : choisir un logiciel, remplacer Excel, gérer en direct, suivre les loyers et organiser une SCI.",
+  summary:
+    "Le point de départ : définition, choix du logiciel et guides pratiques Nireo classés par situation.",
+  updatedAt: "2026-08-14",
 };
 
 export const GUIDES: readonly ContentPage[] = [
+  {
+    path: "/gestion-immobiliere",
+    title: "Gestion immobilière : définition, missions et gestion locative",
+    shortTitle: "Gestion immobilière",
+    description:
+      "Que couvre la gestion immobilière ? Définition, missions, différence avec la gestion locative et outils utiles au propriétaire bailleur en autogestion.",
+    summary:
+      "Le périmètre de la gestion immobilière, sa différence avec la gestion locative et la place d'un logiciel pour un bailleur.",
+    updatedAt: "2026-08-14",
+  },
+  {
+    path: "/meilleur-logiciel-gestion-locative",
+    title: "Meilleur logiciel de gestion locative en 2026 : comment choisir",
+    shortTitle: "Choisir le meilleur logiciel",
+    description:
+      "Comment choisir le meilleur logiciel de gestion locative selon vos biens, vos tâches et vos besoins. Grille de comparaison transparente et limites de Nireo.",
+    summary:
+      "Une méthode de comparaison concrète : besoins, automatisation, données, sécurité, prix et limites à vérifier avant de choisir.",
+    updatedAt: "2026-08-14",
+  },
   {
     path: "/alternative-excel-gestion-locative",
     title: "Alternative à Excel pour gérer ses locations",
