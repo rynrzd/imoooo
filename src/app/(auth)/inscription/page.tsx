@@ -7,6 +7,7 @@ import { CreditCard, Infinity as InfinityIcon, Loader2, Lock, MailCheck } from "
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { EmailField, FormError, PasswordField } from "@/components/auth/auth-fields";
+import { captchaOptions, useCaptcha } from "@/components/auth/captcha";
 import { trackFunnel } from "@/lib/funnel";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -61,6 +62,8 @@ function SignupForm() {
   const [existing, setExisting] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [sentTo, setSentTo] = React.useState<string | null>(null);
+  // Neutre tant que NEXT_PUBLIC_TURNSTILE_SITE_KEY n'est pas renseignée.
+  const captcha = useCaptcha();
 
   // Tunnel de conversion : « inscription démarrée » (anonyme, dédoublonné).
   React.useEffect(() => {
@@ -87,16 +90,22 @@ function SignupForm() {
 
     setPending(true);
     try {
+      // Le jeton anti-robot est attendu ICI, et non lu depuis un état : sans
+      // cette attente, une soumission plus rapide que Cloudflare partait sans
+      // `captchaToken` et GoTrue la refusait (captcha_failed).
+      const captchaToken = await captcha.getToken();
       const { data, error } = await createClient().auth.signUp({
         email: address,
         password,
         // `next` permet à un autre produit Nireo de ramener l'utilisateur à son
         // parcours après confirmation. Sans destination particulière, le compte
         // confirmé arrive dans son espace, où le guide prend le relais.
-        options: { emailRedirectTo: redirectTo },
+        options: { emailRedirectTo: redirectTo, ...captchaOptions(captchaToken) },
       });
 
       if (error) {
+        // Jeton à usage unique : il faut un nouveau défi pour réessayer.
+        captcha.reset();
         if (isExistingAccount(error)) {
           setExisting(true);
           setFormError("Un compte existe déjà avec cette adresse.");
@@ -185,7 +194,13 @@ function SignupForm() {
           hint={`${PASSWORD_MIN_LENGTH} caractères minimum.`}
         />
 
-        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+        {captcha.widget}
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={!isSupabaseConfigured || pending}
+        >
           {pending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden />

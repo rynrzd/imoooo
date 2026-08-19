@@ -39,6 +39,12 @@ const MESSAGES: Record<string, string> = {
   refresh_token_not_found: "Session expirée. Reconnectez-vous.",
   user_not_found: "Session expirée. Reconnectez-vous.",
   request_timeout: "Le serveur met trop de temps à répondre. Réessayez.",
+  // Vérification anti-robot (Turnstile) : jeton absent, expiré ou déjà
+  // consommé. Sans ce message, GoTrue renvoie « captcha protection: request
+  // disallowed » — de l'anglais technique que personne ne peut relier à un
+  // contrôle qui, pour un humain, ne s'est jamais montré à l'écran.
+  captcha_failed:
+    "La vérification anti-robot n'a pas abouti. Patientez un instant puis réessayez.",
 };
 
 const SMTP_FAILURE_MESSAGE =

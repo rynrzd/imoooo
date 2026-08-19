@@ -6,6 +6,7 @@ import { Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { EmailField, FormError } from "@/components/auth/auth-fields";
+import { captchaOptions, useCaptcha } from "@/components/auth/captcha";
 import { createClient } from "@/lib/supabase/client";
 import { authErrorMessage } from "@/lib/supabase/auth-errors";
 import { isSupabaseConfigured, SITE_URL } from "@/lib/supabase/config";
@@ -28,6 +29,8 @@ export default function ForgotPasswordPage() {
   const [formError, setFormError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+  // Neutre tant que NEXT_PUBLIC_TURNSTILE_SITE_KEY n'est pas renseignée.
+  const captcha = useCaptcha();
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -41,10 +44,17 @@ export default function ForgotPasswordPage() {
 
     setPending(true);
     try {
+      // Le jeton anti-robot est attendu ICI, et non lu depuis un état : sans
+      // cette attente, une soumission plus rapide que Cloudflare partait sans
+      // `captchaToken` et GoTrue la refusait (captcha_failed).
+      const captchaToken = await captcha.getToken();
       const { error } = await createClient().auth.resetPasswordForEmail(address, {
         redirectTo: `${SITE_URL}/auth/callback?next=/reinitialiser-mot-de-passe`,
+        ...captchaOptions(captchaToken),
       });
       if (error) {
+        // Jeton à usage unique : il faut un nouveau défi pour réessayer.
+        captcha.reset();
         setFormError(authErrorMessage(error, "reset"));
         return;
       }
@@ -109,7 +119,13 @@ export default function ForgotPasswordPage() {
           autoFocus
         />
 
-        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+        {captcha.widget}
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={!isSupabaseConfigured || pending}
+        >
           {pending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden />

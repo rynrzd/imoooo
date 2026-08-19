@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { EmailField, FormError, PasswordField } from "@/components/auth/auth-fields";
+import { captchaOptions, useCaptcha } from "@/components/auth/captcha";
 import { Button } from "@/components/ui/button";
 import { createClient, setRememberSession } from "@/lib/supabase/client";
 import { authErrorMessage, isEmailNotConfirmed } from "@/lib/supabase/auth-errors";
@@ -50,6 +51,9 @@ function LoginForm() {
   const [pending, setPending] = React.useState(false);
   // Coché par défaut : la session survit à la fermeture du navigateur.
   const [remember, setRemember] = React.useState(true);
+  // Sans clé Turnstile configurée, `captcha` est entièrement neutre : pas de
+  // widget, pas de jeton, aucune option ajoutée à l'appel Supabase.
+  const captcha = useCaptcha();
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -67,12 +71,22 @@ function LoginForm() {
       // Préférence de persistance posée AVANT la connexion : la session est
       // écrite d'emblée avec la bonne durée.
       setRememberSession(remember);
+      // Le jeton anti-robot est attendu ICI, et non lu depuis un état : sans
+      // cette attente, une soumission plus rapide que Cloudflare partait sans
+      // `captchaToken` et GoTrue la refusait (captcha_failed).
+      const captchaToken = await captcha.getToken();
       const { error } = await createClient().auth.signInWithPassword({
         email: address,
         password,
+        options: captchaOptions(captchaToken),
       });
 
       if (error) {
+        // Le jeton Turnstile est à usage unique : sans cette remise à zéro,
+        // une seconde tentative après un mot de passe erroné échouerait pour
+        // « jeton déjà consommé », message que personne ne peut relier à sa
+        // vraie cause.
+        captcha.reset();
         if (isEmailNotConfirmed(error)) {
           router.push(`/verification-email?email=${encodeURIComponent(address)}`);
           return;
@@ -142,7 +156,13 @@ function LoginForm() {
           Rester connecté sur cet appareil
         </label>
 
-        <Button type="submit" className="w-full" disabled={!isSupabaseConfigured || pending}>
+        {captcha.widget}
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={!isSupabaseConfigured || pending}
+        >
           {pending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden />
