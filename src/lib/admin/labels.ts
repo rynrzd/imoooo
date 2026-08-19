@@ -34,6 +34,12 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "marketing.payout_approve": "Relevé de paiement approuvé",
   "marketing.payout_paid": "Relevé de paiement marqué payé",
   "marketing.payout_cancel": "Relevé de paiement annulé",
+  "email.send": "E-mail envoyé",
+  "email.template_create": "Modèle d’e-mail créé",
+  "email.template_update": "Modèle d’e-mail modifié",
+  "email.template_delete": "Modèle d’e-mail supprimé",
+  "automation.update": "Automatisation e-mail modifiée",
+  "automation.test": "Test d’automatisation envoyé",
 };
 
 export function auditActionLabel(action: string): string {

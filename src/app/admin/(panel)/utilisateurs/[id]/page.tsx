@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ConfirmAction } from "@/components/admin/confirm-action";
 import { UserNoteForm } from "@/components/admin/user-note-form";
 import { UserPlanForm } from "@/components/admin/user-plan-form";
@@ -107,7 +108,12 @@ export default async function AdminUserDetailPage({
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">{user.email}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Ouvre l'espace Emails avec ce client déjà choisi — plutôt que de
+              le faire rechercher une seconde fois par son adresse. */}
+          <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/admin/emails?a=${user.id}`} />}>
+            <Mail /> Envoyer un e-mail
+          </Button>
           <Badge variant={user.plan === "free" ? "outline" : "secondary"}>
             {PLAN_LABELS[user.plan] ?? user.plan}
           </Badge>

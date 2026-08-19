@@ -5,6 +5,7 @@ import { ArrowLeft, FileImage, Mail, MapPin, Phone, User } from "lucide-react";
 import { PartnerAccessCard } from "@/components/admin/marketing/partner-access-card";
 import { PartnerBalanceCards } from "@/components/admin/marketing/partner-balance-cards";
 import { PartnerFormDialog } from "@/components/admin/marketing/partner-form-dialog";
+import { PartnerFunnel } from "@/components/admin/marketing/partner-funnel";
 import { PartnerLinkCard } from "@/components/admin/marketing/partner-link-card";
 import { MarketingAction } from "@/components/admin/marketing/marketing-action";
 import {
@@ -159,13 +160,13 @@ export default async function PartnerDetailPage({
       {/* Accès self-service du partenaire (jeton confidentiel) */}
       {partnerAccessUrl ? <PartnerAccessCard accessUrl={partnerAccessUrl} /> : null}
 
-      {/* Entonnoir */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat label="Clics" value={funnel.clicks} />
-        <MiniStat label="Inscriptions" value={funnel.signups} />
-        <MiniStat label="Clients payants" value={funnel.conversions} />
-        <MiniStat label="CA généré" value={formatCents(balance.grossRevenueCents)} isText />
-      </div>
+      {/* Entonnoir — quatre étapes enchaînées, avec ce qui survit à chacune */}
+      <PartnerFunnel
+        clicks={funnel.clicks}
+        signups={funnel.signups}
+        conversions={funnel.conversions}
+        earnedLabel={formatCents(balance.totalEarnedCents)}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Cagnotte */}
@@ -300,14 +301,6 @@ export default async function PartnerDetailPage({
   );
 }
 
-function MiniStat({ label, value, isText }: { label: string; value: number | string; isText?: boolean }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1.5 text-xl font-semibold tabular-nums">{isText ? value : Number(value).toLocaleString("fr-FR")}</p>
-    </div>
-  );
-}
 
 function ContactRow({ icon, value, href }: { icon: React.ReactNode; value: string; href?: string }) {
   return (

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import type Stripe from "stripe";
 import { recordAnalyticsEvent } from "@/lib/analytics/server";
+import { runAutomation } from "@/lib/email/automations";
 import { recordPaymentConversion } from "@/lib/landing/server";
 import {
   createCommissionForPaidInvoice,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/marketing/commissions";
 import { getStripeWebhookSecret, isStripeConfigured, planFromPriceId } from "@/lib/stripe/config";
 import { getStripe } from "@/lib/stripe/server";
-import { syncSubscriptionToDatabase } from "@/lib/stripe/subscription";
+import { getUserSubscription, syncSubscriptionToDatabase } from "@/lib/stripe/subscription";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -215,7 +216,41 @@ export async function POST(request: Request) {
         if (!userId) {
           throw new Error(`Abonnement ${subscription.id} sans metadata.user_id.`);
         }
-        await syncSubscriptionToDatabase(createAdminClient(), userId, subscription);
+        const admin = createAdminClient();
+        // Plan AVANT synchronisation : c'est la seule façon de distinguer un
+        // vrai changement d'offre d'un simple changement de statut.
+        const planBefore = (await getUserSubscription(admin, userId))?.plan ?? null;
+        await syncSubscriptionToDatabase(admin, userId, subscription);
+
+        if (event.type === "customer.subscription.updated") {
+          const planAfter = (await getUserSubscription(admin, userId))?.plan ?? null;
+          // Uniquement d'une offre PAYANTE vers une autre offre PAYANTE :
+          // l'arrivée depuis le gratuit est un nouvel abonnement (traité par
+          // invoice.paid) et le retour au gratuit est une résiliation. Sans
+          // ce garde-fou, un même achat déclencherait deux e-mails.
+          if (
+            planBefore &&
+            planAfter &&
+            planBefore !== planAfter &&
+            planBefore !== "free" &&
+            planAfter !== "free"
+          ) {
+            await runAutomation({
+              kind: "subscription_changed",
+              userId,
+              dedupeKey: `plan_change:${event.id}`,
+              planId: planAfter,
+            });
+          }
+        }
+
+        if (event.type === "customer.subscription.deleted") {
+          await runAutomation({
+            kind: "subscription_cancelled",
+            userId,
+            dedupeKey: `sub_cancelled:${subscription.id}`,
+          });
+        }
         break;
       }
 
@@ -242,6 +277,17 @@ export async function POST(request: Request) {
         // rejoué par Stripe (règle d'intégrité : jamais de commission sans PI).
         if (event.type === "invoice.paid") {
           await createCommissionForPaidInvoice(stripe, invoice, subscription, userId);
+          // « Nouvel abonnement » se déclenche ICI et nulle part ailleurs :
+          // c'est le seul signal qui prouve qu'un paiement a été encaissé.
+          // Une page de confirmation visitée ne prouve rien (elle s'ouvre
+          // aussi quand le paiement est encore en cours de traitement).
+          if (invoice.billing_reason === "subscription_create") {
+            await runAutomation({
+              kind: "subscription_started",
+              userId,
+              dedupeKey: `sub_started:${subscription.id}`,
+            });
+          }
         } else {
           // Analytics : échec de paiement (best-effort, jamais bloquant).
           await recordAnalyticsEvent("payment_failed", {

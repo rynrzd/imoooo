@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType, SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
-import { isEmailProviderConfigured, sendEmail } from "@/lib/email/provider";
-import { welcomeEmail } from "@/lib/email/templates";
+import { runAutomation } from "@/lib/email/automations";
 import { attachPartnerAttribution, REF_COOKIE_NAME } from "@/lib/marketing/referral";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -24,31 +23,33 @@ const EXPIRED_CODES = new Set([
 ]);
 
 /**
- * E-mail de bienvenue envoyé à la PREMIÈRE confirmation du compte.
- * Idempotent (email_logs, dedupe_key unique par utilisateur) et jamais
- * bloquant : un échec d'envoi n'empêche jamais la connexion.
+ * E-mail de bienvenue — envoyé à la PREMIÈRE confirmation du compte, donc
+ * une fois seulement, et jamais à une simple connexion ou à un lien
+ * re-cliqué : la `dedupe_key` « welcome » est unique par utilisateur.
+ *
+ * Le contenu et l'activation viennent maintenant de l'administration
+ * (/admin/automatisations). Jamais bloquant : un échec d'envoi n'empêche
+ * jamais la connexion.
+ *
+ * Le statut inscrit dans `email_logs` était auparavant « envoyé » AVANT
+ * l'appel au fournisseur : un envoi refusé laissait donc une trace affirmant
+ * le contraire. `runAutomation` réserve en échec puis confirme.
  */
 async function sendWelcomeOnce(supabase: SupabaseClient): Promise<void> {
-  if (!isEmailProviderConfigured) return;
   try {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user?.email) return;
-    const content = welcomeEmail(
-      (user.user_metadata?.full_name as string | undefined) ?? ""
-    );
-    // Réservation idempotente (RLS : l'utilisateur écrit sa propre ligne).
-    const { error } = await supabase.from("email_logs").insert({
-      user_id: user.id,
+    if (!user?.email || user.is_anonymous) return;
+    await runAutomation({
       kind: "welcome",
-      recipient: user.email,
-      subject: content.subject,
-      status: "sent",
-      dedupe_key: "welcome",
+      userId: user.id,
+      dedupeKey: "welcome",
+      recipient: {
+        email: user.email,
+        full_name: (user.user_metadata?.full_name as string | undefined) ?? "",
+      },
     });
-    if (error) return; // déjà envoyé (contrainte unique) : rien à faire
-    await sendEmail({ to: user.email, subject: content.subject, html: content.html });
   } catch (e) {
     logger.error("auth/callback welcome", e);
   }

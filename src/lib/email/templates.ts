@@ -321,3 +321,34 @@ export function monthlyReportEmail(input: MonthlyReportInput): EmailContent {
     ),
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* E-mails rédigés depuis l'administration                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * E-mail écrit à la main (ou depuis un modèle) dans /admin/emails.
+ *
+ * Il passe par le MÊME gabarit que les e-mails automatiques : un message
+ * envoyé depuis l'administration est indiscernable, pour le destinataire,
+ * d'une notification Nireo — même en-tête, même footer légal.
+ *
+ * Le corps arrive en texte brut et est intégralement échappé ici : les
+ * variables ont déjà été remplacées en amont (`fillVariables`), donc un nom
+ * de client contenant du HTML ne peut rien injecter. Une ligne vide sépare
+ * deux paragraphes, un simple retour à la ligne reste dans le paragraphe.
+ */
+export function customEmail(
+  subject: string,
+  body: string,
+  cta?: { label: string; url: string }
+): EmailContent {
+  const html = body
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => p(esc(block).replace(/\n/g, "<br>")))
+    .join("");
+  return { subject, html: layout(subject, html, cta) };
+}

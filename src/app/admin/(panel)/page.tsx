@@ -1,20 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  BadgePercent,
-  CreditCard,
-  Crown,
-  Euro,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { AlertTriangle, CreditCard, Euro, Users } from "lucide-react";
 import { StatCard } from "@/components/admin/stat-card";
-import { Badge } from "@/components/ui/badge";
-import { auditActionLabel, PLAN_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/admin/labels";
-import { getDashboardStats } from "@/lib/admin/stats";
-import { formatAdminDate } from "@/lib/admin/format";
+import { formatAdminDateTime } from "@/lib/admin/format";
+import { getDashboardStats, getRecentActivity, type ActivityTone } from "@/lib/admin/stats";
 import { isStripeConfigured } from "@/lib/stripe/config";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 export const dynamic = "force-dynamic";
@@ -25,230 +16,174 @@ function euros(cents: number): string {
   );
 }
 
-/** Tableau de bord administrateur — données réelles Supabase + Stripe. */
+/** Couleur de la pastille d'un événement — le seul usage de couleur ici. */
+const TONE_DOT: Record<ActivityTone, string> = {
+  neutral: "bg-muted-foreground/40",
+  positive: "bg-emerald-500",
+  danger: "bg-destructive",
+};
+
+/**
+ * /admin — ce qu'on veut savoir en ouvrant l'administration.
+ *
+ * Quatre chiffres, la répartition des offres, puis un fil d'activité. Pas
+ * quatorze tuiles : un tableau de bord qui montre tout ne montre rien.
+ * Chaque valeur vient de Supabase ou de Stripe ; quand une source est
+ * indisponible, l'écran affiche « — » et le dit, il n'estime jamais.
+ */
 export default async function AdminDashboardPage() {
-  const stats = await getDashboardStats();
+  const [stats, activity] = await Promise.all([getDashboardStats(), getRecentActivity()]);
+
+  const paid = stats.planCounts.starter + stats.planCounts.pro + stats.planCounts.business;
+  const distribution = [
+    { label: "Gratuit", value: stats.freeUsers, className: "bg-muted-foreground/30" },
+    { label: "Starter", value: stats.planCounts.starter, className: "bg-primary/40" },
+    { label: "Pro", value: stats.planCounts.pro, className: "bg-primary/70" },
+    { label: "Business+", value: stats.planCounts.business, className: "bg-primary" },
+  ];
+  const total = stats.freeUsers + paid;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Tableau de bord</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Vue d&apos;ensemble de Nireo — utilisateurs, abonnements et activité.
+          L’essentiel de Nireo. Le détail vit dans les pages dédiées.
         </p>
       </div>
 
-      {/* Utilisateurs */}
+      {/* ---------------- Vue d'ensemble ---------------- */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Utilisateurs" value={String(stats.totalUsers)} icon={Users} />
         <StatCard
-          label="Actifs (30 j)"
-          value={stats.activeUsers30 === null ? "—" : String(stats.activeUsers30)}
-          hint={stats.activeUsers30 === null ? "Indisponible" : "Dernière connexion < 30 j"}
+          label="Comptes clients"
+          value={String(stats.totalUsers)}
+          hint={
+            stats.newUsers7 > 0
+              ? `+${stats.newUsers7} cette semaine`
+              : "aucune inscription cette semaine"
+          }
           icon={Users}
         />
         <StatCard
-          label="Nouveaux (7 j)"
-          value={String(stats.newUsers7)}
-          icon={UserPlus}
-        />
-        <StatCard
-          label="Nouveaux (30 j)"
-          value={String(stats.newUsers30)}
-          icon={UserPlus}
-        />
-      </section>
-
-      {/* Plans */}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <StatCard label="Gratuit" value={String(stats.freeUsers)} />
-        <StatCard label="Starter" value={String(stats.planCounts.starter)} />
-        <StatCard label="Pro" value={String(stats.planCounts.pro)} />
-        <StatCard label="Business+" value={String(stats.planCounts.business)} />
-        <StatCard
-          label="Fondateurs"
-          value={String(stats.founderMembers)}
-          icon={Crown}
-          className="col-span-2 lg:col-span-1"
-        />
-      </section>
-
-      {/* Abonnements & revenus */}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <StatCard
           label="Abonnements actifs"
           value={String(stats.activeSubscriptions)}
+          hint={
+            stats.founderMembers > 0
+              ? `dont ${stats.founderMembers} Fondateur${stats.founderMembers > 1 ? "s" : ""}`
+              : undefined
+          }
           icon={CreditCard}
-        />
-        <StatCard label="Annulés" value={String(stats.canceledSubscriptions)} />
-        <StatCard
-          label="Paiements en retard"
-          value={String(stats.pastDueSubscriptions)}
-          icon={AlertTriangle}
         />
         <StatCard
           label="Encaissé ce mois"
           value={stats.monthlyRevenueCents === null ? "—" : euros(stats.monthlyRevenueCents)}
-          hint={isStripeConfigured ? "Stripe (factures payées + Fondateur)" : "Stripe non connecté"}
+          hint={
+            isStripeConfigured
+              ? "factures payées + Fondateur"
+              : "Stripe non connecté : chiffre indisponible"
+          }
           icon={Euro}
         />
         <StatCard
-          label="Codes promo utilisés"
-          value={String(stats.promoRedemptions)}
-          icon={BadgePercent}
+          label="Paiements en retard"
+          value={String(stats.pastDueSubscriptions)}
+          hint={stats.pastDueSubscriptions > 0 ? "à traiter" : "rien à signaler"}
+          icon={AlertTriangle}
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        {/* Derniers comptes */}
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10">
-          <div className="flex items-center justify-between px-4 pt-4">
-            <h2 className="text-sm font-medium">Derniers comptes créés</h2>
-            <Link
-              href="/admin/utilisateurs"
-              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+      {/* ---------------- Répartition des offres ---------------- */}
+      <section className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-sm font-medium">Répartition des comptes</h2>
+          <Link
+            href="/admin/abonnements"
+            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Voir les abonnements
+          </Link>
+        </div>
+
+        {total === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">Aucun compte pour le moment.</p>
+        ) : (
+          <>
+            {/* Une seule barre : les proportions se lisent d'un coup d'œil,
+                là où quatre tuiles obligeaient à faire le calcul. */}
+            <div
+              className="mt-3 flex h-2 w-full overflow-hidden rounded-full bg-muted"
+              role="img"
+              aria-label={distribution
+                .map((part) => `${part.label} : ${part.value}`)
+                .join(", ")}
             >
-              Tout voir
-            </Link>
-          </div>
-          <div className="mt-2 divide-y divide-border/60 px-4 pb-3">
-            {stats.recentAccounts.length === 0 ? (
-              <p className="py-3 text-sm text-muted-foreground">Aucun compte pour le moment.</p>
-            ) : (
-              stats.recentAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="min-w-0">
+              {distribution.map((part) =>
+                part.value > 0 ? (
+                  <span
+                    key={part.label}
+                    className={part.className}
+                    style={{ width: `${(part.value / total) * 100}%` }}
+                  />
+                ) : null
+              )}
+            </div>
+            <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+              {distribution.map((part) => (
+                <li key={part.label} className="flex items-center gap-1.5 text-xs">
+                  <span className={cn("size-2 rounded-full", part.className)} aria-hidden />
+                  <span className="text-muted-foreground">{part.label}</span>
+                  <span className="font-medium tabular-nums">{part.value}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+
+      {/* ---------------- Activité récente ---------------- */}
+      <section className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 pt-4 pb-2">
+          <h2 className="text-sm font-medium">Activité récente</h2>
+          <Link
+            href="/admin/audit"
+            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Journal complet
+          </Link>
+        </div>
+
+        {activity.length === 0 ? (
+          <p className="px-4 pt-2 pb-4 text-sm text-muted-foreground">
+            Rien à afficher pour le moment.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {activity.map((item) => (
+              <li key={item.id} className="flex items-start gap-3 px-4 py-2.5">
+                <span
+                  aria-hidden
+                  className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", TONE_DOT[item.tone])}
+                />
+                <div className="min-w-0 flex-1">
+                  {item.href ? (
                     <Link
-                      href={`/admin/utilisateurs/${account.id}`}
-                      className="block truncate text-sm font-medium hover:underline"
+                      href={item.href}
+                      className="block truncate text-sm font-medium underline-offset-2 hover:underline"
                     >
-                      {account.full_name || account.email || "Compte sans nom"}
+                      {item.label}
                     </Link>
-                    <p className="truncate text-xs text-muted-foreground">{account.email}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant="outline">{PLAN_LABELS[account.plan] ?? account.plan}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatAdminDate(account.created_at)}
-                    </span>
-                  </div>
+                  ) : (
+                    <p className="truncate text-sm font-medium">{item.label}</p>
+                  )}
+                  <p className="truncate text-xs text-muted-foreground">{item.detail}</p>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Derniers abonnements */}
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10">
-          <div className="flex items-center justify-between px-4 pt-4">
-            <h2 className="text-sm font-medium">Derniers abonnements</h2>
-            <Link
-              href="/admin/abonnements"
-              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-            >
-              Tout voir
-            </Link>
-          </div>
-          <div className="mt-2 divide-y divide-border/60 px-4 pb-3">
-            {stats.recentSubscriptions.length === 0 ? (
-              <p className="py-3 text-sm text-muted-foreground">
-                Aucun abonnement payant pour le moment.
-              </p>
-            ) : (
-              stats.recentSubscriptions.map((sub) => (
-                <div
-                  key={`${sub.user_id}-${sub.updated_at}`}
-                  className="flex items-center justify-between gap-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/utilisateurs/${sub.user_id}`}
-                      className="block truncate text-sm font-medium hover:underline"
-                    >
-                      {sub.email || sub.user_id}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {PLAN_LABELS[sub.plan] ?? sub.plan} ·{" "}
-                      {SUBSCRIPTION_STATUS_LABELS[sub.status] ?? sub.status}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatAdminDate(sub.updated_at)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Erreurs récentes */}
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10">
-          <div className="flex items-center justify-between px-4 pt-4">
-            <h2 className="text-sm font-medium">Erreurs importantes</h2>
-            <Link
-              href="/admin/audit?resultat=error"
-              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-            >
-              Tout voir
-            </Link>
-          </div>
-          <div className="mt-2 divide-y divide-border/60 px-4 pb-3">
-            {stats.recentErrors.length === 0 ? (
-              <p className="py-3 text-sm text-muted-foreground">Aucune erreur enregistrée.</p>
-            ) : (
-              stats.recentErrors.map((row) => (
-                <div key={row.id} className="py-2.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-destructive">
-                      {auditActionLabel(row.action)}
-                    </p>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {formatAdminDate(row.created_at)}
-                    </span>
-                  </div>
-                  {row.detail ? (
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.detail}</p>
-                  ) : null}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Activité récente */}
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10">
-          <div className="flex items-center justify-between px-4 pt-4">
-            <h2 className="text-sm font-medium">Activité récente</h2>
-            <Link
-              href="/admin/audit"
-              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-            >
-              Journal complet
-            </Link>
-          </div>
-          <div className="mt-2 divide-y divide-border/60 px-4 pb-3">
-            {stats.recentActivity.length === 0 ? (
-              <p className="py-3 text-sm text-muted-foreground">
-                Aucune action administrative pour le moment.
-              </p>
-            ) : (
-              stats.recentActivity.map((row) => (
-                <div key={row.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm">{auditActionLabel(row.action)}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {row.admin_email}
-                      {row.target_label ? ` → ${row.target_label}` : ""}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {formatAdminDate(row.created_at)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+                <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                  {formatAdminDateTime(item.at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

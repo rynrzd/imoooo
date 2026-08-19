@@ -124,10 +124,47 @@ export async function getPublicSiteSettings(): Promise<
   }
 }
 
-/** Écrit une clé (appelé uniquement depuis les Server Actions admin). */
-export async function writeSiteSetting(
-  key: keyof SiteSettings,
-  value: string | number | boolean | MarketingPromo,
+/**
+ * Valeur JSON quelconque — `site_settings.value` est une colonne jsonb, elle
+ * accepte donc bien plus que les scalaires des réglages historiques.
+ */
+export type SettingValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SettingValue[]
+  | { [key: string]: SettingValue };
+
+/**
+ * Lecture d'une clé quelconque (admin, clé secrète). Jamais bloquant :
+ * une table absente ou une valeur illisible retombe sur le repli fourni,
+ * exactement comme `getSiteSettings()`.
+ */
+export async function readSiteSettingRaw<T>(key: string, fallback: T): Promise<T> {
+  if (!isAdminConfigured) return fallback;
+  try {
+    const { data, error } = await createAdminClient()
+      .from("site_settings")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data?.value as T | undefined) ?? fallback;
+  } catch (e) {
+    logger.error("admin/settings", e);
+    return fallback;
+  }
+}
+
+/**
+ * Écriture d'une clé quelconque (appelé uniquement depuis les Server Actions
+ * admin). Lève en cas d'échec : l'appelant doit pouvoir dire « enregistré »
+ * seulement quand la base a réellement accepté l'écriture.
+ */
+export async function writeSiteSettingRaw(
+  key: string,
+  value: SettingValue,
   adminId: string
 ): Promise<void> {
   const { error } = await createAdminClient()
@@ -137,4 +174,13 @@ export async function writeSiteSetting(
       { onConflict: "key" }
     );
   if (error) throw new Error(`Enregistrement du paramètre impossible : ${error.message}`);
+}
+
+/** Écrit un réglage connu (appelé uniquement depuis les Server Actions admin). */
+export async function writeSiteSetting(
+  key: keyof SiteSettings,
+  value: string | number | boolean | MarketingPromo,
+  adminId: string
+): Promise<void> {
+  return writeSiteSettingRaw(key, value as SettingValue, adminId);
 }
