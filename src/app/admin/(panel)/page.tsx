@@ -1,9 +1,15 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertTriangle, CreditCard, Euro, Users } from "lucide-react";
 import { StatCard } from "@/components/admin/stat-card";
 import { formatAdminDateTime } from "@/lib/admin/format";
-import { getDashboardStats, getRecentActivity, type ActivityTone } from "@/lib/admin/stats";
+import {
+  getDashboardStats,
+  getMonthlyRevenueCents,
+  getRecentActivity,
+  type ActivityTone,
+} from "@/lib/admin/stats";
 import { isStripeConfigured } from "@/lib/stripe/config";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +19,27 @@ export const dynamic = "force-dynamic";
 function euros(cents: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
     cents / 100
+  );
+}
+
+/**
+ * Encaissements du mois — rendu séparément parce qu'il interroge Stripe.
+ * Tant qu'aucun montant n'est confirmé, la tuile dit qu'elle attend ; elle
+ * n'affiche jamais un zéro qui passerait pour un vrai résultat.
+ */
+async function MonthlyRevenueCard() {
+  const cents = await getMonthlyRevenueCents();
+  return (
+    <StatCard
+      label="Encaissé ce mois"
+      value={cents === null ? "—" : euros(cents)}
+      hint={
+        isStripeConfigured
+          ? "factures payées + Fondateur"
+          : "Stripe non connecté : chiffre indisponible"
+      }
+      icon={Euro}
+    />
   );
 }
 
@@ -74,16 +101,20 @@ export default async function AdminDashboardPage() {
           }
           icon={CreditCard}
         />
-        <StatCard
-          label="Encaissé ce mois"
-          value={stats.monthlyRevenueCents === null ? "—" : euros(stats.monthlyRevenueCents)}
-          hint={
-            isStripeConfigured
-              ? "factures payées + Fondateur"
-              : "Stripe non connecté : chiffre indisponible"
+        {/* Seule tuile qui dépende d'un appel réseau à Stripe : elle se
+            remplit à son rythme au lieu de retenir les sept autres. */}
+        <Suspense
+          fallback={
+            <StatCard
+              label="Encaissé ce mois"
+              value="…"
+              hint="lecture de Stripe en cours"
+              icon={Euro}
+            />
           }
-          icon={Euro}
-        />
+        >
+          <MonthlyRevenueCard />
+        </Suspense>
         <StatCard
           label="Paiements en retard"
           value={String(stats.pastDueSubscriptions)}

@@ -7,8 +7,14 @@ export function JsonLd({ data }: { data: object }) {
   return (
     <script
       type="application/ld+json"
-      // Contenu contrôlé par l'application (aucune donnée utilisateur).
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // `JSON.stringify` n'échappe PAS `<` : une chaîne contenant
+      // « </script> » refermerait la balise et le reste serait exécuté comme
+      // du HTML. Les données actuelles viennent toutes du code, mais il
+      // suffirait qu'un jour un titre éditable passe par ici pour ouvrir une
+      // faille — l'échappement coûte un caractère et la ferme définitivement.
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }

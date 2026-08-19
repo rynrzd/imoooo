@@ -4,7 +4,7 @@ import {
   PARTNER_COOKIE,
   PARTNER_COOKIE_MAX_AGE,
 } from "@/lib/marketing/partner-auth";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitShared } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
     "unknown";
-  if (!checkRateLimit(`partner-login:${ip}`, 20, 60_000)) {
+  if (!(await checkRateLimitShared(`partner-login:${ip}`, 20, 60_000))) {
     return NextResponse.redirect(new URL("/partenaire?erreur=limite", url.origin));
   }
 

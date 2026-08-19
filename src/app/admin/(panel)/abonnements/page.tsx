@@ -318,11 +318,12 @@ export default async function AdminSubscriptionsPage({
         </div>
       ) : null}
 
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        « Suspendre l’accès » bloque la connexion à Nireo sans toucher à l’abonnement Stripe (accès
-        rétablissable). Le changement de plan d’un client se fait depuis sa fiche
-        (Utilisateurs → fiche → Abonnement) : il passe par Stripe quand l’abonnement est facturé.
-      </p>
+      {/* Le paragraphe explicatif permanent qui se trouvait ici a été retiré :
+          il répétait, en bas de page et pour toujours, ce que la boîte de
+          confirmation de « Suspendre l'accès » dit déjà au moment où la
+          question se pose — et où elle est lisible au clavier comme au
+          doigt, contrairement à une infobulle. Une explication utile se
+          place à l'endroit du geste, pas en pied d'écran. */}
     </div>
   );
 }

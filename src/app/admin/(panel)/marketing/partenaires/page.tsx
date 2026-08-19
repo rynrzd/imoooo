@@ -37,7 +37,16 @@ export default async function PartnersListPage({
 
   const admin = createAdminClient();
   let query = admin.from("marketing_partners").select("*").order("created_at", { ascending: false });
-  if (q) query = query.or(`name.ilike.%${q}%,company_name.ilike.%${q}%,email.ilike.%${q}%,referral_slug.ilike.%${q}%`);
+  // Les jokers et séparateurs de PostgREST sont neutralisés AVANT d'entrer
+  // dans `or()` : une virgule dans la recherche (« Dupont, SARL ») y serait
+  // lue comme la fin d'une condition et le début d'une autre — on sortirait
+  // du filtre voulu. Même précaution que `listUsers` et `listEmailLogs`.
+  const term = q.replace(/[%_,()]/g, " ").trim();
+  if (term) {
+    query = query.or(
+      `name.ilike.%${term}%,company_name.ilike.%${term}%,email.ilike.%${term}%,referral_slug.ilike.%${term}%`
+    );
+  }
   if (statut === "actifs") query = query.eq("is_active", true);
   else if (statut === "inactifs") query = query.eq("is_active", false);
   if (type && type in PARTNER_TYPE_LABELS) query = query.eq("partner_type", type);

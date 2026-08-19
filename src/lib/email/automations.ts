@@ -273,44 +273,41 @@ export async function getAutomationStats(): Promise<Record<AutomationKind, Autom
   for (const kind of AUTOMATION_KINDS) out[kind] = { ...empty };
   if (!isAdminConfigured) return out;
 
-  const admin = createAdminClient();
-  await Promise.all(
-    AUTOMATION_KINDS.map(async (kind) => {
-      const [sent, failed, last, lastFailure] = await Promise.all([
-        admin
-          .from("email_logs")
-          .select("id", { count: "exact", head: true })
-          .eq("kind", kind)
-          .eq("status", "sent"),
-        admin
-          .from("email_logs")
-          .select("id", { count: "exact", head: true })
-          .eq("kind", kind)
-          .eq("status", "failed"),
-        admin
-          .from("email_logs")
-          .select("created_at")
-          .eq("kind", kind)
-          .eq("status", "sent")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        admin
-          .from("email_logs")
-          .select("error")
-          .eq("kind", kind)
-          .eq("status", "failed")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-      ]);
-      out[kind] = {
-        sent: sent.count ?? 0,
-        failed: failed.count ?? 0,
-        lastSentAt: (last.data?.created_at as string | undefined) ?? null,
-        lastError: (lastFailure.data?.error as string | undefined) ?? null,
-      };
-    })
-  );
+  // UNE requête, agrégée ici.
+  //
+  // La version précédente faisait quatre requêtes par automatisation
+  // (deux comptages, deux « dernière ligne ») : seize allers-retours pour
+  // quatre lignes à l'écran. Or `email_logs` n'a pas d'index sur `kind` —
+  // chaque comptage était donc un parcours complet de la table. Un seul
+  // parcours suffit, et les compteurs restent EXACTS (aucune limite n'est
+  // posée : on ne troquerait pas la justesse contre de la vitesse).
+  //
+  // Si cette table devait un jour dépasser quelques dizaines de milliers de
+  // lignes, il faudrait une fonction SQL d'agrégation — donc une migration.
+  const { data, error } = await createAdminClient()
+    .from("email_logs")
+    .select("kind, status, error, created_at")
+    .in("kind", AUTOMATION_KINDS)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    logger.error("email/automation stats", error.message);
+    return out;
+  }
+
+  for (const row of data ?? []) {
+    const kind = row.kind as AutomationKind;
+    const entry = out[kind];
+    if (!entry) continue;
+    // Les lignes arrivent de la plus récente à la plus ancienne : la
+    // première rencontrée pour un statut donné EST la dernière en date.
+    if (row.status === "sent") {
+      entry.sent += 1;
+      if (!entry.lastSentAt) entry.lastSentAt = row.created_at as string;
+    } else {
+      entry.failed += 1;
+      if (!entry.lastError) entry.lastError = (row.error as string | null) ?? null;
+    }
+  }
   return out;
 }

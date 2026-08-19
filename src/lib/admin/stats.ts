@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
 import { isStripeConfigured } from "@/lib/stripe/config";
@@ -34,16 +35,25 @@ export interface DashboardStats {
   founderMembers: number;
   activeSubscriptions: number;
   pastDueSubscriptions: number;
-  /** Encaissements du mois en cours, en centimes (null : Stripe absent). */
-  monthlyRevenueCents: number | null;
 }
 
-/** user_id de tous les administrateurs (exclus des statistiques clients). */
-export async function getAdminUserIds(admin: SupabaseClient): Promise<string[]> {
-  const { data, error } = await admin.from("admin_users").select("user_id");
-  if (error) throw new Error(`Lecture des administrateurs impossible : ${error.message}`);
-  return (data ?? []).map((r) => r.user_id as string);
-}
+/**
+ * user_id de tous les administrateurs (exclus des statistiques clients).
+ *
+ * Mémorisé pour la DURÉE D'UNE REQUÊTE (`cache` de React) : le tableau de
+ * bord appelle `getDashboardStats` et `getRecentActivity`, la page
+ * Utilisateurs appelle `listUsers` — chacun avait besoin de cette liste et
+ * la redemandait. C'est la même réponse à quelques millisecondes
+ * d'intervalle ; une seule lecture suffit. Le cache ne survit pas à la
+ * requête, donc un administrateur ajouté est pris en compte immédiatement.
+ */
+export const getAdminUserIds = cache(
+  async (admin: SupabaseClient): Promise<string[]> => {
+    const { data, error } = await admin.from("admin_users").select("user_id");
+    if (error) throw new Error(`Lecture des administrateurs impossible : ${error.message}`);
+    return (data ?? []).map((r) => r.user_id as string);
+  }
+);
 
 /** Filtre PostgREST « id hors administrateurs » (no-op sans admins). */
 function excludeIds(ids: string[]): string | null {
@@ -58,7 +68,20 @@ async function count(
   return value ?? 0;
 }
 
-/** Encaissements Stripe du mois (factures payées + achats Fondateur). */
+/**
+ * Encaissements Stripe du mois (factures payées + achats Fondateur).
+ *
+ * SORTI du chemin bloquant du tableau de bord : c'est le seul chiffre qui
+ * dépend d'un appel réseau à Stripe (jusqu'à trois allers-retours), et il
+ * retardait l'affichage des sept autres, tous lus en base. La page le rend
+ * désormais dans son propre `<Suspense>` — le reste s'affiche sans
+ * l'attendre. Aucune valeur n'est pour autant estimée : la tuile montre un
+ * état d'attente, puis le montant réel.
+ */
+export async function getMonthlyRevenueCents(): Promise<number | null> {
+  return monthlyRevenue(createAdminClient());
+}
+
 async function monthlyRevenue(admin: SupabaseClient): Promise<number | null> {
   if (!isStripeConfigured) return null;
   try {
@@ -122,7 +145,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     activeSubscriptions,
     pastDueSubscriptions,
     founderMembers,
-    monthlyRevenueCents,
   ] = await Promise.all([
     count(() => profilesBase()),
     count(() => profilesBase().gte("created_at", iso7)),
@@ -137,7 +159,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         .select("id", { count: "exact", head: true })
         .eq("status", "confirmed")
     ),
-    monthlyRevenue(admin),
   ]);
 
   const paidTotal = starter + pro + business;
@@ -149,7 +170,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     founderMembers,
     activeSubscriptions,
     pastDueSubscriptions,
-    monthlyRevenueCents,
   };
 }
 

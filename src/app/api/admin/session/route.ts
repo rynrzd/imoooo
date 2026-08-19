@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { logAdminLogin, logAdminAction } from "@/lib/admin/audit";
 import { findAdminByUserId, getAdminContext } from "@/lib/admin/auth";
 import { logger } from "@/lib/logger";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimitShared } from "@/lib/rate-limit";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -45,9 +45,13 @@ export async function POST(request: Request) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip") ??
     "unknown";
+  // Compteur PARTAGÉ entre instances : c'est la surface où l'on devine un
+  // mot de passe, une limite par instance s'y contourne en multipliant les
+  // points d'entrée. Repli automatique sur la mémoire si la migration du
+  // compteur commun n'est pas encore appliquée.
   if (
-    !checkRateLimit(`admin-login-ip:${ip}`, 10, 15 * 60_000) ||
-    !checkRateLimit(`admin-login-email:${normalizedEmail}`, 5, 5 * 60_000)
+    !(await checkRateLimitShared(`admin-login-ip:${ip}`, 10, 15 * 60_000)) ||
+    !(await checkRateLimitShared(`admin-login-email:${normalizedEmail}`, 5, 5 * 60_000))
   ) {
     return NextResponse.json(
       { error: "Trop de tentatives. Patientez quelques minutes puis réessayez." },
