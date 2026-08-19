@@ -66,7 +66,6 @@ export async function commitConfig(
   invalidateEngineCache();
   revalidatePath("/");
   revalidatePath("/accueil");
-  revalidatePath("/admin/landing");
   return next;
 }
 
