@@ -4,6 +4,38 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ================================================================== */
+/*  MOTION SYSTEM — une seule échelle de durées, trois courbes         */
+/*                                                                    */
+/*  Avant ces jetons, la base comptait huit courbes et une vingtaine   */
+/*  de durées différentes : chaque composant avait inventé les         */
+/*  siennes, et rien ne semblait appartenir au même produit.           */
+/*                                                                    */
+/*  L'échelle suit la RAISON du mouvement, pas sa taille :             */
+/*    instant    — accusé de réception d'un geste (pression)           */
+/*    micro      — réaction à un survol, un focus                      */
+/*    component  — un composant change d'état (panneau, onglet)        */
+/*    reveal     — un contenu entre dans le champ au défilement        */
+/*                                                                    */
+/*  Les chorégraphies longues et calées à la main (menu plein écran,   */
+/*  tracés SVG, fils des sections éditoriales) gardent leurs valeurs   */
+/*  propres : ce sont des séquences, pas des transitions d'état.       */
+/* ================================================================== */
+
+:root {
+  --mo-instant: 120ms;
+  --mo-micro: 200ms;
+  --mo-component: 300ms;
+  --mo-reveal: 520ms;
+
+  /* Sortie franche puis pose en douceur — la courbe par défaut. */
+  --mo-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Entrée ET sortie adoucies : bascules d'état, ouvertures/fermetures. */
+  --mo-ease-state: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Tracés et déploiements : démarre vite, s'étire sur la fin. */
+  --mo-ease-draw: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -219,14 +251,120 @@
 /* Uniquement une transformation : l'ombre animée alourdissait le rendu sans
    rien apprendre, et le survol n'existe pas au doigt. */
 @utility card-lift {
-  transition: transform 0.2s ease;
-  @media (prefers-reduced-motion: no-preference) {
+  transition:
+    transform var(--mo-micro) var(--mo-ease),
+    box-shadow var(--mo-micro) var(--mo-ease);
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     &:hover {
       transform: translateY(-2px);
+      /* Le bord de la carte se resserre d'un cran — pas d'ombre portée
+         ajoutée, la remarque d'origine tient toujours : elle alourdit le
+         rendu sans rien apprendre. */
+      box-shadow: 0 0 0 1px var(--border);
     }
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Micro-interactions de l'APPLICATION                                */
+/*                                                                    */
+/*  Volontairement plus sobres que la vitrine : ici le mouvement sert  */
+/*  à confirmer un geste, pas à séduire. Tout est en transform /       */
+/*  opacity / box-shadow, et rien ne joue au doigt (`hover: hover`).   */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Relevé au survol, puis compression au clic. Les deux règles ont la MÊME
+ * spécificité et la pression est déclarée en dernier : elle l'emporte donc
+ * quand on clique depuis un survol — sinon le bouton restait relevé et le
+ * clic ne se sentait pas.
+ */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-slot="button"]:not(:disabled):not([aria-haspopup]):hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"] {
+    transition: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-slot="button"]:not(:disabled):not([aria-haspopup]):active {
+    transform: scale(0.98);
+    transition-duration: var(--mo-instant);
+  }
+}
+
+/* La flèche d'un bouton avance seule — l'icône réagit, pas le bouton. */
+[data-slot="button"] [data-icon="inline-end"] {
+  transition: transform var(--mo-micro) var(--mo-ease);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-slot="button"]:hover [data-icon="inline-end"] {
+    transform: translateX(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"] [data-icon="inline-end"] {
+    transition: none;
+  }
+}
+
+/*
+ * Champs de saisie : la couleur de bord se pose au lieu de claquer.
+ *
+ * L'anneau lui-même n'est PAS animé, et c'est délibéré : Tailwind le compose
+ * en une liste de cinq ombres, que `box-shadow` ne sait pas interpoler
+ * depuis `none`. Déclarer la transition donnait l'illusion du travail sans
+ * rien changer à l'écran. Le bord, lui, transite vraiment.
+ */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+[data-slot="select-trigger"] {
+  transition:
+    color var(--mo-micro) var(--mo-ease),
+    background-color var(--mo-micro) var(--mo-ease),
+    border-color var(--mo-micro) var(--mo-ease);
+}
+
+/* Mêmes sélecteurs que la règle ci-dessus : `:not()` compte dans la
+   spécificité, une coupure plus légère ne l'emporterait pas, même
+   déclarée après. */
+@media (prefers-reduced-motion: reduce) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  [data-slot="select-trigger"] {
+    transition: none;
+  }
+}
+
+/*
+ * Onglets, variante « line » : le trait actif se DÉPLOIE depuis son centre
+ * au lieu de clignoter en opacité. L'indicateur reste le même trait, au
+ * même endroit, de la même couleur.
+ */
+[data-slot="tabs-trigger"]::after {
+  transform: scaleX(0.4);
+  transform-origin: center;
+  transition:
+    opacity var(--mo-micro) var(--mo-ease),
+    transform var(--mo-component) var(--mo-ease);
+}
+
+[data-slot="tabs-trigger"][data-active]::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="tabs-trigger"]::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -864,6 +1002,22 @@
   }
 }
 
+/**
+ * Attention guidée : un liseré cobalt affleure puis s'efface. Départ et
+ * arrivée sont l'état de repos EXACT — au repos, rien ne distingue la zone.
+ */
+@keyframes nl-attention {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(27 82 232 / 0);
+    transform: none;
+  }
+  40%,
+  62% {
+    box-shadow: 0 0 0 2px rgb(27 82 232 / 0.24);
+    transform: translateY(-2px);
+  }
+}
 /** Une ligne de titre qui monte derrière son cache. */
 @keyframes nl-mask-rise {
   from {
@@ -1184,7 +1338,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-underline {
-    transition: background-size 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: background-size var(--mo-component) var(--mo-ease);
   }
 }
 
@@ -1195,7 +1349,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-burger span {
-    transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: transform var(--mo-component) var(--mo-ease);
   }
 }
 
@@ -1212,7 +1366,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-photo-zoom img {
-    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 1.2s var(--mo-ease);
   }
 
   @media (hover: hover) {
@@ -1243,7 +1397,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-header-rule {
-    transition: transform 0.55s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: transform var(--mo-reveal) var(--mo-ease-draw);
   }
 }
 
@@ -1269,7 +1423,7 @@
 
 .nireo-landing .nl-shift {
   transform: translate3d(var(--nl-shift-x, 0px), var(--nl-shift-y, 0px), 0);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform var(--mo-component) var(--mo-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1418,6 +1572,71 @@
     transform: scaleX(0);
   }
 
+  /*
+   * Arrivée LATÉRALE — réservée aux compositions à deux colonnes, où le
+   * visuel a un côté d'où venir. Le décalage n'existe qu'à partir de `lg` :
+   * en colonne unique il n'y a pas de latéralité à raconter, seule
+   * l'échelle joue. Se combine avec `data-seq-mask` sur le même élément —
+   * l'un pilote `clip-path`, l'autre `transform`, ils ne se marchent pas
+   * dessus.
+   */
+  .nireo-landing .nl-seq [data-seq-side] {
+    transition:
+      opacity var(--mo-reveal) var(--mo-ease),
+      transform 0.8s var(--mo-ease);
+    transition-delay: var(--nl-delay, 0ms);
+  }
+
+  /*
+   * Le côté d'où vient le visuel. En colonne unique il n'y en a pas : la
+   * valeur par défaut est nulle et seule l'échelle joue. La valeur DOIT
+   * rester ici et non en style inline — un style inline l'emporterait sur
+   * la règle média et le décalage ne s'appliquerait jamais.
+   */
+  .nireo-landing .nl-side-lg {
+    --nl-side: 0px;
+  }
+
+  @media (width >= 64rem) {
+    .nireo-landing .nl-side-lg {
+      --nl-side: -26px;
+    }
+  }
+  /*
+   * Cas COMBINÉ masque + arrivée latérale sur un même élément.
+   *
+   * Indispensable : `transition` est une propriété raccourcie. Deux règles
+   * de même spécificité qui la déclarent ne s'additionnent pas — la
+   * dernière remplace l'autre. Sans ce bloc, `data-seq-side` effaçait la
+   * transition de `clip-path` de `data-seq-mask` et la photographie
+   * sautait au lieu de se dévoiler. Spécificité (0,4,0) : ce bloc gagne.
+   */
+  .nireo-landing .nl-seq [data-seq-mask][data-seq-side] {
+    transition:
+      clip-path 0.95s var(--mo-ease-draw) var(--nl-delay, 0ms),
+      opacity var(--mo-reveal) var(--mo-ease) var(--nl-delay, 0ms),
+      transform 0.8s var(--mo-ease) var(--nl-delay, 0ms);
+  }
+  .nireo-landing .nl-seq[data-reveal="hidden"] [data-seq-side] {
+    opacity: 0;
+    transform: translateX(var(--nl-side, 0px)) scale(0.985);
+  }
+
+  /*
+   * Attention guidée — une zone de l'aperçu prend brièvement plus de
+   * présence, puis rend la main. AUCUN `animation-fill-mode` : c'est ce qui
+   * garantit que l'élément retrouve exactement son style normal une fois
+   * l'animation finie. Le liseré est porté par une enveloppe sans ombre
+   * propre — l'animer sur la carte elle-même effacerait son `ring`.
+   *
+   * Le sélecteur `:not([hidden])` fait office de déclencheur : l'animation
+   * part au moment précis où l'observateur retire l'état masqué.
+   */
+  .nireo-landing .nl-seq:not([data-reveal="hidden"]) [data-seq-focus] {
+    animation: nl-attention 1.15s var(--mo-ease-state);
+    /* Délai PROPRE : l'attention vient après la cascade, pas avec elle. */
+    animation-delay: var(--nl-focus-delay, var(--nl-delay, 0ms));
+  }
   /* Balayage bleu sous un mot important. */
   .nireo-landing .nl-seq [data-sweep] {
     transition: background-size 0.7s cubic-bezier(0.33, 1, 0.68, 1);
@@ -1542,7 +1761,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-menu-item:not(:first-of-type) .nl-menu-link {
-    transition: background-size 0.34s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: background-size var(--mo-component) var(--mo-ease);
   }
 }
 
@@ -1992,7 +2211,7 @@
 .nireo-landing .nl-faq-panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-rows var(--mo-component) var(--mo-ease-state);
 }
 
 .nireo-landing .nl-faq-panel[data-open="true"] {
@@ -2017,8 +2236,8 @@
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-faq-panel > div > * {
     transition:
-      opacity 0.26s ease-out,
-      transform 0.32s cubic-bezier(0.33, 1, 0.68, 1);
+      opacity var(--mo-micro) ease-out,
+      transform var(--mo-component) var(--mo-ease);
   }
 
   .nireo-landing .nl-faq-panel[data-open="true"] > div > * {
@@ -2035,7 +2254,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-faq-label {
-    transition: color 0.2s ease;
+    transition: color var(--mo-micro) var(--mo-ease);
   }
 }
 
@@ -2054,7 +2273,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .nireo-landing .nl-faq-sign {
-    transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--mo-component) var(--mo-ease-state);
   }
 }
 
@@ -2076,7 +2295,7 @@
 .nireo-landing .nl-faq-sign::after {
   width: 1.5px;
   height: 100%;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--mo-component) var(--mo-ease-state);
 }
 
 .nireo-landing [aria-expanded="true"] .nl-faq-sign::after {
@@ -2096,13 +2315,13 @@
 
 .nireo-landing .nl-button {
   transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.18s cubic-bezier(0.33, 1, 0.68, 1);
+    background-color var(--mo-micro) var(--mo-ease),
+    box-shadow var(--mo-micro) var(--mo-ease),
+    transform var(--mo-micro) var(--mo-ease);
 }
 
 .nireo-landing .nl-button .nl-button-arrow {
-  transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: transform var(--mo-micro) var(--mo-ease);
 }
 
 @media (hover: hover) {

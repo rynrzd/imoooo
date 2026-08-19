@@ -80,7 +80,8 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors duration-150",
+        "group/nav relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm",
+        "[transition-property:color,background-color] [transition-duration:var(--mo-micro)] [transition-timing-function:var(--mo-ease)] motion-reduce:transition-none",
         active
           ? "bg-accent font-medium text-foreground shadow-[inset_0_0_0_1px_var(--border)]"
           : "font-normal text-muted-foreground hover:bg-accent/60 hover:text-foreground"
@@ -89,13 +90,15 @@ function NavLink({
       <span
         aria-hidden
         className={cn(
-          "absolute inset-y-2 left-0 w-0.5 rounded-full bg-foreground transition-opacity",
-          active ? "opacity-100" : "opacity-0"
+          "absolute inset-y-2 left-0 w-0.5 origin-center rounded-full bg-foreground",
+          "[transition-property:opacity,transform] [transition-duration:var(--mo-component)] [transition-timing-function:var(--mo-ease)] motion-reduce:transition-none",
+          active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"
         )}
       />
       <item.icon
         className={cn(
-          "size-4 shrink-0 transition-colors",
+          "size-4 shrink-0 [transition-property:color,transform] [transition-duration:var(--mo-micro)] [transition-timing-function:var(--mo-ease)] motion-reduce:transition-none",
+          "group-hover/nav:translate-x-0.5",
           active ? "text-foreground" : "text-muted-foreground/70"
         )}
       />

@@ -51,8 +51,9 @@ export function StorySection() {
               pour laisser le battant sombre hors champ. */}
           <div
             data-seq-mask
+            data-seq-side
             style={{ ["--nl-delay" as string]: "180ms" }}
-            className="nl-photo-zoom relative mx-auto aspect-[4/5] w-full max-w-[26rem] overflow-hidden rounded-lg lg:mx-0 lg:max-w-none"
+            className="nl-photo-zoom nl-side-lg relative mx-auto aspect-[4/5] w-full max-w-[26rem] overflow-hidden rounded-lg lg:mx-0 lg:max-w-none"
           >
             <Image
               src="/photos/hero-appartement.jpg"

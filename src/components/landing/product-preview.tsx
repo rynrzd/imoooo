@@ -141,7 +141,18 @@ export function ProductPreview() {
                 icon={Landmark}
               />
             </div>
-            <div data-seq style={{ ["--nl-delay" as string]: "520ms" }}>
+            {/* Première zone regardée : les revenus. Le liseré affleure
+                puis s'efface — au repos, la tuile est exactement celle des
+                autres. */}
+            <div
+              data-seq
+              data-seq-focus
+              className="rounded-xl"
+              style={{
+                ["--nl-delay" as string]: "520ms",
+                ["--nl-focus-delay" as string]: "1500ms",
+              }}
+            >
               <StatCard
                 label="Revenus du mois"
                 value={<AnimatedFigure value="8 650 €" />}
@@ -160,7 +171,16 @@ export function ProductPreview() {
             {/* La jauge se remplit au lieu d'être déjà pleine — elle part
                 juste après l'entrée de sa tuile (cf. `[role="progressbar"]`
                 dans globals.css). */}
-            <div data-seq style={{ ["--nl-delay" as string]: "640ms" }}>
+            {/* Puis la seconde, une fois la première rendue. */}
+            <div
+              data-seq
+              data-seq-focus
+              className="rounded-xl"
+              style={{
+                ["--nl-delay" as string]: "640ms",
+                ["--nl-focus-delay" as string]: "2150ms",
+              }}
+            >
               <StatCard
                 label="Taux d’occupation"
                 value={<AnimatedFigure value="94 %" />}
