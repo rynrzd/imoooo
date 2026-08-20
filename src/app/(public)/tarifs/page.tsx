@@ -66,12 +66,30 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
       <JsonLd data={JSON_LD} />
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="text-xs font-medium tracking-widest text-primary uppercase">Tarifs</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Un plan pour chaque taille de patrimoine
+      <div data-reveal className="nl-seq mx-auto max-w-2xl text-center">
+        {/* Surtitre à filet : l'idiome de la landing, pas une pastille. */}
+        <p
+          data-seq
+          className="flex items-center justify-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-gray)] uppercase"
+        >
+          <span
+            aria-hidden
+            data-seq-rule
+            style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+            className="h-px w-8 bg-[var(--nl-cobalt)]"
+          />
+          Tarifs
+        </p>
+        <h1 className="mt-6 text-[clamp(2rem,5.5vw,3rem)] font-semibold text-balance text-foreground">
+          <span data-mask-line style={{ ["--nl-delay" as string]: "80ms" }}>
+            <span>Un plan pour chaque taille de patrimoine</span>
+          </span>
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+        <p
+          data-seq
+          style={{ ["--nl-delay" as string]: "260ms" }}
+          className="mt-5 text-[0.98rem] leading-relaxed text-muted-foreground sm:text-base"
+        >
           Démarrez gratuitement, sans carte bancaire. Changez de plan quand
           votre patrimoine grandit — sans engagement.
         </p>

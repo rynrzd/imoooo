@@ -148,14 +148,21 @@ export function FounderSignup({ stripeEnabled }: { stripeEnabled: boolean }) {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
-        {/* Pitch — quelques lignes, pas un argumentaire. */}
-        <div className="space-y-6">
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-primary uppercase">
+        {/* Pitch — quelques lignes, pas un argumentaire.
+            `data-mask-line` ne fait rien sans un conteneur `.nl-seq[data-reveal]`
+            au-dessus : c'est lui qui porte l'état masqué initial. */}
+        <div data-reveal className="nl-seq space-y-6">
+          <p
+            data-seq
+            className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-primary uppercase"
+          >
             <Crown className="size-4" aria-hidden />
             Offre Fondateur — édition limitée
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Créer mon compte Fondateur
+          <h1 className="text-[clamp(2rem,5.5vw,3rem)] font-semibold text-balance text-foreground">
+            <span data-mask-line style={{ ["--nl-delay" as string]: "80ms" }}>
+              <span>Créer mon compte Fondateur</span>
+            </span>
           </h1>
           <ul className="space-y-3">
             {PITCH.map((line) => (

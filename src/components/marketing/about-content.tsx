@@ -116,7 +116,7 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.logoUrl} alt={p.name} className="h-14 w-auto object-contain" />
               ) : (
-                <NireoMark className="size-14 rounded-2xl bg-[var(--nl-cobalt)] text-white" />
+                <NireoMark flat className="size-14 rounded-2xl bg-[var(--nl-cobalt)] text-white" />
               )}
             </div>
             <p className="mt-7 flex items-center justify-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-gray)] uppercase">

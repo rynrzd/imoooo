@@ -14,13 +14,30 @@ export default async function ContactPage() {
   const { support_email } = await getPublicSiteSettings();
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6 sm:py-20">
-      <div className="text-center">
-        <p className="text-xs font-medium tracking-widest text-primary uppercase">Contact</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-          Parlons de votre patrimoine
+    <div className="mx-auto w-full max-w-2xl px-6 py-16 sm:px-8 sm:py-20">
+      <div data-reveal className="nl-seq text-center">
+        <p
+          data-seq
+          className="flex items-center justify-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-gray)] uppercase"
+        >
+          <span
+            aria-hidden
+            data-seq-rule
+            style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+            className="h-px w-8 bg-[var(--nl-cobalt)]"
+          />
+          Contact
+        </p>
+        <h1 className="mt-6 text-[clamp(2rem,5.5vw,2.9rem)] font-semibold text-balance text-foreground">
+          <span data-mask-line style={{ ["--nl-delay" as string]: "80ms" }}>
+            <span>Parlons de votre patrimoine</span>
+          </span>
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        <p
+          data-seq
+          style={{ ["--nl-delay" as string]: "260ms" }}
+          className="mt-5 text-[0.98rem] leading-relaxed text-muted-foreground"
+        >
           Une question sur le produit, les tarifs ou le plan Business (SCI,
           agences, équipes) ? Écrivez-nous : nous répondons rapidement.
         </p>
@@ -36,7 +53,7 @@ export default async function ContactPage() {
           </p>
         ) : null}
       </div>
-      <div className="mt-10">
+      <div data-reveal className="mt-10">
         <ContactForm />
       </div>
     </div>

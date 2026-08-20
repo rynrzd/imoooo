@@ -170,7 +170,11 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
             }
           >
             <SelectTrigger className="w-44" aria-label="Filtrer par section">
-              <SelectValue />
+              <SelectValue>
+                {(v) =>
+                  DOCUMENT_GROUPS.find((g) => g.id === v)?.label ?? "Toutes les sections"
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="toutes">Toutes les sections</SelectItem>
@@ -187,7 +191,11 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
               onValueChange={(value) => setTenantFilter(value ?? "tous")}
             >
               <SelectTrigger className="w-44" aria-label="Filtrer par locataire">
-                <SelectValue />
+                <SelectValue>
+                  {(v) =>
+                    locataires.find((t) => t.value === v)?.label ?? "Tous les locataires"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="tous">Tous les locataires</SelectItem>
@@ -205,7 +213,11 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
               onValueChange={(value) => setPropertyFilter(value ?? "tous")}
             >
               <SelectTrigger className="w-44" aria-label="Filtrer par logement">
-                <SelectValue />
+                <SelectValue>
+                  {(v) =>
+                    data.properties.find((pr) => pr.id === v)?.name ?? "Tous les logements"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="tous">Tous les logements</SelectItem>
@@ -244,6 +256,7 @@ export function DocumentLibrary({ propertyId }: DocumentLibraryProps) {
             documents={pageItems}
             showProperty={!propertyId && propertyFilter === "tous"}
             apercuParSection={filtre ? null : 4}
+            montrerSectionsVides={!filtre && !propertyId}
           />
           <PaginationBar
             page={page}

@@ -23,11 +23,36 @@ export function LegalPage({
   sections: LegalSection[];
 }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
-      <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : {updatedAt}</p>
+    <div className="mx-auto w-full max-w-3xl px-6 py-16 sm:px-8 sm:py-20">
+      {/* Même en-tête que les pages de contenu : le document juridique
+          appartient au site, il n'est pas une annexe posée à côté. */}
+      <header data-reveal className="nl-seq">
+        <p
+          data-seq
+          className="flex items-center gap-3 text-[0.72rem] font-medium tracking-[0.22em] text-[var(--nl-gray)] uppercase"
+        >
+          <span
+            aria-hidden
+            data-seq-rule
+            style={{ ["--nl-delay" as string]: "120ms", ["--nl-dur" as string]: "0.5s" }}
+            className="h-px w-8 bg-[var(--nl-cobalt)]"
+          />
+          MENTIONS
+        </p>
+        <h1 className="mt-6 text-[clamp(1.9rem,5vw,2.8rem)] font-semibold text-balance text-foreground">
+          <span data-mask-line style={{ ["--nl-delay" as string]: "80ms" }}>
+            <span>{title}</span>
+          </span>
+        </h1>
+        <p data-seq style={{ ["--nl-delay" as string]: "260ms" }} className="mt-4 text-xs text-muted-foreground">
+          Dernière mise à jour : {updatedAt}
+        </p>
+      </header>
 
-      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-foreground">
+      <div
+        data-reveal
+        className="mt-8 border-l-2 border-[var(--nl-cobalt)] bg-[color-mix(in_srgb,var(--nl-ink)_4%,transparent)] py-4 pr-4 pl-5 text-sm text-foreground"
+      >
         <p className="font-medium">Document provisoire</p>
         <p className="mt-1 text-muted-foreground">
           Ce document décrit fidèlement le fonctionnement actuel du service,
@@ -38,10 +63,10 @@ export function LegalPage({
 
       <p className="mt-6 text-sm leading-relaxed text-muted-foreground">{intro}</p>
 
-      <div className="mt-8 space-y-8">
+      <div className="mt-10 space-y-10">
         {sections.map((section, index) => (
-          <section key={section.title}>
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+          <section key={section.title} data-reveal className="nl-seq">
+            <h2 className="text-[1.15rem] font-semibold tracking-tight text-foreground">
               {index + 1}. {section.title}
             </h2>
             {section.paragraphs.map((paragraph) => (

@@ -4,7 +4,7 @@ import * as React from "react";
 import { ChevronRight, Download, Eye, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,15 @@ interface DocumentListProps {
    * `null` = tout afficher (c'est le cas quand une section est dépliée).
    */
   apercuParSection?: number | null;
+  /**
+   * Affiche aussi les sections vides, avec leur phrase d'explication.
+   *
+   * Le rangement doit être lisible AVANT d'avoir des documents : voir les
+   * cinq sections dès le premier jour dit ce qu'on peut y mettre. En
+   * revanche, pendant une recherche, une section vide n'apprend rien — elle
+   * ajoute juste du bruit entre les résultats.
+   */
+  montrerSectionsVides?: boolean;
 }
 
 /** Badge d'état d'expiration d'un document (null si sans objet). */
@@ -71,6 +80,7 @@ export function DocumentList({
   documents,
   showProperty = false,
   apercuParSection = null,
+  montrerSectionsVides = false,
 }: DocumentListProps) {
   const { data, isLive, getDocumentUrl, deleteDocument } = useAppStore();
   const [busyId, setBusyId] = React.useState<string | null>(null);
@@ -115,7 +125,9 @@ export function DocumentList({
   };
 
   // Cinq sections utiles plutôt que sept catégories : voir lib/documents/groups.
-  const groups = groupDocuments(documents).filter((g) => g.items.length > 0);
+  const groups = groupDocuments(documents).filter(
+    (g) => g.items.length > 0 || montrerSectionsVides
+  );
 
   return (
     <div className="space-y-4">
@@ -171,7 +183,7 @@ export function DocumentList({
 
         return (
           <Card key={group.id}>
-            <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 {group.label}
                 <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-normal text-muted-foreground">
@@ -179,41 +191,53 @@ export function DocumentList({
                 </span>
               </CardTitle>
               {reste > 0 ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="-mr-2 h-8 text-xs"
-                  onClick={() => setDeplie((prev) => ({ ...prev, [group.id]: true }))}
-                >
-                  Voir tout
-                  <ChevronRight className="size-3.5" aria-hidden />
-                </Button>
+                <CardAction>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="-my-1 h-8 text-xs"
+                    onClick={() => setDeplie((prev) => ({ ...prev, [group.id]: true }))}
+                  >
+                    Voir tout
+                    <ChevronRight className="size-3.5" aria-hidden />
+                  </Button>
+                </CardAction>
               ) : null}
             </CardHeader>
             <CardContent className="px-3">
+              {items.length === 0 ? (
+                <p className="px-2 pb-1 text-sm text-muted-foreground">
+                  {group.emptyHint}
+                </p>
+              ) : null}
               <ul className="divide-y divide-border">
                 {visibles.map((document) => {
                   const property = getProperty(data, document.propertyId);
                   const locataire = tenantOfDocument(data, document);
                   return (
-                    <li key={document.id} className="flex items-center gap-3 px-2 py-2.5">
+                    <li
+                      key={document.id}
+                      className="flex flex-col gap-1.5 px-2 py-3 sm:flex-row sm:items-center sm:gap-3 sm:py-2.5"
+                    >
                       {/* Le nom ouvre l'aperçu : c'est le geste attendu, et il
                           reste un vrai bouton pour le clavier. */}
                       <button
                         type="button"
                         onClick={() => setPreviewTarget(document)}
-                        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                        className="flex min-w-0 flex-1 items-start gap-3 rounded-lg text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none sm:items-center"
                       >
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                           <FileText className="size-4" />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-2 truncate text-sm font-medium text-foreground">
-                            <span className="truncate">{document.name}</span>
+                          <span className="flex items-start gap-2 text-sm font-medium text-foreground">
+                            {/* Deux lignes au doigt plutôt qu'une troncature :
+                                un nom coupé ne distingue plus deux baux. */}
+                            <span className="line-clamp-2 sm:truncate">{document.name}</span>
                             <ExpiryBadge document={document} />
                           </span>
-                          <span className="block truncate text-xs text-muted-foreground">
+                          <span className="mt-0.5 block text-xs text-muted-foreground max-sm:line-clamp-2 sm:truncate">
                             {[
                               showProperty ? property?.name : null,
                               locataire,
@@ -228,6 +252,7 @@ export function DocumentList({
                           </span>
                         </span>
                       </button>
+                      <div className="flex shrink-0 items-center justify-end gap-0.5 max-sm:-mr-1 max-sm:pl-11">
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -257,6 +282,7 @@ export function DocumentList({
                       >
                         <Trash2 />
                       </Button>
+                      </div>
                     </li>
                   );
                 })}
