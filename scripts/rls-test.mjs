@@ -107,7 +107,18 @@ try {
 
   // ---- Storage : B n'accède pas au dossier de A ----
   const path = `${a.userId}/${propA.id}/rls-test.pdf`;
-  const { error: upErr } = await a.client.storage.from("property-documents").upload(path, new Blob(["test"]), { contentType: "application/pdf" });
+  // Le type doit être porté par le BLOB, pas par l'option `contentType` :
+  // pour un Blob/File, @supabase/storage-js construit un FormData et ne lit
+  // jamais cette option (elle ne vaut que pour un corps brut). Sans le type
+  // ici, Storage voyait « application/octet-stream » et refusait l'envoi
+  // depuis que les buckets ont une liste de types autorisés — l'assertion
+  // suivante passait alors pour une mauvaise raison : le fichier de A
+  // n'existait pas, donc B ne pouvait évidemment pas le lire.
+  const { error: upErr } = await a.client.storage
+    .from("property-documents")
+    .upload(path, new Blob(["%PDF-1.7 test"], { type: "application/pdf" }), {
+      contentType: "application/pdf",
+    });
   check("A téléverse un document", !upErr, upErr?.message ?? "");
   const { data: bSigned, error: bSignErr } = await b.client.storage.from("property-documents").createSignedUrl(path, 60);
   check("B n'obtient pas d'URL signée du fichier de A", !!bSignErr || !bSigned?.signedUrl, bSignErr?.message?.slice(0, 50) ?? "");
