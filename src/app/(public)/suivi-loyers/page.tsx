@@ -112,7 +112,7 @@ function Inline({ href, children }: { href: string; children: React.ReactNode })
   return (
     <Link
       href={href}
-      className="text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+      className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
     >
       {children}
     </Link>
@@ -281,7 +281,7 @@ export default function SuiviLoyersPage() {
             le{" "}
             <Link
               href={QUITTANCE_TOOL.path}
-              className="text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+              className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
             >
               générateur de quittance de loyer
             </Link>{" "}

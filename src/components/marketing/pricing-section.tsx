@@ -209,6 +209,9 @@ export function PricingSection({
             key={plan.id}
             className={cn(
               "relative flex flex-col",
+              // Le composant Card est `overflow-hidden` : sans ceci, le badge
+              // posé en `-top-2.5` est coupé par le bord de la carte.
+              (featured || premium) && "overflow-visible",
               featured && "border-primary shadow-md ring-1 ring-primary/20",
               premium &&
                 // Carte Premium : légèrement plus grande, fond dégradé sobre,

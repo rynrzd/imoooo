@@ -31,6 +31,7 @@ export const WORK_STATUS_LABELS: Record<WorkStatus, string> = {
 
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
   bail: "Bail",
+  loyers: "Quittance ou reçu de loyer",
   etat_des_lieux: "État des lieux",
   assurance: "Assurance",
   diagnostics: "Diagnostics",

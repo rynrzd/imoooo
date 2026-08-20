@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { RevealOnScroll } from "@/components/landing/reveal-on-scroll";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
 
 /**
@@ -10,7 +11,7 @@ import { getPublicSiteSettings } from "@/lib/admin/settings";
  * Elles restent des pages séparées (chacune garde son URL, ses métadonnées et
  * son `robots: { index: false }`), mais elles portent désormais l'identité
  * publique ACTUELLE : le scope `.nireo-landing`, le header de la landing et
- * son footer compact. Elles étaient jusqu'ici servies par le segment
+ * son footer complet. Elles étaient jusqu'ici servies par le segment
  * `(public)`, c'est-à-dire l'univers obsidienne sombre — deux identités pour
  * un même visiteur, à un clic d'écart depuis le pied de page.
  *
@@ -40,7 +41,7 @@ export default async function LegalLayout({ children }: { children: React.ReactN
   const { announcement_message } = await getPublicSiteSettings();
 
   return (
-    <div className="nireo-landing flex min-h-dvh flex-col overflow-x-clip">
+    <div className="nireo-landing nl-tokens flex min-h-dvh flex-col overflow-x-clip">
       <LandingHeader announcement={announcement_message} />
       {/* Le header est fixe : le contenu commence sous lui — et sous le
           message d'annonce global quand il est posé. */}
@@ -54,7 +55,10 @@ export default async function LegalLayout({ children }: { children: React.ReactN
       >
         {children}
       </main>
-      <LandingFooter />
+      {/* Révélations au défilement : un seul observateur pour tout le segment.
+          Sans JavaScript et en mouvement réduit, il ne fait strictement rien. */}
+      <RevealOnScroll />
+      <LandingFooter complet />
     </div>
   );
 }

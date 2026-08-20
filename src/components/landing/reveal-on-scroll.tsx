@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Révélations au défilement de la landing — un seul observateur pour toute la
@@ -28,6 +29,12 @@ const KINDS = ["reveal", "draw", "line", "unmask"] as const;
 const SELECTOR = KINDS.map((kind) => `[data-${kind}]`).join(", ");
 
 export function RevealOnScroll() {
+  // Le chemin sert de CLÉ, pas de donnée : monté dans un gabarit, ce composant
+  // ne se remonte pas d'une page à l'autre. Sans cette dépendance, seule la
+  // première page visitée du segment serait animée — les suivantes
+  // s'afficheraient d'un bloc, sans que rien ne le signale.
+  const pathname = usePathname();
+
   React.useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -74,7 +81,7 @@ export function RevealOnScroll() {
       window.clearTimeout(fallback);
       hidden.forEach(show);
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

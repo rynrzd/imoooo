@@ -6,7 +6,15 @@ import { version } from "../../../package.json";
 /** Adresse de contact publique (footer, pages légales, formulaire, bug). */
 export const CONTACT_EMAIL = "nireo.contacte@gmail.com";
 
-const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+/**
+ * Maillage interne de la vitrine — SEULE définition de ces colonnes.
+ *
+ * Exporté parce que le footer de la landing le reprend dans sa variante
+ * complète (cf. landing-footer.tsx). Le recopier là-bas aurait créé un second
+ * endroit à mettre à jour, et donc à oublier : les guides et les outils
+ * viennent de `seo-pages.ts`, exactement comme le sitemap.
+ */
+export const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Produit",
     links: [

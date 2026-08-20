@@ -4,16 +4,16 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Carte « verre » premium avec halo lumineux qui suit le curseur.
- * Le halo est purement décoratif (pointer-events: none) et se désactive
- * naturellement au toucher (aucun mouvement de souris).
+ * Carte de la vitrine : filet encre, papier clair, élévation discrète au
+ * survol. La position du curseur reste suivie (`--spot-x` / `--spot-y`) car
+ * elle ne coûte rien et sert de point d'accroche, mais plus aucun halo coloré
+ * n'est peint : l'univers de la landing n'en admet aucun.
  */
 export function SpotlightCard({
   children,
   className,
-  glow = "var(--nireo-glow-a)",
   ...props
-}: React.ComponentProps<"div"> & { glow?: string }) {
+}: React.ComponentProps<"div">) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   const onMove = React.useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -29,20 +29,13 @@ export function SpotlightCard({
       ref={ref}
       onPointerMove={onMove}
       className={cn(
-        "group/spot relative overflow-hidden rounded-2xl border border-border bg-card/70 backdrop-blur-sm transition-all duration-300",
-        "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_20px_44px_-30px_oklch(0.28_0.03_235/0.3)]",
+        "group/spot relative overflow-hidden rounded-xl border border-[var(--nl-ink)]/12 bg-[color-mix(in_srgb,#fff_55%,var(--nl-paper))]",
+        "transition-[transform,border-color] duration-[var(--mo-component)] ease-[var(--mo-ease)] motion-reduce:transition-none",
+        "hover:-translate-y-0.5 hover:border-[var(--nl-cobalt)]/40",
         className
       )}
       {...props}
     >
-      {/* Halo curseur */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover/spot:opacity-100"
-        style={{
-          background: `radial-gradient(240px circle at var(--spot-x, 50%) var(--spot-y, 0), color-mix(in oklch, ${glow}, transparent 78%), transparent 60%)`,
-        }}
-      />
       <div className="relative">{children}</div>
     </div>
   );

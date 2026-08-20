@@ -68,6 +68,10 @@ export interface RentPayment {
 
 export type DocumentCategory =
   | "bail"
+  // Quittances et reçus de loyer. Ajoutée le 20/08/2026 : ces pièces
+  // n avaient nulle part où aller et finissaient dans « autres ».
+  // Exige la migration 20260820100000_document_category_loyers.sql.
+  | "loyers"
   | "etat_des_lieux"
   | "assurance"
   | "diagnostics"

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import type {
   AppData,
   Expense,
@@ -897,7 +898,31 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
           fileType: fileTypeOf(uploaded.ext),
         };
       }
-      document = await insertDocument(supabase, userId, { ...input, ...fileMeta });
+      try {
+        document = await insertDocument(supabase, userId, { ...input, ...fileMeta });
+      } catch (error) {
+        // La catégorie « loyers » est récente : tant que la migration
+        // 20260820100000 n'est pas appliquée, la contrainte CHECK de la table
+        // la refuse (code Postgres 23514). Perdre le document — et le fichier
+        // déjà téléversé — pour un simple classement serait absurde : on le
+        // range dans « autres » et on le dit. L'utilisateur pourra corriger la
+        // catégorie d'un clic une fois la migration passée.
+        const refusParContrainte =
+          input.category === "loyers" &&
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: string }).code === "23514";
+        if (!refusParContrainte) throw error;
+        document = await insertDocument(supabase, userId, {
+          ...input,
+          ...fileMeta,
+          category: "autres",
+        });
+        toast.info(
+          "Document enregistré dans « Autres documents » : la catégorie Loyers n'est pas encore activée en base."
+        );
+      }
     } else {
       document = {
         ...input,

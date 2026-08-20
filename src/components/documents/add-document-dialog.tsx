@@ -15,6 +15,7 @@ import {
 import { SheetForm } from "@/components/form/sheet-form";
 import { SubmitButton } from "@/components/form/submit-button";
 import { DOCUMENT_CATEGORY_LABELS, toOptions } from "@/lib/labels";
+import { guessCategory } from "@/lib/documents/groups";
 import { useAppStore } from "@/lib/store";
 import type { DocumentCategory } from "@/lib/types";
 
@@ -65,6 +66,12 @@ export function AddDocumentDialog({
   const [target, setTarget] = React.useState(propertyId ?? "");
   const [file, setFile] = React.useState<File | null>(droppedFile);
   const [category, setCategory] = React.useState<DocumentCategory>("autres");
+  // Une catégorie devinée ne doit JAMAIS écraser un choix explicite : dès que
+  // l'utilisateur touche à la liste, la déduction automatique se tait.
+  const [categoryChoisie, setCategoryChoisie] = React.useState(false);
+  // Ce qui a été deviné, pour pouvoir le DIRE plutôt que de le faire en
+  // douce : un classement invisible est un classement qu'on ne corrige pas.
+  const [devinee, setDevinee] = React.useState<DocumentCategory | null>(null);
   const [name, setName] = React.useState("");
   const [expiresAt, setExpiresAt] = React.useState("");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -199,6 +206,15 @@ export function AddDocumentDialog({
               if (next && !name.trim()) {
                 setName(next.name.replace(/\.[^.]+$/, ""));
               }
+              // Classement automatique : « quittance_aout.pdf » va dans
+              // Loyers, « bail_martin.pdf » dans Baux. Sans certitude, on ne
+              // touche à rien — un mauvais classement se corrige moins
+              // spontanément qu'une absence de classement.
+              if (next && !categoryChoisie) {
+                const suggestion = guessCategory(next.name);
+                setDevinee(suggestion);
+                if (suggestion) setCategory(suggestion);
+              }
             }}
             progress={progress}
             hint="Sans fichier, seule la fiche du document est créée."
@@ -208,9 +224,21 @@ export function AddDocumentDialog({
             id="doc-category"
             label="Catégorie"
             value={category}
-            onChange={(e) => setCategory(e.target.value as DocumentCategory)}
+            onChange={(e) => {
+              setCategory(e.target.value as DocumentCategory);
+              setCategoryChoisie(true);
+              setDevinee(null);
+            }}
             options={toOptions(DOCUMENT_CATEGORY_LABELS)}
           />
+          {/* Le classement automatique est ANNONCÉ, jamais silencieux : un
+              classement qu'on ne voit pas est un classement qu'on ne corrige
+              pas, et qui finit par faire perdre confiance au rangement. */}
+          {devinee ? (
+            <p className="-mt-1 text-xs text-muted-foreground">
+              Catégorie devinée d’après le nom du fichier. Corrigez-la si besoin.
+            </p>
+          ) : null}
 
           <TextField
             id="doc-name"

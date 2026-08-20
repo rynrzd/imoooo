@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
+  ContentCards,
   ContentColumn,
   ContentCta,
   ContentHeader,
   ContentPageShell,
 } from "@/components/seo/content";
-import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, TOOLS, formatUpdatedAt } from "@/config/seo-pages";
+import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, TOOLS } from "@/config/seo-pages";
 import {
   breadcrumbJsonLd,
   jsonLdGraph,
@@ -69,118 +69,71 @@ export default function RessourcesPage() {
         />
       </ContentColumn>
 
-      <ContentColumn className="space-y-10">
+      <ContentColumn className="space-y-16">
         {/* Page pilier — mise en avant, c'est le point de départ. */}
-        <section aria-labelledby="point-de-depart">
-          <h2
-            id="point-de-depart"
-            className="text-xl font-semibold tracking-tight text-foreground"
-          >
-            Commencer ici
+        <section aria-labelledby="point-de-depart" data-reveal className="nl-seq">
+          <h2 id="point-de-depart" className="text-[clamp(1.4rem,3.6vw,1.9rem)] font-semibold text-[var(--nl-ink)]">
+            <span data-mask-line>
+              <span>Commencer ici</span>
+            </span>
           </h2>
-          <Link
-            href={PILLAR_PAGE.path}
-            className="group nireo-glass nireo-hairline mt-5 flex flex-col rounded-3xl p-6 transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none sm:p-8"
-          >
-            <span className="flex items-start justify-between gap-4">
-              <span className="text-lg font-semibold text-balance text-foreground sm:text-xl">
-                {PILLAR_PAGE.title}
-              </span>
-              <ArrowUpRight
-                className="mt-1 size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                aria-hidden
-              />
-            </span>
-            <span className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {PILLAR_PAGE.summary}
-            </span>
-            <span className="mt-4 text-xs text-muted-foreground">
-              Mis à jour le{" "}
-              <time dateTime={PILLAR_PAGE.updatedAt}>
-                {formatUpdatedAt(PILLAR_PAGE.updatedAt)}
-              </time>
-            </span>
-          </Link>
+          <div data-seq style={{ ["--nl-delay" as string]: "160ms" }} className="mt-5">
+            <ContentCards pages={[PILLAR_PAGE]} withDate emphasis />
+          </div>
         </section>
 
-        <section aria-labelledby="guides">
-          <h2 id="guides" className="text-xl font-semibold tracking-tight text-foreground">
-            Les guides
+        <section aria-labelledby="guides" data-reveal className="nl-seq">
+          <h2 id="guides" className="text-[clamp(1.4rem,3.6vw,1.9rem)] font-semibold text-[var(--nl-ink)]">
+            <span data-mask-line>
+              <span>Les guides</span>
+            </span>
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <p
+            data-seq
+            style={{ ["--nl-delay" as string]: "160ms" }}
+            className="mt-4 text-[0.98rem] leading-relaxed text-[var(--nl-gray)]"
+          >
             Chaque guide traite une situation précise. Ils sont indépendants :
             lisez uniquement celui qui vous concerne.
           </p>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {GUIDES.map((guide) => (
-              <li key={guide.path}>
-                <Link
-                  href={guide.path}
-                  className="group nireo-hairline flex h-full flex-col rounded-2xl border border-border bg-card/70 p-5 transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                  <span className="flex items-start justify-between gap-3">
-                    <span className="text-sm font-semibold text-balance text-foreground">
-                      {guide.shortTitle}
-                    </span>
-                    <ArrowUpRight
-                      className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                      aria-hidden
-                    />
-                  </span>
-                  <span className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {guide.summary}
-                  </span>
-                  <span className="mt-4 text-xs text-muted-foreground">
-                    Mis à jour le{" "}
-                    <time dateTime={guide.updatedAt}>{formatUpdatedAt(guide.updatedAt)}</time>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-7">
+            <ContentCards pages={GUIDES} withDate />
+          </div>
         </section>
 
         {/* Outils : utilisables sans compte, listés à part des guides. */}
-        <section aria-labelledby="outils">
-          <h2 id="outils" className="text-xl font-semibold tracking-tight text-foreground">
-            Outils gratuits
+        <section aria-labelledby="outils" data-reveal className="nl-seq">
+          <h2 id="outils" className="text-[clamp(1.4rem,3.6vw,1.9rem)] font-semibold text-[var(--nl-ink)]">
+            <span data-mask-line>
+              <span>Outils gratuits</span>
+            </span>
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <p
+            data-seq
+            style={{ ["--nl-delay" as string]: "160ms" }}
+            className="mt-4 text-[0.98rem] leading-relaxed text-[var(--nl-gray)]"
+          >
             Utilisables tout de suite, sans compte et sans carte bancaire.
           </p>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {TOOLS.map((tool) => (
-              <li key={tool.path}>
-                <Link
-                  href={tool.path}
-                  className="group nireo-hairline flex h-full flex-col rounded-2xl border border-border bg-card/70 p-5 transition-colors hover:border-primary/30 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                  <span className="flex items-start justify-between gap-3">
-                    <span className="text-sm font-semibold text-balance text-foreground">
-                      {tool.shortTitle}
-                    </span>
-                    <ArrowUpRight
-                      className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                      aria-hidden
-                    />
-                  </span>
-                  <span className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {tool.summary}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-7">
+            <ContentCards pages={TOOLS} />
+          </div>
         </section>
 
-        <section aria-labelledby="a-propos-des-guides">
+        <section aria-labelledby="a-propos-des-guides" data-reveal className="nl-seq">
           <h2
             id="a-propos-des-guides"
-            className="text-xl font-semibold tracking-tight text-foreground"
+            className="text-[clamp(1.4rem,3.6vw,1.9rem)] font-semibold text-[var(--nl-ink)]"
           >
-            Comment ces guides sont écrits
+            <span data-mask-line>
+              <span>Comment ces guides sont écrits</span>
+            </span>
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <p
+            data-seq
+            style={{ ["--nl-delay" as string]: "160ms" }}
+            className="mt-4 text-[0.98rem] leading-relaxed text-[var(--nl-gray)]"
+          >
             Ils sont rédigés par l&apos;équipe Nireo à partir du produit
             lui-même. Une fonction n&apos;y est citée que si elle existe
             aujourd&apos;hui dans l&apos;application ; les limites de chaque
@@ -190,7 +143,7 @@ export default function RessourcesPage() {
             silence. Une question sans réponse ici ?{" "}
             <Link
               href="/contact"
-              className="text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+              className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
             >
               Écrivez-nous
             </Link>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight, Check, Download, FileText, Loader2, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { buttonVariants } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import {
   buildDocument,
@@ -295,9 +294,9 @@ export function QuittanceGenerator({
     <div className="space-y-8">
       {/* ---------------------------- Formulaire ---------------------------- */}
       <form onSubmit={onSubmit} noValidate className="nireo-auth">
-        <div className="nireo-glass nireo-hairline rounded-2xl p-5 sm:rounded-3xl sm:p-8">
+        <div className="rounded-xl border border-[var(--nl-ink)]/12 bg-[color-mix(in_srgb,#fff_55%,var(--nl-paper))] p-5 sm:p-8">
           <fieldset className="space-y-4">
-            <legend className="text-[11px] font-semibold tracking-widest text-primary uppercase">
+            <legend className="text-[0.72rem] font-medium tracking-[0.18em] text-[var(--nl-cobalt)] uppercase">
               Bailleur
             </legend>
             <Field
@@ -322,7 +321,7 @@ export function QuittanceGenerator({
           </fieldset>
 
           <fieldset className="mt-8 space-y-4">
-            <legend className="text-[11px] font-semibold tracking-widest text-primary uppercase">
+            <legend className="text-[0.72rem] font-medium tracking-[0.18em] text-[var(--nl-cobalt)] uppercase">
               Locataire et logement
             </legend>
             <Field
@@ -346,7 +345,7 @@ export function QuittanceGenerator({
           </fieldset>
 
           <fieldset className="mt-8 space-y-4">
-            <legend className="text-[11px] font-semibold tracking-widest text-primary uppercase">
+            <legend className="text-[0.72rem] font-medium tracking-[0.18em] text-[var(--nl-cobalt)] uppercase">
               Période
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -382,7 +381,7 @@ export function QuittanceGenerator({
           </fieldset>
 
           <fieldset className="mt-8 space-y-4">
-            <legend className="text-[11px] font-semibold tracking-widest text-primary uppercase">
+            <legend className="text-[0.72rem] font-medium tracking-[0.18em] text-[var(--nl-cobalt)] uppercase">
               Montants
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -428,7 +427,7 @@ export function QuittanceGenerator({
           </fieldset>
 
           <fieldset className="mt-8 space-y-4">
-            <legend className="text-[11px] font-semibold tracking-widest text-primary uppercase">
+            <legend className="text-[0.72rem] font-medium tracking-[0.18em] text-[var(--nl-cobalt)] uppercase">
               Établissement du document
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -452,10 +451,7 @@ export function QuittanceGenerator({
           <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:items-center">
             <button
               type="submit"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "nireo-glow nireo-sheen h-11 w-full px-6 text-[0.95rem] sm:w-auto"
-              )}
+              className="nl-button nl-focus inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.95rem] font-medium text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#000)] disabled:opacity-60 sm:w-auto"
             >
               <FileText className="size-4" aria-hidden />
               Générer l’aperçu
@@ -501,10 +497,7 @@ export function QuittanceGenerator({
               type="button"
               onClick={() => void onDownload()}
               disabled={busy}
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "nireo-glow nireo-sheen h-11 w-full px-6 text-[0.95rem] sm:w-auto"
-              )}
+              className="nl-button nl-focus inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.95rem] font-medium text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#000)] disabled:opacity-60 sm:w-auto"
             >
               {busy ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -524,10 +517,10 @@ export function QuittanceGenerator({
       {downloaded ? (
         <div
           ref={afterRef}
-          className="nireo-glass nireo-hairline scroll-mt-28 rounded-2xl p-5 sm:p-6"
+          className="scroll-mt-28 rounded-xl border border-[var(--nl-ink)]/12 bg-[color-mix(in_srgb,#fff_55%,var(--nl-paper))] p-5 sm:p-6"
         >
           <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Check className="size-4 text-primary" aria-hidden />
+            <Check className="size-4 text-[var(--nl-cobalt)]" aria-hidden />
             Document téléchargé.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -537,10 +530,7 @@ export function QuittanceGenerator({
           <Link
             href="/inscription"
             onClick={() => track("cta_essai_gratuit", { source: "generateur_quittance" })}
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "mt-5 h-11 w-full px-6 text-[0.95rem] sm:w-auto"
-            )}
+            className="nl-button nl-focus mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[var(--nl-cobalt)] px-7 text-[0.95rem] font-medium text-white hover:bg-[color-mix(in_srgb,var(--nl-cobalt)_85%,#000)] sm:w-auto"
           >
             Créer mon compte gratuit
             <ArrowRight className="size-4" aria-hidden />

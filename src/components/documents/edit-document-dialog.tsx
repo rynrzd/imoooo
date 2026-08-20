@@ -33,6 +33,7 @@ const schema = z.object({
   name: z.string().min(2, "Nom requis."),
   category: z.enum([
     "bail",
+    "loyers",
     "etat_des_lieux",
     "assurance",
     "diagnostics",

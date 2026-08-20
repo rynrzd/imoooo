@@ -246,8 +246,18 @@ export function LandingHeader({ announcement }: { announcement?: string }) {
     return () => window.removeEventListener("popstate", onPop);
   }, [scrollToHash]);
 
-  /** Barre pleine dès qu'on a défilé, ou qu'une annonce est posée. */
-  const solid = scrolled || Boolean(announcement);
+  /**
+   * Barre pleine dès qu'on a défilé, qu'une annonce est posée — ou qu'on
+   * n'est PAS sur la landing.
+   *
+   * Le logo et le bouton du menu sont blancs : ils ne sont lisibles que sur
+   * un fond sombre. Sur la landing, le hero est une photographie bleu nuit
+   * qui commence au pixel 0, donc un header transparent convient. Partout
+   * ailleurs, le haut de page est le papier blanc cassé — un header
+   * transparent y affichait du blanc sur du blanc, c'est-à-dire un logo et un
+   * menu littéralement invisibles tant que le visiteur n'avait pas défilé.
+   */
+  const solid = scrolled || Boolean(announcement) || !onLanding;
 
   return (
     <div className="fixed inset-x-0 top-0 z-50">

@@ -4,6 +4,7 @@ import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
   ContentColumn,
+  ContentHeader,
   ContentList,
   ContentNotice,
   ContentPageShell,
@@ -147,23 +148,16 @@ export default function GenerateurQuittancePage() {
 
       <ContentColumn>
         <Breadcrumbs crumbs={CRUMBS} />
-        <header className="relative">
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-24 -z-10 h-64">
-            <div className="nireo-aurora absolute left-1/2 h-56 w-[42rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,var(--nireo-glow-a),transparent)] opacity-20 blur-2xl" />
-          </div>
-          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/8 px-3 py-1 text-[11px] font-medium tracking-widest text-primary uppercase">
-            Outil gratuit
-          </span>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-foreground sm:text-[2.6rem] sm:leading-[1.1]">
-            Générateur de quittance de loyer
-          </h1>
-          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            Remplissez le formulaire, vérifiez l’aperçu, téléchargez votre PDF. Gratuit, sans
-            inscription et sans carte bancaire — le document est fabriqué dans votre navigateur,
-            aucune information saisie n’est envoyée à Nireo.
-          </p>
-        </header>
-      </ContentColumn>
+        {/* Même en-tête que toutes les autres pages de contenu : le surtitre
+            à filet cobalt remplace la pastille, et le halo « nireo-aurora »
+            hérité de l'univers obsidienne disparaît avec lui. */}
+        <ContentHeader
+          eyebrow="Outil gratuit"
+          h1="Générateur de quittance de loyer"
+          lead="Remplissez le formulaire, vérifiez l’aperçu, téléchargez votre PDF. Gratuit, sans inscription et sans carte bancaire — le document est fabriqué dans votre navigateur, aucune information saisie n’est envoyée à Nireo."
+          updatedAt={QUITTANCE_TOOL.updatedAt}
+        />
+     </ContentColumn>
 
       <ContentColumn>
         <QuittanceGenerator today={today} />
@@ -240,14 +234,14 @@ export default function GenerateurQuittancePage() {
             retrouver. Si vous gérez plusieurs biens, lisez notre guide sur le{" "}
             <Link
               href={suiviLoyers.path}
-              className="text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+              className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
             >
               suivi des loyers
             </Link>{" "}
             ou la page de référence sur le{" "}
             <Link
               href={PILLAR_PAGE.path}
-              className="text-foreground underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+              className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
             >
               logiciel de gestion locative
             </Link>

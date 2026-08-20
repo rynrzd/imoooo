@@ -105,7 +105,7 @@ export default async function PricingPage() {
           page{" "}
           <Link
             href={PILLAR_PAGE.path}
-            className="text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+            className="nl-focus font-medium text-[var(--nl-cobalt)] underline-offset-4 hover:underline"
           >
             logiciel de gestion locative
           </Link>

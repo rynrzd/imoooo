@@ -1,8 +1,38 @@
 import type { Metadata, Viewport } from "next";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
-import { SiteFooter } from "@/components/marketing/site-footer";
-import { SiteHeader } from "@/components/marketing/site-header";
+import { LandingFooter } from "@/components/landing/landing-footer";
+import { LandingHeader } from "@/components/landing/landing-header";
+import { RevealOnScroll } from "@/components/landing/reveal-on-scroll";
 import { SITE_URL } from "@/lib/supabase/config";
+
+/**
+ * Segment des PAGES PUBLIQUES — tarifs, ressources, outils, pages de contenu,
+ * à propos, contact, entreprise, fondateur.
+ *
+ * CE QUI CHANGE, ET POURQUOI
+ * --------------------------
+ * Ce segment servait jusqu'ici l'univers obsidienne : `.dark .nireo`, thème
+ * sombre forcé, décor ambiant (aurore, grille, grain), `SiteHeader` et
+ * `SiteFooter`. La landing, elle, a adopté l'identité claire cobalt / bleu
+ * nuit / blanc cassé — et les pages légales l'ont suivie. Un visiteur passait
+ * donc d'un univers à l'autre à un seul clic, sans quitter le site.
+ *
+ * Il porte désormais la MÊME identité que la landing : le scope
+ * `.nireo-landing`, son header et son footer. Rien du contenu, des URL ni des
+ * métadonnées n'est touché — seul le gabarit change.
+ *
+ * Conséquence utile : tout le système d'animation de la landing
+ * (`data-reveal`, `data-line`, `nl-seq`…) est défini SOUS le scope
+ * `.nireo-landing`. Il était donc inerte ici ; il devient actif du seul fait
+ * de ce changement, sans une ligne de JavaScript supplémentaire.
+ *
+ * Le footer est en variante `complet` : les colonnes de maillage interne
+ * (guides et outils issus de `seo-pages.ts`) sont conservées à l'identique.
+ * Les perdre aurait été une régression de référencement invisible à l'œil.
+ *
+ * L'écran d'introduction de la marque n'est PAS rejoué : il appartient à
+ * l'arrivée sur la landing.
+ */
 
 /** Image sociale générée par app/opengraph-image.tsx (1200 × 630). */
 const OG_IMAGE = {
@@ -12,7 +42,7 @@ const OG_IMAGE = {
   alt: "Nireo — Le logiciel de gestion locative des propriétaires bailleurs",
 };
 
-/** Métadonnées des pages publiques (landing, tarifs, pages légales). */
+/** Métadonnées des pages publiques — inchangées. */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -52,15 +82,17 @@ export const metadata: Metadata = {
 };
 
 /**
- * `viewport-fit=cover` : sur iPhone, la vitrine occupe tout l'écran et les
- * marges de sécurité sont gérées explicitement (`env(safe-area-inset-*)`) —
- * en haut par le header collant, en bas et sur les côtés ici. Déclaré sur ce
- * segment uniquement : l'application n'est pas concernée.
+ * PLUS de `viewport-fit=cover` : c'est la règle du header de la landing.
+ *
+ * Avec `cover`, le contenu passe sous l'encoche iPhone et le header doit
+ * réserver `env(safe-area-inset-top)` — la barre atteignait alors ~115 px et
+ * mangeait le haut de la page. Sans `cover`, tous les `env(safe-area-inset-*)`
+ * valent 0 et la hauteur du header est exactement celle qu'on lui donne.
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover",
+  themeColor: "#070c15",
 };
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -69,25 +101,24 @@ export default async function PublicLayout({ children }: { children: React.React
   const { announcement_message } = await getPublicSiteSettings();
 
   return (
-    // Univers Nireo : thème sombre premium FORCÉ sur toute la vitrine
-    // (indépendant de la préférence système). « dark » active les variantes
-    // dark:* des composants réutilisés ; « nireo » applique la palette
-    // obsidienne + signature bleu-ardoise.
-    <div className="dark nireo relative flex min-h-dvh flex-col overflow-x-clip scroll-smooth bg-background pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] text-foreground">
-      {/* Décor ambiant fixe : aurore + grille en perspective + grain fin. */}
-      <div aria-hidden className="nireo-ambient">
-        <div className="nireo-grid" />
-        <div className="nireo-noise" />
-      </div>
-
-      {announcement_message ? (
-        <div className="relative z-10 border-b border-primary/20 bg-primary/10 px-4 py-2 text-center text-sm font-medium text-foreground backdrop-blur">
-          {announcement_message}
-        </div>
-      ) : null}
-      <SiteHeader />
-      <main className="relative z-10 flex-1">{children}</main>
-      <SiteFooter />
+    <div className="nireo-landing nl-tokens flex min-h-dvh flex-col overflow-x-clip">
+      <LandingHeader announcement={announcement_message} />
+      {/* Le header est fixe : le contenu commence sous lui — et sous le
+          message d'annonce global quand il est posé. */}
+      <main
+        className="flex-1"
+        style={{
+          paddingTop: announcement_message
+            ? "calc(var(--nl-header-h) + 2.5rem)"
+            : "var(--nl-header-h)",
+        }}
+      >
+        {children}
+      </main>
+      {/* Révélations au défilement : un seul observateur pour tout le segment.
+          Sans JavaScript et en mouvement réduit, il ne fait strictement rien. */}
+      <RevealOnScroll />
+      <LandingFooter complet />
     </div>
   );
 }

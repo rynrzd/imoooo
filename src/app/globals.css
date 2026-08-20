@@ -949,6 +949,72 @@ textarea,
   box-shadow: none;
 }
 
+/* Lueur, brillance et halo appartiennent eux aussi a l'obsidienne : ils
+   peignaient des taches colorees sur le papier. `nireo-hairline` posait un
+   filet calcule pour un fond sombre, invisible ici. */
+.nireo-landing .nireo-glow,
+.nireo-landing .nireo-sheen,
+.nireo-landing .nireo-aurora,
+.nireo-landing .nireo-shine {
+  background-image: none;
+  box-shadow: none;
+  animation: none;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
+
+.nireo-landing .nireo-hairline {
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Jetons du design system, version papier (scope « .nl-tokens »)     */
+/*                                                                    */
+/*  POURQUOI CE SCOPE EXISTE                                           */
+/*  Les pages publiques reutilisent des composants PARTAGES avec       */
+/*  l'application connectee : grille tarifaire, offre Fondateur,       */
+/*  bandeau promo, FAQ, formulaire de contact, gabarit legal. Ces      */
+/*  composants sont ecrits avec les jetons du design system            */
+/*  (--card, --border, --muted-foreground...), et c'est tres bien :    */
+/*  dans l'application, ces jetons doivent rester ceux de              */
+/*  l'application, theme sombre compris.                               */
+/*                                                                     */
+/*  Coder les couleurs de la landing EN DUR dans ces composants les    */
+/*  aurait casses cote application. On remappe donc les jetons ici,    */
+/*  sur le seul segment public : chaque composant partage prend la     */
+/*  teinte du papier sans qu'une seule de ses lignes ne change, et     */
+/*  l'application n'est pas concernee.                                 */
+/*                                                                     */
+/*  Ce scope n'est PAS pose sur la landing elle-meme : son apercu du   */
+/*  produit doit continuer d'afficher l'application avec ses VRAIES    */
+/*  couleurs (cf. .nireo-app-light).                                   */
+/* ------------------------------------------------------------------ */
+
+.nl-tokens {
+  --background: var(--nl-paper);
+  --foreground: var(--nl-ink);
+  --card: color-mix(in srgb, #fff 55%, var(--nl-paper));
+  --card-foreground: var(--nl-ink);
+  --popover: color-mix(in srgb, #fff 80%, var(--nl-paper));
+  --popover-foreground: var(--nl-ink);
+  --primary: var(--nl-cobalt);
+  --primary-foreground: #fff;
+  --primary-soft: color-mix(in srgb, var(--nl-cobalt) 10%, var(--nl-paper));
+  --secondary: color-mix(in srgb, var(--nl-ink) 5%, var(--nl-paper));
+  --secondary-foreground: var(--nl-ink);
+  --muted: color-mix(in srgb, var(--nl-ink) 4%, var(--nl-paper));
+  /* --nl-gray tient 5,1:1 sur le papier, contre 4,3:1 pour l'ancien
+     --muted-foreground : le corps de texte des pages legales gagne en
+     lisibilite au passage. */
+  --muted-foreground: var(--nl-gray);
+  --accent: color-mix(in srgb, var(--nl-cobalt) 8%, var(--nl-paper));
+  --accent-foreground: var(--nl-ink);
+  --border: color-mix(in srgb, var(--nl-ink) 12%, transparent);
+  --input: color-mix(in srgb, var(--nl-ink) 16%, transparent);
+  --ring: var(--nl-cobalt);
+}
+
+
 /* ------------------------------------------------------------------ */
 /*  Îlot « application réelle »                                        */
 /*                                                                    */
