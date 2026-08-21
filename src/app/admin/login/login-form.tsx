@@ -9,6 +9,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/shared/form-field";
+import { useCaptcha } from "@/components/auth/captcha";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const schema = z.object({
@@ -25,6 +26,14 @@ type FormValues = z.infer<typeof schema>;
  */
 export function AdminLoginForm() {
   const router = useRouter();
+  /*
+   * La protection anti-robot n'est pas un ornement ici : elle est OBLIGATOIRE.
+   * Le projet Supabase exige un jeton pour toute connexion par mot de passe, y
+   * compris celle que /api/admin/session émet depuis le serveur. Sans ce
+   * jeton, un mot de passe correct était refusé comme un mauvais — l'espace
+   * administrateur était devenu inaccessible à son activation.
+   */
+  const captcha = useCaptcha();
   const [pending, setPending] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
 
@@ -39,13 +48,19 @@ export function AdminLoginForm() {
     setPending(true);
     setServerError(null);
     try {
+      // Le jeton est ATTENDU ici, pas lu dans un état : une soumission plus
+      // rapide que Cloudflare partirait sinon sans lui.
+      const captchaToken = await captcha.getToken();
       const response = await fetch("/api/admin/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, captchaToken }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        // Un jeton Turnstile ne sert qu'une fois : sans cette remise à zéro,
+        // la tentative suivante échouerait pour « jeton déjà consommé ».
+        captcha.reset();
         // Le serveur a déjà détruit la session en cas de refus : on ne fait
         // qu'afficher son verdict (jamais de contrôle d'accès côté client).
         const message = payload.error ?? "Connexion impossible. Réessayez.";
@@ -85,6 +100,7 @@ export function AdminLoginForm() {
           {...register("password")}
         />
       </FormField>
+      {captcha.widget}
       {serverError ? (
         <p
           role="alert"

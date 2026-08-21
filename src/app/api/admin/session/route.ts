@@ -30,8 +30,9 @@ export async function POST(request: Request) {
 
   let email: unknown;
   let password: unknown;
+  let captchaToken: unknown;
   try {
-    ({ email, password } = await request.json());
+    ({ email, password, captchaToken } = await request.json());
   } catch {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
@@ -60,12 +61,65 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
+  /*
+   * JETON ANTI-ROBOT — indispensable, et pas seulement souhaitable.
+   *
+   * La protection CAPTCHA est activée sur le projet Supabase : GoTrue refuse
+   * TOUT `signInWithPassword` sans jeton, y compris celui-ci, émis depuis le
+   * serveur. La connexion administrateur avait donc cessé de fonctionner à
+   * l'activation de Turnstile — un mot de passe correct était refusé
+   * exactement comme un mauvais, et le message générique ci-dessous masquait
+   * la vraie cause. Le formulaire fournit désormais son jeton, comme le fait
+   * déjà la connexion client.
+   *
+   * L'objet reste VIDE quand la protection est inactive : l'appel est alors
+   * identique à ce qu'il était.
+   */
+  const options = typeof captchaToken === "string" && captchaToken
+    ? { captchaToken }
+    : {};
   const { data, error } = await supabase.auth.signInWithPassword({
     email: normalizedEmail,
     password,
+    options,
   });
   if (error || !data.user) {
-    await logAdminLogin(normalizedEmail, false, "Identifiants invalides.");
+    // Distinguer un échec de PROTECTION d'un mauvais mot de passe — dans le
+    // JOURNAL seulement. L'utilisateur, lui, garde un message unique : révéler
+    // la différence permettrait d'énumérer les comptes.
+    const captchaIssue = /captcha/i.test(error?.code ?? error?.message ?? "");
+    if (captchaIssue) {
+      logger.error(
+        "admin/session",
+        new Error(
+          "Connexion administrateur refusée par la protection anti-robot " +
+            `(${error?.code ?? "captcha"}). Jeton absent ou déjà consommé.`
+        )
+      );
+    }
+    await logAdminLogin(
+      normalizedEmail,
+      false,
+      captchaIssue ? "Protection anti-robot : jeton absent ou invalide." : "Identifiants invalides."
+    );
+    if (captchaIssue) {
+      /*
+       * Un échec de la protection anti-robot est dit FRANCHEMENT, contrairement
+       * à un mauvais mot de passe. Il ne révèle rien : il parle du navigateur,
+       * jamais du compte — impossible d'en déduire qu'une adresse existe.
+       *
+       * L'annoncer évite précisément l'incident qui a motivé ce correctif :
+       * un administrateur voyait « Identifiants invalides » et cherchait son
+       * mot de passe pendant que la vraie cause était ailleurs.
+       */
+      return NextResponse.json(
+        {
+          error:
+            "La vérification anti-robot n'a pas abouti. Patientez un instant puis réessayez.",
+        },
+        { status: 400 }
+      );
+    }
     // Message volontairement générique : ne révèle ni l'existence du compte
     // ni son éventuel statut administrateur.
     return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
