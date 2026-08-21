@@ -48,7 +48,13 @@ export interface Plan {
   id: PlanId;
   name: string;
   description: string;
-  /** Prix mensuel en euros TTC. */
+  /**
+   * Prix mensuel en euros, tel qu'il est affiché au client et facturé par
+   * Stripe. Le régime de TVA de l'éditeur n'est pas confirmé à ce jour :
+   * aucune mention « TTC », « HT » ni « TVA non applicable » n'est donc
+   * affichée nulle part, et il ne faut pas en ajouter avant confirmation.
+   * Une mention de TVA erronée se retrouverait aussi sur les factures.
+   */
   monthlyPrice: number;
   /** Prix annuel en euros (null : pas d'offre annuelle pour l'instant). */
   annualPrice: number | null;

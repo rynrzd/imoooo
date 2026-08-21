@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
+import {
+  formattedAddress,
+  hostingRegionSentence,
+  LEGAL_IDENTITY,
+  MISSING,
+} from "@/config/legal";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
@@ -12,7 +18,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Politique de confidentialité"
-      updatedAt="15 juillet 2026"
+      updatedAt="20 août 2026"
       intro="Cette politique décrit les données traitées par Nireo et l'usage qui en est fait. Elle repose sur un principe simple : vos données de gestion locative vous appartiennent et ne servent qu'à faire fonctionner le service."
       sections={[
         {
@@ -31,7 +37,9 @@ export default function PrivacyPage() {
         {
           title: "Hébergement et sous-traitants",
           paragraphs: [
-            "Les données sont hébergées par Supabase (base de données et stockage de fichiers). Les fichiers sont conservés dans des espaces privés, accessibles uniquement via des liens signés à durée limitée. [À compléter : région d'hébergement retenue et liste définitive des sous-traitants.]",
+            "Les données sont hébergées par Supabase (base de données et stockage de fichiers). Les fichiers sont conservés dans des espaces privés : ils ne sont jamais accessibles par une adresse publique, et chaque consultation passe par un lien signé valable une heure.",
+            "Les autres prestataires qui interviennent dans le fonctionnement du service sont : Vercel (hébergement de l'application et journaux techniques), Stripe Payments Europe (paiement des abonnements — Nireo n'a jamais accès à votre numéro de carte), Resend (envoi des e-mails du service, région de traitement : Union européenne) et Cloudflare Turnstile (protection des formulaires de connexion contre les robots). Aucun outil publicitaire ni de mesure d'audience tiers n'est utilisé.",
+            hostingRegionSentence(),
           ],
         },
         {
@@ -41,15 +49,22 @@ export default function PrivacyPage() {
           ],
         },
         {
-          title: "Durée de conservation",
+          title: "Durée de conservation et suppression",
           paragraphs: [
-            "Vos données sont conservées tant que votre compte est actif. Vous pouvez exporter vos données à tout moment depuis les paramètres (JSON et CSV). [À compléter : procédure de suppression définitive du compte et délais de purge.]",
+            "Vos données sont conservées tant que votre compte est actif.",
+            "La suppression définitive se demande depuis Profil → Données et confidentialité ; elle exige une phrase de confirmation et votre mot de passe. Elle résilie d'abord l'abonnement en cours, supprime ensuite l'ensemble de vos fichiers du stockage, puis supprime le compte lui-même — ce qui efface en cascade logements, locataires, baux, loyers, dépenses, travaux, documents et notifications. Si une étape échoue, l'opération s'interrompt et le compte est conservé plutôt que partiellement effacé.",
+            MISSING(
+              "délai maximal de purge des sauvegardes après suppression, et durée de conservation des données de facturation imposée par les obligations comptables"
+            ),
           ],
         },
         {
           title: "Vos droits",
           paragraphs: [
-            "Conformément au RGPD, vous disposez de droits d'accès, de rectification, d'effacement et de portabilité sur vos données. Pour les exercer, contactez-nous à l'adresse indiquée en bas de page. [À compléter : identité du responsable de traitement.]",
+            `Le responsable de traitement est ${LEGAL_IDENTITY.operatorName} (${LEGAL_IDENTITY.legalForm.toLowerCase()}), éditeur du service Nireo — ${formattedAddress()}. Contact : ${LEGAL_IDENTITY.email}, ${LEGAL_IDENTITY.phone}. Aucun délégué à la protection des données n'a été désigné, sa désignation n'étant pas obligatoire au regard de l'activité exercée.`,
+            "Conformément au RGPD, vous disposez de droits d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité sur vos données. Pour les exercer, écrivez-nous à l'adresse ci-dessus : ces droits s'exercent gratuitement, sur tous les plans, y compris le plan Gratuit, et ne dépendent d'aucun abonnement.",
+            "L'outil d'export autonome (JSON et CSV), disponible depuis Profil → Données et confidentialité, est une commodité incluse à partir du plan Starter ; il ne conditionne pas votre droit à la portabilité, que nous honorons sur demande quel que soit votre plan. La suppression de votre compte, elle, est accessible sur tous les plans.",
+            "Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la Commission nationale de l'informatique et des libertés (CNIL), 3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07 — www.cnil.fr.",
           ],
         },
         {
@@ -66,7 +81,8 @@ export default function PrivacyPage() {
         {
           title: "Cookies",
           paragraphs: [
-            "Nireo utilise uniquement des cookies techniques nécessaires à l'authentification et au maintien de votre session. Aucun cookie publicitaire ou de pistage tiers n'est déposé.",
+            "Nireo dépose des cookies techniques, nécessaires à l'authentification et au maintien de votre session, ainsi que — uniquement si vous les acceptez — des cookies de mesure de fréquentation et de personnalisation de la page d'accueil. Aucun cookie publicitaire ni aucun traceur tiers n'est déposé.",
+            "Le détail de chaque cookie, sa durée et sa finalité figurent dans la politique de cookies, où vous pouvez également accepter ou refuser les cookies de mesure et revenir sur ce choix à tout moment.",
           ],
         },
       ]}

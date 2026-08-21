@@ -16,11 +16,16 @@ export function LegalPage({
   updatedAt,
   intro,
   sections,
+  children,
 }: {
   title: string;
   updatedAt: string;
   intro: string;
   sections: LegalSection[];
+  /** Contrôle interactif optionnel, rendu après les sections (ex. le
+   *  réglage du consentement sur /cookies : une politique qui décrit un
+   *  choix doit permettre de l'exercer depuis la page elle-même). */
+  children?: React.ReactNode;
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-16 sm:px-8 sm:py-20">
@@ -80,6 +85,8 @@ export function LegalPage({
           </section>
         ))}
       </div>
+
+      {children}
 
       <p className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
         Pour toute question relative à ce document :{" "}
