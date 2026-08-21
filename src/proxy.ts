@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { CONTENT_PAGES } from "@/config/seo-pages";
+import { CONSENT_COOKIE, hasAnalyticsConsent } from "@/lib/consent";
 import {
   detectAcquisition,
   isCrawler,
@@ -23,7 +24,11 @@ import {
   serializeRefCookie,
 } from "@/lib/marketing/referral";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/supabase/config";
-import { adjustPersistence, rememberFromCookies } from "@/lib/supabase/session-persistence";
+import {
+  adjustPersistence,
+  rememberFromCookies,
+  SECURE_COOKIES,
+} from "@/lib/supabase/session-persistence";
 
 /** Pages d'authentification : un utilisateur connecté n'a rien à y faire. */
 const AUTH_PATHS = [
@@ -60,11 +65,27 @@ const PUBLIC_PATHS = [...AUTH_PATHS, ...MARKETING_PATHS];
 
 /**
  * Nireo ID (second produit) — surfaces PUBLIQUES uniquement :
- * vitrine, démonstration, aperçu public d'un passeport et dossier partagé
- * par lien. Tout le reste (/id/app, /id/pro, /id/admin) exige une session
- * et repasse par la connexion partagée Nireo.
+ * vitrine, démonstration, aperçu public d'un passeport, dossier partagé
+ * par lien, et réponse à un bilan. Tout le reste (/id/app, /id/pro,
+ * /id/admin) exige une session et repasse par la connexion partagée Nireo.
+ *
+ * `/id/bilan` : le lien est envoyé PAR E-MAIL au détenteur du téléphone,
+ * qui n'a pas de compte Nireo — la page ne lit d'ailleurs aucune session.
+ * Sans cette entrée, le proxy renvoyait le destinataire vers /connexion :
+ * la fonctionnalité était donc inutilisable pour la seule personne à qui
+ * elle s'adresse. Le jeton porte seul l'autorisation, et il est
+ * dimensionné pour ça : 256 bits aléatoires, stocké HACHÉ (SHA-256),
+ * expirant, révocable, à réponse unique, et il n'ouvre l'accès qu'à la
+ * marque / le modèle / la couleur / l'identifiant public d'UN téléphone —
+ * ni numéro de série, ni IMEI, ni document, ni identité du propriétaire,
+ * ni aucune session.
+ *
+ * `/id/reparation` et `/id/invitation` restent volontairement HORS de
+ * cette liste : ces deux parcours exigent un compte Nireo par conception
+ * (tracer l'auteur d'une intervention, rattacher une invitation à une
+ * adresse), et leur page ne fait qu'inviter à se connecter.
  */
-const NIREO_ID_PUBLIC_PREFIXES = ["/id/exemple", "/id/p", "/id/s"];
+const NIREO_ID_PUBLIC_PREFIXES = ["/id/exemple", "/id/p", "/id/s", "/id/bilan"];
 
 function isNireoIdPublicPath(pathname: string): boolean {
   if (pathname === "/id") return true;
@@ -116,6 +137,10 @@ async function capturePartnerReferral(
   response: NextResponse
 ): Promise<void> {
   if (request.method !== "GET") return;
+  // Attribuer une commission à un partenaire est une finalité MARKETING :
+  // sans consentement, le clic reste comptabilisé côté partenaire (donnée
+  // agrégée, sans identifiant) mais AUCUN cookie de suivi n'est posé.
+  const consented = hasAnalyticsConsent(request.cookies.get(CONSENT_COOKIE)?.value);
   const { pathname, searchParams } = request.nextUrl;
   if (pathname.startsWith("/api") || pathname.startsWith("/admin") || pathname.startsWith("/auth")) {
     return;
@@ -136,6 +161,9 @@ async function capturePartnerReferral(
     userAgent: request.headers.get("user-agent"),
   });
   if (!result.valid) return;
+
+  // Le clic est mesuré, l'attribution non : pas de cookie sans consentement.
+  if (!consented) return;
 
   // First-touch : une attribution existante et lisible reste en place.
   const existing = parseRefCookie(request.cookies.get(REF_COOKIE_NAME)?.value);
@@ -183,6 +211,15 @@ function captureLandingIdentity(request: NextRequest): IdentityCookie[] {
   }
   // Les robots ne sont ni identifiés, ni personnalisés, ni mesurés.
   if (isCrawler(request.headers.get("user-agent"))) return [];
+
+  // CONSENTEMENT — la condition qui manquait.
+  // `nireo_vid` et `nireo_vst` ne sont pas strictement nécessaires : ils
+  // mesurent ET personnalisent (quelle version de la vitrine est servie).
+  // Tant que le visiteur n'a pas accepté, rien n'est posé. La vitrine sert
+  // alors sa variante de référence — cas déjà prévu par le moteur
+  // (`resolve.ts` renvoie le fallback quand `visitorId` est vide), donc
+  // aucune page ne casse et aucune mesure biaisée n'est enregistrée.
+  if (!hasAnalyticsConsent(request.cookies.get(CONSENT_COOKIE)?.value)) return [];
 
   const out: IdentityCookie[] = [];
   const nowSec = Math.floor(Date.now() / 1000);
@@ -258,6 +295,19 @@ export async function proxy(request: NextRequest) {
     });
   }
 
+  // RETRAIT DU CONSENTEMENT — sans ceci, « Refuser » ne serait qu'un
+  // affichage : les cookies déjà posés (HttpOnly, donc hors de portée du
+  // JavaScript de la page) continueraient d'être renvoyés à chaque requête,
+  // et la vitrine continuerait de personnaliser à partir d'eux.
+  // Seul le serveur peut les effacer : c'est fait ici, à chaque passage.
+  if (!hasAnalyticsConsent(request.cookies.get(CONSENT_COOKIE)?.value)) {
+    for (const name of [VISITOR_COOKIE, VISIT_COOKIE, REF_COOKIE_NAME]) {
+      if (request.cookies.has(name)) {
+        response.cookies.set(name, "", { maxAge: 0, path: "/" });
+      }
+    }
+  }
+
   // Jamais bloquant : une erreur d'attribution n'empêche pas la navigation.
   try {
     await capturePartnerReferral(request, response);
@@ -294,7 +344,12 @@ async function handleRequest(request: NextRequest) {
         );
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, adjustPersistence(options, remember))
+          response.cookies.set(name, value, {
+            ...adjustPersistence(options, remember),
+            // @supabase/ssr ne renseigne pas `secure` : sans ce repli, le
+            // cookie de session repart sans le drapeau à chaque rafraîchissement.
+            secure: options?.secure ?? SECURE_COOKIES,
+          })
         );
       },
     },

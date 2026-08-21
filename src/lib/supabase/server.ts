@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { getSupabaseEnv } from "./config";
+import { SECURE_COOKIES } from "./session-persistence";
 
 /**
  * Client Supabase côté serveur (Server Components, Route Handlers,
@@ -18,7 +19,12 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
+            // `secure` n'est pas fourni par @supabase/ssr : sans ce repli,
+            // le cookie de session repart sans le drapeau.
+            cookieStore.set(name, value, {
+              ...options,
+              secure: options?.secure ?? SECURE_COOKIES,
+            })
           );
         } catch {
           // Appelé depuis un Server Component : les cookies sont

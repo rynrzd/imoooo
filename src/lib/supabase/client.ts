@@ -5,6 +5,7 @@ import {
   adjustPersistence,
   REMEMBER_COOKIE,
   rememberFromCookies,
+  SECURE_COOKIES,
   type PersistenceOptions,
 } from "./session-persistence";
 
@@ -37,7 +38,9 @@ function serializeCookie(
   if (options.expires instanceof Date) parts.push(`Expires=${options.expires.toUTCString()}`);
   const sameSite = typeof options.sameSite === "string" ? options.sameSite : "lax";
   parts.push(`SameSite=${sameSite.charAt(0).toUpperCase()}${sameSite.slice(1)}`);
-  if (options.secure) parts.push("Secure");
+  // @supabase/ssr ne renseigne jamais `secure` : sans ce repli, le cookie de
+  // session partait sans le drapeau (voir SECURE_COOKIES).
+  if (options.secure ?? SECURE_COOKIES) parts.push("Secure");
   return parts.join("; ");
 }
 
@@ -49,7 +52,9 @@ function serializeCookie(
 export function setRememberSession(remember: boolean): void {
   if (typeof document === "undefined") return;
   const oneYear = 60 * 60 * 24 * 365;
-  document.cookie = `${REMEMBER_COOKIE}=${remember ? "1" : "0"}; Path=/; Max-Age=${oneYear}; SameSite=Lax`;
+  document.cookie =
+    `${REMEMBER_COOKIE}=${remember ? "1" : "0"}; Path=/; Max-Age=${oneYear}; SameSite=Lax` +
+    (SECURE_COOKIES ? "; Secure" : "");
 }
 
 /** Client Supabase côté navigateur (composants client), instance unique. */

@@ -3,8 +3,23 @@
 import * as React from "react";
 
 /**
- * Enrichissements locaux du dossier locataire (notes privées, garant).
- * Stockés dans le navigateur : aucun impact sur le modèle de données serveur.
+ * Enrichissements LOCAUX du dossier locataire (notes privées, garant).
+ *
+ * ⚠ Ces données vivent uniquement dans le `localStorage` du navigateur.
+ * Conséquences qu'il faut assumer devant l'utilisateur, et donc lui dire :
+ *  • elles ne suivent pas le compte : un autre appareil ne les voit pas ;
+ *  • elles disparaissent avec les données de navigation ;
+ *  • elles ne figurent NI dans l'export de données, NI dans la suppression
+ *    de compte (qui ne touche que la base et le Storage) ;
+ *  • elles restent lisibles après déconnexion sur un poste partagé.
+ *
+ * `saveNotes` retourne donc un booléen : l'écriture peut échouer (navigation
+ * privée Safari, quota plein) et l'appelant doit pouvoir le dire au lieu
+ * d'afficher un succès de principe.
+ *
+ * Le jour où ces champs doivent réellement suivre le compte, la seule
+ * solution correcte est une colonne en base — pas un stockage navigateur
+ * plus malin.
  */
 
 const NOTES_PREFIX = "immopilot:tenant-notes:";
@@ -33,11 +48,15 @@ export function useTenantNotes(tenantId: string) {
     return () => window.clearTimeout(id);
   }, [key]);
 
-  const saveNotes = React.useCallback(() => {
+  /** true si l'écriture a réellement eu lieu. */
+  const saveNotes = React.useCallback((): boolean => {
     try {
       window.localStorage.setItem(key, notes);
+      return true;
     } catch {
-      // Ignoré : l'utilisateur garde ses notes le temps de la session.
+      // Navigation privée ou quota plein : l'écriture n'a PAS eu lieu.
+      // L'appelant doit le signaler — un « Enregistré » serait un mensonge.
+      return false;
     }
   }, [key, notes]);
 

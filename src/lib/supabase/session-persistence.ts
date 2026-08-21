@@ -15,6 +15,28 @@
 
 export const REMEMBER_COOKIE = "immopilot-remember";
 
+/**
+ * `Secure` sur les cookies de session — posé en production uniquement.
+ *
+ * @supabase/ssr ne met AUCUN `secure` dans ses options par défaut (voir
+ * `DEFAULT_COOKIE_OPTIONS` : path, sameSite, httpOnly, maxAge — et rien
+ * d'autre). Les trois endroits qui écrivent le cookie d'authentification
+ * — le client navigateur, le client serveur et le proxy — recopiaient donc
+ * des options sans `Secure`, et le cookie de session partait sans ce
+ * drapeau : vérifié en ligne, `sb-…-auth-token` était posé `SameSite=Lax`
+ * mais SANS `Secure`.
+ *
+ * Conséquence : une requête en clair vers le domaine emporterait le jeton
+ * de session. `Strict-Transport-Security` couvre déjà les visites suivant
+ * la première, mais un cookie de session n'a aucune raison d'être
+ * transportable en clair — le drapeau ferme le cas restant.
+ *
+ * En développement, `http://localhost` ne doit PAS le recevoir : un cookie
+ * `Secure` y serait purement et simplement ignoré par le navigateur, et
+ * plus personne ne pourrait se connecter en local.
+ */
+export const SECURE_COOKIES = process.env.NODE_ENV === "production";
+
 interface CookieLike {
   name: string;
   value: string;

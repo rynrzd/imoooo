@@ -80,6 +80,25 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  /**
+   * `Cross-Origin-Opener-Policy` — isole le contexte de navigation.
+   *
+   * Un site tiers qui ouvre Nireo (ou que Nireo ouvre) ne partage plus le
+   * même groupe de contextes : plus de `window.opener`, donc plus de fuite
+   * d'état entre onglets, et l'isolation par processus redevient effective.
+   *
+   * Aucune fonctionnalité n'en dépend : Nireo n'ouvre AUCUNE fenêtre
+   * surgissante — Stripe se fait par redirection (`checkout.sessions` →
+   * `session.url`), et Turnstile rend son défi dans une IFRAME, que la
+   * politique ne concerne pas. Voilà pourquoi `same-origin` peut être posé
+   * ici sans le dégrader en `same-origin-allow-popups`.
+   *
+   * `Cross-Origin-Resource-Policy` n'est volontairement PAS posé : il
+   * empêcherait les robots sociaux (Facebook, X, LinkedIn) de charger
+   * `/opengraph-image` depuis leur propre origine — l'aperçu des partages
+   * deviendrait vide, pour un gain nul sur des ressources déjà publiques.
+   */
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   ...(isDev
     ? []
     : [
@@ -115,6 +134,14 @@ const legacyAnchorRedirects = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * `X-Powered-By: Next.js` — retiré. Cet en-tête n'apporte rien au
+   * fonctionnement et annonce le framework ET sa famille de versions à
+   * qui balaie le web à la recherche d'une cible. Le supprimer ne protège
+   * de rien à lui seul (le reste de la réponse trahit Next.js), mais il n'y
+   * a aucune raison de tendre l'information.
+   */
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       // Photos de démonstration (mode démo uniquement).

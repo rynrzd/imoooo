@@ -188,7 +188,7 @@ export function ImportPropertiesDialog() {
             size="sm"
             onClick={() =>
               downloadFile(
-                "immopilot-modele-logements.csv",
+                "nireo-modele-logements.csv",
                 `${HEADER}\n${EXAMPLE_ROW}\n`,
                 "text/csv;charset=utf-8"
               )
