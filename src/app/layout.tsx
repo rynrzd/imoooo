@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { AnalyticsBeacon } from "@/components/analytics/beacon";
+import { CookieConsent } from "@/components/layout/cookie-consent";
+import { ErrorReporter } from "@/components/layout/error-reporter";
+import { SkipLink } from "@/components/layout/skip-link";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -30,9 +33,13 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <ThemeProvider>
+          {/* Premier élément focusable de toute page : voir SkipLink. */}
+          <SkipLink />
           {children}
           <Toaster position="bottom-right" richColors />
           <AnalyticsBeacon />
+          <ErrorReporter />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>
