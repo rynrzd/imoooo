@@ -23,9 +23,13 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
                   {crumb.name}
                 </span>
               ) : (
+                // `py-1` : 16 px de haut mesurés, c'est sous le minimum de
+                // 24 px (WCAG 2.5.8) et cela se sent au pouce sur mobile. Le
+                // padding vertical suffit à passer la barre sans déplacer
+                // quoi que ce soit — la ligne est déjà plus haute que ça.
                 <Link
                   href={crumb.path}
-                  className="rounded-sm underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="inline-block rounded-sm py-1 underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   {crumb.name}
                 </Link>

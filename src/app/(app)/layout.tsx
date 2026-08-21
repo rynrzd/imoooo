@@ -104,7 +104,7 @@ export default async function AppLayout({
       <div className="min-h-svh flex-1 bg-muted/40">
         <Sidebar />
         <MobileHeader />
-        <main className="lg:pl-64">
+        <main id="contenu" tabIndex={-1} className="lg:pl-64">
           {/* La barre de navigation inférieure est fixe : le contenu réserve
               sa hauteur ET la zone gestuelle iPhone, il ne passe donc jamais
               dessous. Au-dessus de 1024 px la barre n'existe pas et la marge

@@ -103,7 +103,7 @@ export default async function LandingLayout({ children }: { children: React.Reac
       <BrandIntro />
 
       <LandingHeader announcement={announcement_message} />
-      <main className="flex-1">{children}</main>
+      <main id="contenu" tabIndex={-1} className="flex-1">{children}</main>
       <LandingFooter />
     </div>
   );

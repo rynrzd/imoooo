@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   description:
     "Contactez l'équipe Nireo : questions sur le produit, les tarifs ou le plan Business+.",
   alternates: { canonical: "/contact" },
+  // Sans ceci, un partage de cette page affiche le titre générique du layout
+  // racine au lieu du sien.
+  openGraph: {
+    type: "website",
+    url: "/contact",
+    title: "Contact",
+    description:
+      "Contactez l'équipe Nireo : questions sur le produit, les tarifs ou le plan Business+.",
+  },
 };
 
 export default async function ContactPage() {

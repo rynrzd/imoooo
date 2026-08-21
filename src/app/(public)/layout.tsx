@@ -105,7 +105,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <LandingHeader announcement={announcement_message} />
       {/* Le header est fixe : le contenu commence sous lui — et sous le
           message d'annonce global quand il est posé. */}
-      <main
+      <main id="contenu" tabIndex={-1}
         className="flex-1"
         style={{
           paddingTop: announcement_message

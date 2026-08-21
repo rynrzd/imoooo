@@ -48,7 +48,7 @@ export default async function CheckupPage({
       : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col px-4 py-8">
+    <main id="contenu" tabIndex={-1} className="mx-auto flex min-h-svh w-full max-w-lg flex-col px-4 py-8">
       <div className="mb-6">
         <NidLogo href="/id" />
       </div>

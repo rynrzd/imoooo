@@ -433,6 +433,38 @@ textarea,
   outline-offset: 1px;
 }
 
+/* ================================================================== */
+/*  FOCUS DES ÉLÉMENTS À COMMANDES INTERNES                            */
+/*                                                                    */
+/*  Un `<input type="date">` n'est pas un champ : c'est trois sous-    */
+/*  champs (jour, mois, année) vivant dans le shadow DOM du            */
+/*  navigateur, que la tabulation traverse l'un après l'autre. Un      */
+/*  `<video controls>` a le même fonctionnement pour sa barre de       */
+/*  lecture.                                                           */
+/*                                                                    */
+/*  Conséquence mesurée au parcours Tab réel : au premier arrêt        */
+/*  l'anneau est là, au deuxième — MÊME ÉLÉMENT, clavier toujours      */
+/*  dedans — `outline: none`, `box-shadow: none`. La personne saisit   */
+/*  sans savoir où elle est.                                           */
+/*                                                                    */
+/*  La raison : dès que le focus descend dans le shadow DOM, l'hôte    */
+/*  ne correspond plus ni à `:focus-visible` ni à `:focus`. Seul       */
+/*  `:focus-within` reste vrai. C'est donc lui, et pas autre chose.    */
+/*                                                                    */
+/*  Aucun effet de bord à la souris : on n'ouvre pas un sélecteur de   */
+/*  date ou un lecteur vidéo sans intention de s'en servir.            */
+/* ================================================================== */
+
+input[type="date"]:focus-within,
+input[type="month"]:focus-within,
+input[type="week"]:focus-within,
+input[type="time"]:focus-within,
+input[type="datetime-local"]:focus-within,
+video[controls]:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
 /*
  * Barre d'actions collée en bas des parcours longs. Elle réserve la zone
  * gestuelle iPhone, et le corps du formulaire réserve SA hauteur (variable

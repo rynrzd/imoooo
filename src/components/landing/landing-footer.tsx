@@ -54,7 +54,8 @@ function LegalRow({ delay }: { delay: string }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="nl-focus text-white/55 transition-colors hover:text-white/90"
+              prefetch={false}
+              className="nl-focus inline-block py-1 text-white/55 transition-colors hover:text-white/90"
             >
               {link.label}
             </Link>
@@ -63,7 +64,7 @@ function LegalRow({ delay }: { delay: string }) {
         <li>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="nl-focus text-white/55 transition-colors hover:text-white/90"
+            className="nl-focus inline-block py-1 text-white/55 transition-colors hover:text-white/90"
           >
             {CONTACT_EMAIL}
           </a>
@@ -92,12 +93,22 @@ export function LandingFooter({ complet = false }: { complet?: boolean }) {
               <p className="text-[0.72rem] font-medium tracking-[0.14em] text-white/45 uppercase">
                 {column.title}
               </p>
-              <ul className="mt-4 space-y-2.5 text-[0.9rem]">
+              {/* `py-1` : ces liens mesuraient 22 px de haut, sous le minimum
+                  de 24 px (WCAG 2.5.8) — la hauteur est reprise sur l'interligne
+                  (`space-y-2` au lieu de `2.5`), la colonne ne s'allonge pas.
+
+                  `prefetch={false}` : le pied de page compte une vingtaine de
+                  liens que Next précharge TOUS dès qu'il entre dans l'écran —
+                  mesuré à 61 requêtes sur /contact contre 20 ailleurs. On ne
+                  précharge pas ce que presque personne ne clique ; le clic reste
+                  une navigation instantanée. */}
+              <ul className="mt-4 space-y-2 text-[0.9rem]">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="nl-focus nl-underline text-white/75 transition-colors hover:text-white"
+                      prefetch={false}
+                      className="nl-focus nl-underline inline-block py-1 text-white/75 transition-colors hover:text-white"
                     >
                       {link.label}
                     </Link>
@@ -135,7 +146,8 @@ export function LandingFooter({ complet = false }: { complet?: boolean }) {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="nl-focus nl-underline text-white/80 transition-colors hover:text-white"
+                      prefetch={false}
+                      className="nl-focus nl-underline inline-block py-1 text-white/80 transition-colors hover:text-white"
                     >
                       {link.label}
                     </Link>

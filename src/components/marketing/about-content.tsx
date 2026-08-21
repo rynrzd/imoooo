@@ -274,11 +274,20 @@ export function AboutContent({ profile: p }: { profile: CompanyProfile }) {
             <Reveal className="mx-auto mt-10 max-w-4xl">
               <div className="border border-[var(--nl-ink)]/12 bg-[color-mix(in_srgb,#fff_55%,var(--nl-paper))] overflow-hidden rounded-3xl p-2">
                 <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
+                  {/* La tabulation s'arrête sur le lecteur, mais rien ne le
+                      montrait : le navigateur ne dessine son propre repère que
+                      sur les commandes internes, pas sur l'élément. */}
                   <video
                     controls
                     playsInline
                     preload="metadata"
                     poster={p.video?.thumbnail || undefined}
+                    // L'anneau de focus du lecteur est posé dans globals.css
+                    // (`video[controls]:focus-within`) : la tabulation descend
+                    // dans les commandes internes du navigateur, et l'élément
+                    // cesse alors de correspondre à `:focus` comme à
+                    // `:focus-visible`.
+                    aria-label="Présentation de Nireo en vidéo"
                     className="h-full w-full object-contain"
                   >
                     <source src={videoSrc} type={videoMime(videoSrc)} />

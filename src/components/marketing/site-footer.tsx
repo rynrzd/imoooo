@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { NireoLogo } from "@/components/marketing/nireo-logo";
 import { GUIDES, PILLAR_PAGE, RESOURCES_PAGE, TOOLS } from "@/config/seo-pages";
-import { version } from "../../../package.json";
+
 
 /** Adresse de contact publique (footer, pages légales, formulaire, bug). */
 export const CONTACT_EMAIL = "nireo.contacte@gmail.com";
@@ -67,59 +65,13 @@ export const COLUMNS: { title: string; links: { label: string; href: string }[] 
   },
 ];
 
-export function SiteFooter({ flat = false }: { flat?: boolean }) {
-  return (
-    <footer className="nireo-hairline relative border-t border-border bg-muted/40">
-      {/* 6 colonnes au total (marque + 5 rubriques) : la grille se replie en
-          2 puis 3 colonnes avant d'être serrée — jamais de texte écrasé. */}
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 md:grid-cols-3 lg:grid-cols-[1.3fr_repeat(5,minmax(0,1fr))]">
-        <div className="space-y-3">
-          {/* `flat` : monogramme plat, utilisé par la landing claire. */}
-          <NireoLogo flat={flat} />
-          <p className="max-w-xs text-sm text-muted-foreground">
-            Le logiciel de gestion locative qui centralise logements,
-            locataires, loyers, documents et travaux pour les propriétaires
-            bailleurs.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Contact :{" "}
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="text-foreground underline-offset-2 hover:underline"
-            >
-              {CONTACT_EMAIL}
-            </a>
-          </p>
-        </div>
-
-        {COLUMNS.map((column) => (
-          <nav key={column.title} aria-label={column.title} className="space-y-3">
-            <p className="text-xs font-medium tracking-wide text-foreground uppercase">
-              {column.title}
-            </p>
-            <ul className="space-y-2">
-              {column.links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
-      </div>
-      <div className="border-t border-border/70">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 sm:px-6">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Nireo. Tous droits réservés.
-          </p>
-          <p className="text-xs text-muted-foreground">Version {version}</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+/*
+ * Le composant `SiteFooter` vivait ici. Il n'était plus RENDU nulle part :
+ * depuis l'unification de la vitrine, les segments (landing), (public) et
+ * (legal) affichent tous `LandingFooter`. Seules ses données servaient
+ * encore — d'où ce fichier, qui ne garde plus qu'elles.
+ *
+ * Deux pieds de page dont un mort, c'était surtout un piège : une retouche
+ * (cible tactile, préchargement) pouvait atterrir dans celui que personne
+ * n'affiche, sans que rien ne le signale.
+ */

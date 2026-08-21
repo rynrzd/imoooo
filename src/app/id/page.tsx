@@ -135,7 +135,7 @@ export default function NireoIdLandingPage() {
     <div className="flex min-h-svh flex-col">
       <NidPublicHeader />
 
-      <main id="contenu" className="flex-1">
+      <main id="contenu" tabIndex={-1} className="flex-1">
         {/* ---------------- Hero ---------------- */}
         <section className="mx-auto w-full max-w-5xl px-5 pt-16 pb-14 sm:px-8 md:pt-24 md:pb-20">
           <div className="grid gap-12 md:grid-cols-[1.15fr_1fr] md:items-start md:gap-16">

@@ -8,6 +8,15 @@ export const metadata: Metadata = {
   description:
     "Découvrez Nireo : notre histoire, notre vision, nos valeurs, l'équipe et pourquoi travailler avec nous.",
   alternates: { canonical: "/a-propos" },
+  // Sans ceci, un partage de cette page affiche le titre générique du layout
+  // racine au lieu du sien.
+  openGraph: {
+    type: "website",
+    url: "/a-propos",
+    title: "À propos",
+    description:
+      "Découvrez Nireo : notre histoire, notre vision, nos valeurs, l'équipe et pourquoi travailler avec nous.",
+  },
 };
 
 /**

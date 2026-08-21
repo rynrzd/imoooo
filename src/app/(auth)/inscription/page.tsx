@@ -45,9 +45,22 @@ const REASSURANCE = [
   { icon: Lock, label: "Données privées" },
 ];
 
-/** Destination après inscription : uniquement un chemin interne. */
+/**
+ * Destination après inscription : uniquement un chemin interne.
+ *
+ * La contre-barre est refusée au même titre que « // » : les analyseurs
+ * d'URL des navigateurs la convertissent en barre oblique, si bien que
+ * « /\evil.com » peut se relire « //evil.com », c'est-à-dire une adresse
+ * protocol-relative vers un autre domaine. Ce n'est aujourd'hui exploitable
+ * ni ici ni dans /auth/callback (vérifié : la reconstruction garde
+ * `nireo.fr` pour hôte), mais la redirection n'a aucune raison d'accepter
+ * autre chose qu'un chemin — et cette garantie ne doit pas dépendre du
+ * détail d'implémentation d'un analyseur d'URL.
+ */
 function safeNext(raw: string | null): string {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+  return raw && raw.startsWith("/") && !raw.startsWith("//") && !raw.includes("\\")
+    ? raw
+    : "/";
 }
 
 function SignupForm() {
@@ -284,7 +297,7 @@ function ConfirmEmail({
       title="Vérifiez votre boîte mail."
       footer={
         <p className="text-center text-sm text-muted-foreground">
-          <Link href="/connexion" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/connexion" className="inline-block py-1 font-medium text-primary underline-offset-4 hover:underline">
             Retour à la connexion
           </Link>
         </p>

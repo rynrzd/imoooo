@@ -88,7 +88,7 @@ export default async function WelcomePage() {
     ((user.user_metadata?.full_name as string | undefined) || "");
 
   return (
-    <main className="flex min-h-svh flex-col bg-muted/40">
+    <main id="contenu" tabIndex={-1} className="flex min-h-svh flex-col bg-muted/40">
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-10 sm:px-6">
         <div className="mb-8 flex justify-center">
           <NireoLogo href="/" />

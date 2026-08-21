@@ -23,7 +23,7 @@ export default function NireoIdExamplePage() {
     <div className="flex min-h-svh flex-col">
       <NidPublicHeader />
 
-      <main className="flex-1">
+      <main id="contenu" tabIndex={-1} className="flex-1">
         <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
           {/* Mention non ambiguë, présente en haut de page. */}
           <div

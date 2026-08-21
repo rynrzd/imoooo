@@ -203,12 +203,20 @@ export default function PersonalInformationPage() {
               <UserRound className="size-6 text-muted-foreground" aria-hidden />
             )}
           </span>
+          {/* Le vrai bouton, c'est celui d'à côté : ce champ n'existe que pour
+              ouvrir le sélecteur de fichiers. `sr-only` le cachait à l'œil mais
+              le laissait dans l'ordre de tabulation — une personne au clavier
+              tombait donc sur un champ de fichier SANS ÉTIQUETTE, avant même
+              d'atteindre le bouton qui le déclenche. On le sort du parcours et
+              de la lecture : le bouton porte déjà le nom et l'action. */}
           <input
             ref={avatarInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="sr-only"
             id="avatar-file"
+            tabIndex={-1}
+            aria-hidden="true"
             onChange={(e) => void onAvatarFile(e.target.files?.[0] ?? null)}
           />
           <div className="flex flex-wrap items-center gap-3">

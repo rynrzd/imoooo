@@ -122,7 +122,7 @@ export default async function NireoIdAppLayout({
         ) : null}
       </header>
 
-      <main className="pb-24 lg:pb-10 lg:pl-64">
+      <main id="contenu" tabIndex={-1} className="pb-24 lg:pb-10 lg:pl-64">
         <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {!isNireoIdConfigured ? (
             <p className="mb-6 rounded-lg border border-[color-mix(in_srgb,var(--nid-warning)_35%,transparent)] bg-[color-mix(in_srgb,var(--nid-warning)_10%,transparent)] p-4 text-sm text-foreground">

@@ -45,7 +45,7 @@ export default async function LegalLayout({ children }: { children: React.ReactN
       <LandingHeader announcement={announcement_message} />
       {/* Le header est fixe : le contenu commence sous lui — et sous le
           message d'annonce global quand il est posé. */}
-      <main
+      <main id="contenu" tabIndex={-1}
         className="flex-1"
         style={{
           paddingTop: announcement_message

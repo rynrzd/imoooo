@@ -110,8 +110,14 @@ export async function GET(request: Request) {
   // Une récupération de mot de passe doit atterrir sur le formulaire dédié.
   const defaultNext = type === "recovery" ? "/reinitialiser-mot-de-passe" : "/";
   const next = searchParams.get("next") ?? defaultNext;
-  // Sécurité : on ne redirige que vers des chemins internes.
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  // Sécurité : on ne redirige que vers des chemins internes. La contre-barre
+  // est refusée avec « // » — les analyseurs d'URL la convertissent en barre
+  // oblique, donc « /\evil.com » peut se relire « //evil.com » (adresse
+  // protocol-relative). La reconstruction ci-dessous garde bien `origin` pour
+  // hôte, mais une destination de redirection n'a aucune raison d'être autre
+  // chose qu'un chemin.
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/";
 
   const redirect = (path: string) => NextResponse.redirect(`${origin}${path}`);
   const redirectError = (kind: "lien-expire" | "lien-invalide") =>

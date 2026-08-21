@@ -9,6 +9,7 @@ import { PromoBanner } from "@/components/marketing/promo-banner";
 import { PILLAR_PAGE } from "@/config/seo-pages";
 import { isUserAdmin } from "@/lib/admin/auth";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
+import { withVerifiedPromoCode } from "@/lib/promo/banner";
 import {
   breadcrumbJsonLd,
   faqPageJsonLd,
@@ -31,6 +32,9 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/tarifs" },
+  // Sans ceci, partager cette page affiche le titre générique du layout racine
+  // (« Nireo — Gérez tout votre patrimoine… ») au lieu de « Tarifs ».
+  openGraph: { type: "website", url: "/tarifs", title: TITLE, description: DESCRIPTION },
 };
 
 /** Même liste pour l'accordéon visible et le balisage FAQPage. */
@@ -62,6 +66,8 @@ export default async function PricingPage() {
   }
 
   const { marketing_promo } = await getPublicSiteSettings();
+  // Un code annoncé mais inutilisable au paiement ne doit jamais être affiché.
+  const promo = await withVerifiedPromoCode(marketing_promo);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
@@ -97,7 +103,7 @@ export default async function PricingPage() {
 
       {/* Bloc marketing piloté depuis l'admin (masqué si non activé). */}
       <div className="mx-auto mt-10 max-w-3xl">
-        <PromoBanner promo={marketing_promo} />
+        <PromoBanner promo={promo} />
       </div>
 
       <div className="mt-12">

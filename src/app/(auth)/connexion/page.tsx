@@ -96,7 +96,13 @@ function LoginForm() {
       }
 
       const next = searchParams.get("next");
-      const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      // Chemin interne uniquement — la contre-barre est refusée comme « // » :
+      // un analyseur d'URL la relit en barre oblique (« /\evil.com » →
+      // « //evil.com », adresse protocol-relative vers un autre domaine).
+      const safeNext =
+        next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")
+          ? next
+          : "/";
       router.replace(safeNext);
       router.refresh();
     } finally {

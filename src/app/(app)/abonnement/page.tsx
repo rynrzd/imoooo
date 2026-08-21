@@ -1,5 +1,6 @@
 import { SubscriptionPageClient } from "@/components/subscription/subscription-page";
 import { getPublicSiteSettings } from "@/lib/admin/settings";
+import { withVerifiedPromoCode } from "@/lib/promo/banner";
 import { isStripeConfigured } from "@/lib/stripe/config";
 
 /**
@@ -10,5 +11,7 @@ import { isStripeConfigured } from "@/lib/stripe/config";
  */
 export default async function SubscriptionPage() {
   const { marketing_promo } = await getPublicSiteSettings();
-  return <SubscriptionPageClient stripeEnabled={isStripeConfigured} promo={marketing_promo} />;
+  // Même règle qu'au paiement : un code inutilisable n'est pas affiché.
+  const promo = await withVerifiedPromoCode(marketing_promo);
+  return <SubscriptionPageClient stripeEnabled={isStripeConfigured} promo={promo} />;
 }

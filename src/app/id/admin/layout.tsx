@@ -60,7 +60,7 @@ export default async function NidAdminLayout({
         </nav>
       </header>
 
-      <main className="flex-1">
+      <main id="contenu" tabIndex={-1} className="flex-1">
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:py-8">{children}</div>
       </main>
     </div>

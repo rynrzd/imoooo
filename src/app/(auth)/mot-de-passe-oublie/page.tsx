@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
           <p className="text-center text-sm text-muted-foreground">
             <Link
               href="/connexion"
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="inline-block py-1 font-medium text-primary underline-offset-4 hover:underline"
             >
               Retour à la connexion
             </Link>
@@ -102,7 +102,7 @@ export default function ForgotPasswordPage() {
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/connexion"
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="inline-block py-1 font-medium text-primary underline-offset-4 hover:underline"
           >
             Retour à la connexion
           </Link>

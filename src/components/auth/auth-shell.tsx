@@ -110,8 +110,17 @@ export function AuthShell({
         </div>
       </section>
 
-      {/* ---------------- Le formulaire ---------------- */}
-      <section className="animate-panel-in relative -mt-5 flex flex-1 flex-col rounded-t-3xl bg-background px-6 pt-7 sm:px-8 lg:mt-0 lg:justify-center lg:rounded-none lg:px-14 lg:py-12">
+      {/* ---------------- Le formulaire ----------------
+          C'est le contenu principal de la page : la photographie et la
+          promesse qui l'accompagne relèvent de la marque. D'où `<main>` ici,
+          et non un `<section>` de plus — sans lui ces écrans n'avaient AUCUN
+          point de repère principal, et le lien d'évitement n'avait pas de
+          cible. */}
+      <main
+        id="contenu"
+        tabIndex={-1}
+        className="animate-panel-in relative -mt-5 flex flex-1 flex-col rounded-t-3xl bg-background px-6 pt-7 sm:px-8 lg:mt-0 lg:justify-center lg:rounded-none lg:px-14 lg:py-12"
+      >
         <div
           className="mx-auto w-full max-w-[28.75rem] lg:mx-0"
           style={{ paddingBottom: "max(2rem, env(safe-area-inset-bottom))" }}
@@ -140,7 +149,7 @@ export function AuthShell({
 
           {footer ? <div className="mt-6">{footer}</div> : null}
         </div>
-      </section>
+      </main>
     </div>
   );
 }

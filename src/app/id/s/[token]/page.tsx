@@ -51,7 +51,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col">
       <NidPublicHeader />
-      <main className="flex-1">
+      <main id="contenu" tabIndex={-1} className="flex-1">
         <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6 lg:py-14">{children}</div>
       </main>
       <NidPublicFooter />

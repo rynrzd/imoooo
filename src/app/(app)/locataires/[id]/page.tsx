@@ -271,12 +271,24 @@ export default function TenantDetailPage({
                 className="w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 aria-label="Notes sur le locataire"
               />
+              <p className="text-xs text-muted-foreground">
+                Ces notes restent sur cet appareil : elles ne sont pas
+                synchronisées avec votre compte et ne figurent pas dans
+                l&apos;export de vos données.
+              </p>
               <div className="flex justify-end">
                 <Button
                   size="sm"
                   onClick={() => {
-                    saveNotes();
-                    toast.success("Notes enregistrées.");
+                    // L'écriture peut échouer (navigation privée, quota) :
+                    // on annonce ce qui s'est réellement passé.
+                    if (saveNotes()) {
+                      toast.success("Notes enregistrées sur cet appareil.");
+                    } else {
+                      toast.error(
+                        "Notes non enregistrées : le stockage de ce navigateur est indisponible."
+                      );
+                    }
                   }}
                 >
                   Enregistrer les notes

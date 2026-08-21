@@ -9,6 +9,15 @@ export const metadata: Metadata = {
     "Découvrez Nireo : notre histoire, notre vision, nos valeurs, l'équipe et pourquoi travailler avec nous.",
   // Contenu identique à /a-propos → on consolide le SEO vers la route canonique.
   alternates: { canonical: "/a-propos" },
+  // Partage social : le titre propre à la page, pas le slogan du layout racine.
+  // L'URL reste la route canonique, comme pour `alternates`.
+  openGraph: {
+    type: "website",
+    url: "/a-propos",
+    title: "Entreprise",
+    description:
+      "Découvrez Nireo : notre histoire, notre vision, nos valeurs, l'équipe et pourquoi travailler avec nous.",
+  },
 };
 
 /**

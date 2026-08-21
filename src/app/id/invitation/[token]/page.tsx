@@ -25,7 +25,7 @@ export default async function InvitePage({
   const session = await getNidSession();
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col justify-center px-4 py-10">
+    <main id="contenu" tabIndex={-1} className="mx-auto flex min-h-svh w-full max-w-lg flex-col justify-center px-4 py-10">
       <div className="mb-6">
         <NidLogo href="/id" />
       </div>
