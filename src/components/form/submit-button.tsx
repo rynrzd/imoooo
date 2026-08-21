@@ -1,16 +1,34 @@
 "use client";
 
+import * as React from "react";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** Deux clics plus rapprochés que ça sur un envoi sont le même geste. */
+const BURST_MS = 500;
 
 /**
  * Action principale d'un formulaire — dominante, pleine largeur, 48 px.
  *
- * Elle porte elle-même la protection contre le double clic : `pending` la
- * désactive, et le `disabled` d'un bouton natif ignore aussi la touche Entrée
- * répétée. Aucun appelant n'a donc à réinventer ce garde-fou.
+ * ── DOUBLE CLIC ──────────────────────────────────────────────────────────
+ * `disabled={pending}` NE SUFFIT PAS, contrairement à ce que ce composant
+ * affirmait jusqu'ici. `setPending(true)` programme un rendu : il ne désactive
+ * pas le bouton dans le tick courant. Trois clics rapides partent donc tous
+ * les trois, et chaque gestionnaire lit encore `pending === false`.
  *
- * Les trois états sont visibles : au repos, pendant l'envoi, après succès.
+ * Constaté en pilotant un vrai navigateur sur la création d'un logement :
+ * DEUX logements créés, et le quota du plan Gratuit (un seul logement)
+ * franchi par un simple double clic.
+ *
+ * D'où ce verrou de temps, tenu dans une référence — donc lu et écrit
+ * immédiatement, sans attendre de rendu. Il n'empêche que la RAFALE : un
+ * nouveau clic délibéré (après avoir corrigé un champ, par exemple) passe
+ * normalement, puisqu'il arrive bien au-delà d'un demi-tiers de seconde.
+ *
+ * Les appelants gardent leur propre garde-fou : celui-ci est une ceinture
+ * de plus, posée une fois pour les cinquante formulaires du produit.
+ *
+ * Les trois états restent visibles : au repos, pendant l'envoi, après succès.
  */
 export function SubmitButton({
   children,
@@ -34,10 +52,22 @@ export function SubmitButton({
   onClick?: () => void;
   className?: string;
 }) {
+  const lastAccepted = React.useRef(0);
+  const guarded = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const now = Date.now();
+    if (now - lastAccepted.current < BURST_MS) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    lastAccepted.current = now;
+    onClick?.();
+  };
+
   return (
     <button
       type={type}
-      onClick={onClick}
+      onClick={guarded}
       disabled={pending || done || disabled}
       aria-busy={pending || undefined}
       className={cn(

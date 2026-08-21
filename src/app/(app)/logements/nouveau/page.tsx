@@ -146,6 +146,20 @@ export default function NewPropertyPage() {
   const [values, setValues] = React.useState<DraftValues>(EMPTY);
   const [errors, setErrors] = React.useState<Errors>({});
   const [busy, setBusy] = React.useState(false);
+  /*
+   * VERROU SYNCHRONE — `busy` seul ne protège de rien.
+   *
+   * `setBusy(true)` programme un rendu, il ne change pas `busy` dans le tick
+   * courant : trois clics rapides sur « Continuer vers les documents » lisent
+   * tous `busy === false` depuis leur closure et partent tous les trois.
+   * Constaté en pilotant un vrai navigateur : DEUX logements créés — et, sur
+   * un plan Gratuit limité à un seul, le quota franchi par un simple double
+   * clic.
+   *
+   * Une référence, elle, est écrite et relue immédiatement : le deuxième clic
+   * la voit déjà posée. Elle est libérée dans le `finally`, comme `busy`.
+   */
+  const inFlight = React.useRef(false);
 
   // Écritures déjà réussies — une reprise après erreur ne les rejoue pas.
   const [createdId, setCreatedId] = React.useState<string | null>(null);
@@ -294,7 +308,7 @@ export default function NewPropertyPage() {
 
   /** Crée le logement puis, s'il est loué, son bail. Idempotent en cas de reprise. */
   const createProperty = async () => {
-    if (busy) return;
+    if (inFlight.current || busy) return;
     if (!validateStep2()) return;
 
     // Deuxième contrôle du quota, juste avant l'écriture (le compte a pu
@@ -304,6 +318,7 @@ export default function NewPropertyPage() {
       return;
     }
 
+    inFlight.current = true;
     setBusy(true);
     try {
       const surface = parseAmount(values.surface) ?? 0;
@@ -374,13 +389,15 @@ export default function NewPropertyPage() {
     } catch (e) {
       toast.error(toUserMessage(e, "Création impossible. Réessayez."));
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   };
 
   /** Étape 3 : le document, rattaché au logement déjà créé. */
   const uploadDocument = async () => {
-    if (!file || !createdId || busy) return;
+    if (inFlight.current || !file || !createdId || busy) return;
+    inFlight.current = true;
     setBusy(true);
     // La progression est une estimation honnête : le SDK Supabase Storage
     // n'expose pas d'événement de téléversement. On avance jusqu'à 90 % puis
